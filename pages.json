@@ -1,0 +1,106 @@
+{
+	"pages": [ //pages数组中第一项表示应用启动页，参考：https://uniapp.dcloud.io/collocation/pages
+		{
+			"path": "pages/index/index",
+			"style": {
+				"navigationBarTitleText": "空调温控"
+			}
+		},
+		{
+			"path": "pages/device/device",
+			"style": {
+				"navigationBarTitleText": "设备管理"
+			}
+		},
+		{
+			"path": "pages/settings/temp-hum",
+			"style": {
+				"navigationBarTitleText": "温湿度设置"
+			}
+		},
+		{
+			"path": "pages/settings/ac-params",
+			"style": {
+				"navigationBarTitleText": "空调参数设置"
+			}
+		},
+
+		{
+			"path": "pages/settings/calibration",
+			"style": {
+				"navigationBarTitleText": "温湿度校准"
+			}
+		},
+		{
+			"path": "pages/settings/device-info",
+			"style": {
+				"navigationBarTitleText": "设备信息"
+			}
+		},
+		{
+			"path": "pages/settings/ota",
+			"style": {
+				"navigationBarTitleText": "OTA固件升级"
+			}
+		},
+			{
+				"path": "pages/settings/wifi-settings",
+				"style": {
+					"navigationBarTitleText": "网络设置"
+				}
+			},
+			{
+				"path": "pages/settings/ap-wifi",
+				"style": {
+					"navigationBarTitleText": "AP热点设置"
+				}
+			},
+			{
+				"path": "pages/settings/sta-wifi",
+				"style": {
+					"navigationBarTitleText": "STA客户端WiFi"
+				}
+			},
+			{
+				"path": "pages/settings/mqtt-config",
+				"style": {
+					"navigationBarTitleText": "MQTT配置"
+				}
+			},
+
+		{
+			"path": "pages/settings/scene",
+			"style": {
+				"navigationBarTitleText": "场景模式"
+			}
+		},
+		{
+			"path": "pages/settings/sleep-settings",
+			"style": {
+				"navigationBarTitleText": "休眠开关"
+			}
+		},
+			{
+				"path": "pages/settings/settings",
+				"style": {
+					"navigationBarTitleText": "设置"
+				}
+			},
+			{
+				"path": "pages/settings/about",
+				"style": {
+					"navigationBarTitleText": "关于"
+				}
+			}
+	],
+	"globalStyle": {
+		"navigationBarTextStyle": "black",
+		"navigationBarTitleText": "空调温控",
+		"navigationBarBackgroundColor": "#F8F8F8",
+		"backgroundColor": "#F8F8F8",
+		"app-plus": {
+			"bounce": "none"
+		}
+	},
+	"uniIdRouter": {}
+}

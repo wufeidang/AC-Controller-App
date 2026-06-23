@@ -1,0 +1,26 @@
+{
+  "name": "空调温控",
+  "version": "1.0.0",
+  "description": "空调温控系统",
+  "main": "main.js",
+  "scripts": {
+    "dev": "uni-app dev",
+    "build:mp-weixin": "uni-app build --platform mp-weixin",
+    "build:app-plus": "uni-app build --platform app-plus",
+    "build:h5": "uni-app build --platform h5"
+  },
+  "dependencies": {
+    "vue": "^2.6.14",
+    "vuex": "^3.6.2"
+  },
+  "devDependencies": {
+    "@vue/compiler-sfc": "^2.6.14",
+    "cross-env": "^7.0.3",
+    "sass": "^1.98.0",
+    "sass-loader": "^16.0.7"
+  },
+  "browserslist": [
+    "Android >= 4.4",
+    "iOS >= 9.0"
+  ]
+}
