@@ -55,8 +55,8 @@ export default {
 			modalVisible: false, modalTitle: '', modalContent: '', modalType: 'info'
 		};
 	},
-	onLoad() { this.checkDevice(); this.loadStatus(); },
-	onShow() { this.checkDevice(); },
+		onLoad() { this.checkDevice(); this.loadStatus(); },
+		onShow() { this.checkDevice(); if (this.deviceConnected) this.loadStatus(); },
 	methods: {
 		checkDevice() { const d = uni.getStorageSync('connectedDevice'); this.deviceConnected = d && d.connected; if (d) api.setDeviceAddress(d.address); },
 		async loadStatus() {
@@ -68,7 +68,30 @@ export default {
 			if (!this.deviceConnected) { this.showToast('提示', '请先连接设备', 'warning'); return; }
 			if (!this.staSsid || !this.staPassword) { this.showToast('提示', '请输入 WiFi 名称和密码', 'warning'); return; }
 			if (this.saving) return;
-			try { this.saving = true; this.loadingVisible = true; this.loadingText = '连接中...'; await api.setStaWifi({ ssid: this.staSsid, password: this.staPassword }); this.showToast('成功', 'STA WiFi 设置成功，设备正在连接...', 'success'); setTimeout(() => { this.loadStatus(); }, 3000); } catch (e) { this.showToast('失败', e.message || '连接失败', 'error'); } finally { this.saving = false; this.loadingVisible = false; }
+			try {
+				this.saving = true; this.loadingVisible = true; this.loadingText = '配置中...';
+				await api.setStaWifi({ ssid: this.staSsid, password: this.staPassword });
+				this.showToast('成功', '已保存，设备正在连接 WiFi...', 'success');
+				// 轮询连接状态，最多尝试 10 次（30 秒）
+				for (let i = 0; i < 10; i++) {
+					await new Promise(r => setTimeout(r, 3000));
+					if (!this.deviceConnected) break;
+					this.loadingText = `等待连接...(${i + 1}/10)`;
+					try {
+						const res = await api.getStaWifi();
+						if (res.status === 'success') {
+							this.staInfo = res.data;
+							if (res.data && res.data.connected) {
+								this.showToast('成功', `已连接 ${res.data.ssid || ''}`, 'success');
+								return;
+							}
+						}
+					} catch (e) { /* 继续轮询 */ }
+				}
+				this.showToast('提示', '连接超时，请检查 WiFi 名称和密码是否正确', 'warning');
+			} catch (e) {
+				this.showToast('失败', e.message || '保存失败', 'error');
+			} finally { this.saving = false; this.loadingVisible = false; }
 		}
 	}
 };

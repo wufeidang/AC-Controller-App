@@ -3,13 +3,17 @@
 		{
 			"path": "pages/index/index",
 			"style": {
-				"navigationBarTitleText": "空调温控"
+				"navigationBarTitleText": "空调温控",
+				"app-plus": {
+					"bounce": "none",
+					"popGesture": "none"
+				}
 			}
 		},
 		{
 			"path": "pages/device/device",
 			"style": {
-				"navigationBarTitleText": "设备管理"
+				"navigationBarTitleText": "连接设备"
 			}
 		},
 		{

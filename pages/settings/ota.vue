@@ -122,7 +122,10 @@ export default {
 			} catch (e) { this.showModal('失败', e.message || '升级失败'); }
 			finally { this.updating = false; this.loadingVisible = false; }
 		},
-		showModal(title, content) { this.modalTitle = title; this.modalContent = content; this.modalVisible = true; }
+		showModal(title, content) {
+			this.modalTitle = title; this.modalContent = content; this.modalVisible = true;
+			setTimeout(() => { this.modalVisible = false; }, 1500);
+		}
 	}
 };
 </script>

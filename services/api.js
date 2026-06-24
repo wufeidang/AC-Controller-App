@@ -8,6 +8,10 @@ class ApiService {
     // 从本地存储获取设备地址
     const device = uni.getStorageSync('connectedDevice');
     this.baseUrl = device ? `http://${device.address}:80` : '';
+    // 连续失败计数，用于判定设备是否真正离线
+    this._failCount = 0;
+    // 连续失败多少次后判定离线
+    this._maxFailCount = 3;
   }
 
   /**
@@ -21,9 +25,10 @@ class ApiService {
   /**
    * 通用请求方法
    * @param {Object} data - 请求数据
+   * @param {number} [timeout=8000] - 超时时间(ms)
    * @returns {Promise} - 返回Promise对象
    */
-  async request(data) {
+  async request(data, timeout) {
     if (!this.baseUrl) {
       throw new Error('设备未连接，请先连接设备');
     }
@@ -34,10 +39,13 @@ class ApiService {
         url: this.baseUrl,
         method: 'POST',
         data: data,
-        timeout: 5000
+        timeout: timeout || 8000
       };
 
       const response = await uni.request(config);
+
+      // 请求成功，重置失败计数
+      this._failCount = 0;
 
       if (response.statusCode === 200) {
         const body = response.data;
@@ -55,13 +63,23 @@ class ApiService {
         throw new Error(`HTTP错误: ${response.statusCode}`);
       }
     } catch (error) {
-      console.error('API请求错误:', error);
-      // 仅在网络层失败（非后端业务错误）时判定设备离线
+      // 将底层超时/网络错误转为用户友好提示
       if (!error.deviceError) {
-        const device = uni.getStorageSync('connectedDevice');
-        if (device) {
-          device.connected = false;
-          uni.setStorageSync('connectedDevice', device);
+        this._failCount++;
+        const errMsg = error.errMsg || error.message || '';
+        if (errMsg.indexOf('timeout') > -1) {
+          error.message = '请求超时，设备响应过慢，请检查设备状态后重试';
+        } else if (errMsg.indexOf('fail') > -1) {
+          error.message = '网络连接失败，请检查设备是否在线';
+        }
+        console.error('API请求错误:', error.message, `(${this._failCount}/${this._maxFailCount})`);
+        // 连续失败超过阈值才判定设备离线
+        if (this._failCount >= this._maxFailCount) {
+          const device = uni.getStorageSync('connectedDevice');
+          if (device) {
+            device.connected = false;
+            uni.setStorageSync('connectedDevice', device);
+          }
         }
       }
       throw error;
@@ -152,7 +170,7 @@ class ApiService {
     return this.request({
       cmd: 'ota_update',
       data: otaData
-    });
+    }, 60000); // OTA升级需要更长的超时时间
   }
 
   /**

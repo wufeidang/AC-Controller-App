@@ -5,40 +5,17 @@
 			<view class="top-left">
 				<text class="top-location">{{ deviceConnected ? (deviceLocation || '温控') : '空调温控' }}</text>
 			</view>
-			<view class="top-right">
-				<view class="status-badge" :class="{ on: deviceConnected }">
+			<view class="top-right" v-if="deviceConnected">
+				<view class="status-badge on">
 					<view class="status-dot"></view>
-					<text>{{ deviceConnected ? '已连接' : '离线' }}</text>
+					<text>已连接</text>
 				</view>
 			</view>
 		</view>
 
-		<!-- 未连接 -->
-		<view class="body" v-if="!deviceConnected">
-			<view class="empty-block">
-				<image src="/static/icons/device.svg" class="empty-img" mode="aspectFit" />
-				<text class="empty-title">暂无已连接的设备</text>
-				<text class="empty-desc">连接 ESP8266 温控设备后，即可实时查看温度、湿度并自动控制空调</text>
-				<view class="empty-features">
-					<view class="ef-item"><text class="ef-dot">·</text><text>实时温湿度监测</text></view>
-					<view class="ef-item"><text class="ef-dot">·</text><text>多品牌红外空调控制</text></view>
-					<view class="ef-item"><text class="ef-dot">·</text><text>温湿度阈值自动开关</text></view>
-					<view class="ef-item"><text class="ef-dot">·</text><text>场景模式一键切换</text></view>
-				</view>
-				<view class="empty-steps">
-					<text class="es-title">快速连接</text>
-					<text class="es-step">1. 手机连接设备 WiFi 热点</text>
-					<text class="es-step">2. 进入设备管理输入 192.168.4.1</text>
-					<text class="es-step">3. 点击连接即可开始使用</text>
-				</view>
-				<view class="btn btn-primary" @click="navigateTo('device/device')">
-					<text>去连接设备</text>
-				</view>
-			</view>
-		</view>
-
+		
 		<!-- 已连接：看板 -->
-		<view class="body" v-else>
+		<view class="body">
 			<!-- 主数据大卡：温度 / 湿度 根据控制类型切换 C 位 -->
 			<view class="temp-hero" v-if="controlType !== 'humidity'">
 				<text class="temp-num" :class="tempColor">{{ currentTemp }}</text>
@@ -133,6 +110,10 @@
 					<view class="nav-arr">›</view>
 				</view>
 			</view>
+
+			<view class="disconnect-btn" @click="handleDisconnect">
+				<text>断开连接</text>
+			</view>
 		</view>
 
 		<Loading :visible="loadingVisible" :text="loadingText" />
@@ -143,8 +124,9 @@
 			:content="modalContent"
 			:confirm-text="modalConfirmText"
 			:cancel-text="modalHasCancel ? modalCancelText : ''"
+			:show-buttons="modalShowButtons"
 			:close-on-click-overlay="false"
-			:type="modalTitle === '失败' ? 'error' : (modalTitle === '成功' ? 'success' : 'info')"
+			:type="modalTitle === '失败' ? 'error' : (modalTitle === '已切换' ? 'success' : 'info')"
 			@confirm="handleModalConfirm"
 			@cancel="handleModalCancel"
 		/>
@@ -191,7 +173,8 @@ export default {
 			loadingVisible: false,
 			loadingText: '',
 			modalVisible: false, modalTitle: '', modalContent: '',
-			modalConfirmText: '确定', modalCancelText: '', modalHasCancel: false
+			modalConfirmText: '确定', modalCancelText: '', modalHasCancel: false,
+			modalShowButtons: true
 		};
 	},
 	computed: {
@@ -210,32 +193,45 @@ export default {
 			return this.humOnThreshold + '%';
 		}
 	},
-	onLoad() {
-		this.checkDevice();
-		this.startPoll();
-		uni.$on('deviceConnected', e => this.onDeviceEvent(e));
-	},
-	onShow() {
-		this.checkDevice();
-		this.startPoll();
-	},
-	onUnload() {
-		this.stopPoll();
-		uni.$off('deviceConnected', this.onDeviceEvent);
-	},
+		onLoad() {
+			this.checkDevice();
+			if (!this.deviceConnected) {
+				uni.redirectTo({ url: '/pages/device/device' });
+				return;
+			}
+			this.fetchStatus();
+			this.startPoll();
+			uni.$on('deviceConnected', e => this.onDeviceEvent(e));
+		},
+		onShow() {
+			this.checkDevice();
+			if (!this.deviceConnected) {
+				uni.redirectTo({ url: '/pages/device/device' });
+				return;
+			}
+			this.fetchStatus();
+			this.startPoll();
+		},
+		onUnload() {
+			this.stopPoll();
+			uni.$off('deviceConnected', this.onDeviceEvent);
+		},
 	methods: {
 		checkDevice() {
 			const d = uni.getStorageSync('connectedDevice');
 			if (d && d.connected) {
-				this.device = d;
 				this.deviceConnected = true;
-				this.deviceLocation = d.location || '';
-				apiService.setDeviceAddress(d.address);
-				this.fetchStatus();
-			} else {
+				if (!this.device || this.device.address !== d.address) {
+					this.device = d;
+					this.deviceLocation = d.location || '';
+					apiService.setDeviceAddress(d.address);
+				}
+			} else if (this.deviceConnected) {
+				// 从已连接变为未连接，自动跳转
 				this.deviceConnected = false;
 				this.device = null;
 				this.deviceLocation = '';
+				uni.redirectTo({ url: '/pages/device/device' });
 			}
 		},
 		onDeviceEvent(e) {
@@ -249,6 +245,7 @@ export default {
 				this.deviceConnected = false;
 				this.device = null;
 				this.deviceLocation = '';
+				uni.redirectTo({ url: '/pages/device/device' });
 			}
 		},
 		async fetchStatus() {
@@ -273,16 +270,20 @@ export default {
 						this.acBrand = d.ac_params.brand || '';
 					}
 				if (d.device_info) {
-					this.deviceLocation = d.device_info.device_location || this.deviceLocation;
-				}
+						const loc = d.device_info.device_location;
+						if (loc && loc !== this.deviceLocation) { this.deviceLocation = loc; }
+					}
 				const dev = uni.getStorageSync('connectedDevice');
 				if (dev) { dev.acStatus = this.acStatus; uni.setStorageSync('connectedDevice', dev); }
 			} catch (e) { console.error(e); }
 		},
-		startPoll() {
-			this.stopPoll();
-			this.pollTimer = setInterval(() => { this.checkDevice(); if (this.deviceConnected) this.fetchStatus(); }, 10000);
-		},
+			startPoll() {
+				this.stopPoll();
+				this.pollTimer = setInterval(() => {
+					this.checkDevice();
+					if (this.deviceConnected) this.fetchStatus();
+				}, 10000);
+			},
 		stopPoll() {
 			if (this.pollTimer) { clearInterval(this.pollTimer); this.pollTimer = null; }
 		},
@@ -316,7 +317,8 @@ export default {
 				const res = await apiService.setScene(scene);
 				if (res.status === 'success') {
 					await this.fetchStatus();
-					this.toast('成功', '场景已切换');
+					const label = (this.scenes.find(s => s.value === scene) || {}).label || scene;
+					this.toast('已切换', `已切换至「${label}」模式`);
 				} else {
 					this.toast('失败', (res.data && res.data.message) || '切换失败');
 				}
@@ -326,12 +328,33 @@ export default {
 		},
 		toast(title, content) {
 			this.modalTitle = title; this.modalContent = content;
-			this.modalHasCancel = false; this.modalVisible = true;
+			this.modalHasCancel = false; this.modalShowButtons = false; this.modalVisible = true;
+			setTimeout(() => { this.modalVisible = false; }, 1500);
 		},
-		handleModalConfirm() { this.modalVisible = false; },
+		handleModalConfirm() {
+			this.modalVisible = false;
+			if (this.modalConfirmText === '断开') this.doDisconnect();
+		},
 		handleModalCancel() { this.modalVisible = false; },
+		handleDisconnect() {
+			this.modalTitle = '确认';
+			this.modalContent = '确定要断开设备连接吗？';
+			this.modalHasCancel = true;
+			this.modalShowButtons = true;
+			this.modalConfirmText = '断开';
+			this.modalCancelText = '取消';
+			this.modalVisible = true;
+		},
+		doDisconnect() {
+			uni.removeStorageSync('connectedDevice');
+			uni.$emit('deviceConnected', { connected: false });
+			this.deviceConnected = false;
+			this.device = null;
+			this.deviceLocation = '';
+			this.modalVisible = false;
+		},
 		navigateTo(page) { uni.navigateTo({ url: '/pages/' + page }); }
-	}
+		}
 };
 </script>
 
@@ -348,17 +371,31 @@ export default {
 
 /* 空状态 */
 .body { padding: 0 32rpx 32rpx; }
-.empty-block { margin-top: 60rpx; display: flex; flex-direction: column; align-items: center; }
-.empty-img { width: 160rpx; height: 160rpx; margin-bottom: 32rpx; opacity: 0.25; }
-.empty-title { font-size: 34rpx; color: #333; font-weight: 600; margin-bottom: 12rpx; }
-.empty-desc { font-size: 26rpx; color: #999; text-align: center; line-height: 1.6; margin-bottom: 32rpx; padding: 0 20rpx; }
-.empty-features { display: flex; flex-wrap: wrap; justify-content: center; gap: 12rpx 28rpx; margin-bottom: 32rpx; }
-.ef-item { display: flex; align-items: center; gap: 6rpx; }
-.ef-dot { color: #1677FF; font-weight: 700; font-size: 24rpx; }
-.ef-item text:last-child { font-size: 24rpx; color: #666; }
-.empty-steps { background: #FFF; border-radius: 20rpx; padding: 28rpx; width: 100%; box-sizing: border-box; margin-bottom: 32rpx; box-shadow: 0 2rpx 12rpx rgba(0,0,0,0.04); }
-.es-title { font-size: 28rpx; font-weight: 600; color: #1A1A1A; display: block; margin-bottom: 16rpx; }
-.es-step { font-size: 24rpx; color: #666; line-height: 1.8; display: block; }
+
+/* Hero 品牌区 */
+.hero { display: flex; flex-direction: column; align-items: center; padding: 80rpx 0 56rpx; }
+.hero-icon-wrap {
+	width: 144rpx; height: 144rpx; border-radius: 36rpx;
+	background: linear-gradient(145deg, #E6F4FF 0%, #F0F7FF 100%);
+	display: flex; align-items: center; justify-content: center;
+	margin-bottom: 32rpx;
+	box-shadow: 0 12rpx 32rpx rgba(22, 119, 255, 0.12);
+}
+.hero-icon { width: 80rpx; height: 80rpx; }
+.hero-title { font-size: 44rpx; font-weight: 700; color: #1A1A1A; letter-spacing: 2rpx; margin-bottom: 12rpx; }
+.hero-desc { font-size: 26rpx; color: #999; }
+
+/* 连接大按钮 */
+.btn-connect-lg {
+	width: 480rpx; height: 96rpx; border-radius: 48rpx;
+	background: linear-gradient(135deg, #1677FF 0%, #4096FF 100%);
+	display: flex; align-items: center; justify-content: center;
+	align-self: center; margin-top: 32rpx;
+	box-shadow: 0 12rpx 32rpx rgba(22, 119, 255, 0.3);
+	transition: 200ms;
+}
+.btn-connect-lg:active { transform: scale(0.97); box-shadow: 0 6rpx 16rpx rgba(22, 119, 255, 0.2); }
+.btn-connect-lg text { color: #FFF; font-size: 32rpx; font-weight: 600; letter-spacing: 4rpx; }
 
 /* 温度大卡 */
 .temp-hero { background: #FFF; border-radius: 24rpx; padding: 48rpx 32rpx; text-align: center; margin-bottom: 24rpx; box-shadow: 0 2rpx 12rpx rgba(0,0,0,0.04); }
@@ -405,6 +442,15 @@ export default {
 .nav-icon { width: 44rpx; height: 44rpx; }
 .nav-label { font-size: 28rpx; color: #333; }
 	.nav-arr { font-size: 32rpx; color: #C0C0C0; font-weight: 300; }
+
+/* 断开连接 */
+.disconnect-btn {
+	margin-top: 32rpx; padding: 24rpx; border-radius: 24rpx;
+	background: #FFF; text-align: center;
+	box-shadow: 0 2rpx 12rpx rgba(0,0,0,0.04);
+}
+.disconnect-btn:active { background: #FFF1F0; }
+.disconnect-btn text { font-size: 28rpx; color: #FF4D4F; font-weight: 500; }
 
 /* 按钮 */
 .btn { padding: 22rpx 60rpx; border-radius: 44rpx; display: inline-flex; align-items: center; justify-content: center; }

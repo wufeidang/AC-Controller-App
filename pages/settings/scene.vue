@@ -75,6 +75,7 @@ export default {
 	methods: {
 		showModal(title, content) {
 			this.modalTitle = title; this.modalContent = content; this.modalVisible = true;
+			setTimeout(() => { this.modalVisible = false; }, 1500);
 		},
 		selectScene(scene) { this.currentScene = scene; },
 		async getCurrentScene() {

@@ -61,7 +61,10 @@ export default {
 	},
 	onLoad() { this.checkDevice(); this.getInfo(); },
 	methods: {
-		showModal(title, content) { this.modalTitle = title; this.modalContent = content; this.modalVisible = true; },
+		showModal(title, content) {
+			this.modalTitle = title; this.modalContent = content; this.modalVisible = true;
+			setTimeout(() => { this.modalVisible = false; }, 1500);
+		},
 		checkDevice() {
 			const d = uni.getStorageSync('connectedDevice');
 			this.deviceConnected = d && d.connected;
