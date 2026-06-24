@@ -21,8 +21,20 @@
 		<!-- 更新日志 -->
 		<view class="card">
 			<text class="card-title">更新内容</text>
-			<view class="changelog">
-				<view class="cl-item"><text class="cl-ver">v2.0.0</text><text class="cl-date">2026-06-23</text>
+				<view class="changelog">
+					<view class="cl-item"><text class="cl-ver">v2.2.0</text><text class="cl-date">2026-06-24</text>
+						<text class="cl-line">【连接流程重构】</text>
+						<text class="cl-line">· 首页与设备连接页面完全分离，首页自动跳转连接页</text>
+						<text class="cl-line">· 新增 WiFi 扫描功能，自动检测附近设备热点</text>
+						<text class="cl-line">· 连接页面显示 STA 网络 IP，支持家庭 WiFi 远程连接</text>
+						<text class="cl-line">· 首页新增断开连接按钮，设备离线时自动跳转连接页</text>
+						<text class="cl-line">· API 超时优化（8s 超时，连续 3 次失败才判定离线）</text>
+						<text class="cl-line">· 场景切换弹窗 1.5s 自动消失，显示切换到的场景名称</text>
+						<text class="cl-line">· STA 配置保存后轮询状态，最多 30 秒实时更新</text>
+						<text class="cl-line">· 修复 5 个页面弹窗不自动消失的 Bug</text>
+						<text class="cl-line">· WiFi 设置页移除重复的 MQTT 入口</text>
+					</view>
+					<view class="cl-item"><text class="cl-ver">v2.0.0</text><text class="cl-date">2026-06-23</text>
 					<text class="cl-line">【界面全面升级】</text>
 					<text class="cl-line">· 全新设计语言：Ant Design 蓝 + 小米风格弹窗，统一 24rpx 卡片体系</text>
 					<text class="cl-line">· 首页改造为自动温控看板：大温度/湿度 C 位展示，根据控制类型自动切换</text>
@@ -83,7 +95,7 @@ export default {
 	data() {
 		return {
 			appName: '空调温控系统', appDesc: '广通电梯机房智能温控管理',
-				appVersion: '2.0.0', appVersionCode: '200', firmwareVersion: '',
+				appVersion: '2.2.0', appVersionCode: '220', firmwareVersion: '',
 				loadingVisible: false, loadingText: '',
 				showHistory: false
 		};
