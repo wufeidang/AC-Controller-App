@@ -146,7 +146,8 @@ export default {
 	components: { Loading, CustomModal },
 	data() {
 		return {
-			currentTemp: 0,
+					device: null,
+					currentTemp: 0,
 			currentHum: 0,
 			acStatus: false,
 				acTemp: 26,
@@ -311,7 +312,9 @@ export default {
 		},
 		async switchScene(scene) {
 			if (!this.deviceConnected) { this.toast('提示', '请先连接设备'); return; }
+			if (this.switchLoading) return;
 			this.currentScene = scene;
+			this.switchLoading = true;
 			try {
 				this.loadingVisible = true; this.loadingText = '切换场景...';
 				const res = await apiService.setScene(scene);
@@ -324,7 +327,7 @@ export default {
 				}
 			} catch (e) {
 				this.toast('失败', e.message || '切换失败');
-			} finally { this.loadingVisible = false; }
+			} finally { this.switchLoading = false; this.loadingVisible = false; }
 		},
 		toast(title, content) {
 			this.modalTitle = title; this.modalContent = content;

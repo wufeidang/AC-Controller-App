@@ -24,9 +24,8 @@
 			
 		},
 		onHide: function() { 
-			console.log('App Hide')
-			uni.clearStorageSync();
-		},
+					console.log('App Hide')
+				},
 		
 		methods: {
 			clearError() {
