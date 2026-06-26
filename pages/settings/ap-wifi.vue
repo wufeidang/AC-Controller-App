@@ -40,7 +40,7 @@
 import Loading from '../../components/Loading';
 import CustomModal from '../../components/CustomModal';
 import api from '../../services/api';
-import deviceMixin from '../../../mixins/device-mixin.js';
+import deviceMixin from '../../mixins/device-mixin.js';
 
 export default {
 	components: { Loading, CustomModal },

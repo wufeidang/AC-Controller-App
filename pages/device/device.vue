@@ -121,7 +121,7 @@ export default {
 		};
 	},
 		onLoad() { this.checkStatus(); this.getWifiStatus().then(() => this.autoFillIp()); this.startWifiScan(); },
-		onShow() { this.getWifiStatus(); if (this.wifiList.length === 0) this.startWifiScan(); },
+		onShow() { this.getWifiStatus().then(() => this.autoFillIp()); if (this.wifiList.length === 0) this.startWifiScan(); },
 	onUnload() { try { uni.offGetWifiList(); } catch (e) {} },
 	methods: {
 		async getWifiStatus() {
