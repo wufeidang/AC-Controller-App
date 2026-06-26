@@ -68,12 +68,14 @@
 import Loading from '../../components/Loading';
 import CustomModal from '../../components/CustomModal';
 import apiService from '../../services/api';
+import deviceMixin from '../../../mixins/device-mixin.js';
 
 export default {
 	components: { Loading, CustomModal },
+	mixins: [deviceMixin],
 	data() {
 		return {
-			deviceConnected: false, loadingVisible: false, loadingText: '',
+			loadingVisible: false, loadingText: '',
 			currentVersion: '', firmwareUrl: 'http://bin.bemfa.com/b/27002/3BcZGI1OTA5NDczM2FjYjkzMTg2N2Q1YWY5NGE1N2ZjNzg=FRESTEC.bin', wifiSsid: '', wifiPassword: '', showPassword: false,
 			updating: false,
 			confirmModalVisible: false, confirmModalContent: '设备将开始固件升级，升级完成后自动重启。确定继续吗？',
@@ -83,9 +85,8 @@ export default {
 			modalVisible: false, modalTitle: '', modalContent: ''
 		};
 	},
-	onLoad() { this.checkDevice(); this.loadSaved(); this.getFw(); },
+	onLoad() { this.checkDevice(); if (this.deviceConnected) apiService.setDeviceAddress(this.deviceAddress); this.loadSaved(); this.getFw(); },
 	methods: {
-		checkDevice() { const d = uni.getStorageSync('connectedDevice'); this.deviceConnected = d && d.connected; if (d) apiService.setDeviceAddress(d.address); },
 		loadSaved() {
 			const u = uni.getStorageSync('otaUrl'); if (u) this.firmwareUrl = u;
 			const s = uni.getStorageSync('wifiSsid'); if (s) { this.wifiSsid = s; const p = uni.getStorageSync('wifiPassword'); if (p) this.wifiPassword = p; }

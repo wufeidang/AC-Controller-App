@@ -40,25 +40,22 @@
 import Loading from '../../components/Loading';
 import CustomModal from '../../components/CustomModal';
 import api from '../../services/api';
+import deviceMixin from '../../../mixins/device-mixin.js';
 
 export default {
 	components: { Loading, CustomModal },
-	data() {
-		return {
-			deviceConnected: false, loadingVisible: false, loadingText: '',
-			apSsid: '', apPassword: '', showPassword: false, saving: false,
-			modalVisible: false, modalTitle: '', modalContent: '', modalType: 'info'
-		};
-	},
-	onLoad() { this.checkDevice(); this.loadSettings(); },
-	onShow() { this.checkDevice(); },
-	methods: {
-		checkDevice() {
-			const d = uni.getStorageSync('connectedDevice');
-			this.deviceConnected = d && d.connected;
-			if (d) api.setDeviceAddress(d.address);
+		mixins: [deviceMixin],
+		data() {
+			return {
+				loadingVisible: false, loadingText: '',
+				apSsid: '', apPassword: '', showPassword: false, saving: false,
+				modalVisible: false, modalTitle: '', modalContent: ''
+			};
 		},
-		async loadSettings() {
+		onLoad() { this.checkDevice(); if (this.deviceConnected) api.setDeviceAddress(this.deviceAddress); this.loadSettings(); },
+		onShow() { this.checkDevice(); if (this.deviceConnected) api.setDeviceAddress(this.deviceAddress); },
+		methods: {
+				async loadSettings() {
 			if (!this.deviceConnected) return;
 			try {
 				this.loadingVisible = true; this.loadingText = '加载中...';

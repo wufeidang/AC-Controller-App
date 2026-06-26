@@ -68,22 +68,23 @@
 import Loading from '../../components/Loading';
 import CustomModal from '../../components/CustomModal';
 import api from '../../services/api';
+import deviceMixin from '../../../mixins/device-mixin.js';
 
 export default {
 	components: { Loading, CustomModal },
+	mixins: [deviceMixin],
 	data() {
 		return {
-			deviceConnected: false, loadingVisible: false, loadingText: '',
+			loadingVisible: false, loadingText: '',
 			mqttServer: '', mqttPort: '1883', mqttUser: '', mqttPass: '', mqttTopic: '',
 			showPassword: false, saving: false,
 			modalVisible: false, modalTitle: '', modalContent: '', modalType: 'info'
 		};
 	},
 	computed: { hasConfig() { return !!(this.mqttServer || this.mqttTopic); } },
-	onLoad() { this.checkDevice(); this.loadConfig(); },
-	onShow() { this.checkDevice(); },
+	onLoad() { this.checkDevice(); if (this.deviceConnected) api.setDeviceAddress(this.deviceAddress); this.loadConfig(); },
+	onShow() { this.checkDevice(); if (this.deviceConnected) api.setDeviceAddress(this.deviceAddress); },
 	methods: {
-		checkDevice() { const d = uni.getStorageSync('connectedDevice'); this.deviceConnected = d && d.connected; if (d) api.setDeviceAddress(d.address); },
 		async loadConfig() { if (!this.deviceConnected) return; try { this.loadingVisible = true; this.loadingText = '加载中...'; const res = await api.getMqttConfig(); if (res.status === 'success') { const d = res.data; this.mqttServer = d.server || ''; this.mqttPort = d.port ? String(d.port) : '1883'; this.mqttUser = d.user || ''; this.mqttPass = d.pass || ''; this.mqttTopic = d.topic || ''; } } catch (e) { console.error(e); } finally { this.loadingVisible = false; } },
 		showToast(title, content, type = 'info') { this.modalTitle = title; this.modalContent = content; this.modalType = type; this.modalVisible = true; setTimeout(() => { this.modalVisible = false; }, 1500); },
 		async saveSettings() {
