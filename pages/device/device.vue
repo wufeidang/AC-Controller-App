@@ -120,8 +120,8 @@ export default {
 			_modalCallback: null
 		};
 	},
-		onLoad() { this.checkStatus(); this.getWifiStatus(); if (!this.deviceConnected) this.startWifiScan(); },
-		onShow() { this.getWifiStatus(); },
+		onLoad() { this.checkStatus(); this.getWifiStatus().then(() => this.autoFillIp()); this.startWifiScan(); },
+		onShow() { this.getWifiStatus(); if (this.wifiList.length === 0) this.startWifiScan(); },
 	onUnload() { try { uni.offGetWifiList(); } catch (e) {} },
 	methods: {
 		async getWifiStatus() {
@@ -136,11 +136,20 @@ export default {
 						uni.getConnectedWifi({ success: resolve, fail: reject });
 					});
 					this.wifiSSID = (wifi && wifi.wifi) ? (wifi.wifi.SSID || wifi.wifi.ssid || '') : '';
-				} catch (e) { /* 静默 */ }
-			} catch (e) { this.wifiSSID = ''; }
+			} catch (e) { /* 静默 */ }
+		} catch (e) { this.wifiSSID = ''; }
 		},
-			async startWifiScan() {
-				if (this.wifiScanning) return;
+		autoFillIp() {
+			if (this.deviceConnected) return;
+			const saved = uni.getStorageSync('staNetwork');
+			if (!saved || !saved.ip) return;
+			if (this.wifiSSID && saved.ssid && this.wifiSSID.indexOf(saved.ssid) > -1) {
+				this.inputAddress = saved.ip;
+			} else if (this.wifiSSID && !saved.ssid) {
+				this.inputAddress = saved.ip;
+			}
+		},
+		async startWifiScan() {
 				this.wifiScanning = true;
 				// 不清空旧列表避免闪烁，新结果延迟批量更新
 				try {
@@ -218,10 +227,10 @@ export default {
 					// 异步查 STA 状态
 					this.fetchStaStatus();
 				} else {
-					this.showToast('失败', (res.data && res.data.message) || '获取设备 ID 失败');
+					this.showConfirm('失败', (res.data && res.data.message) || '获取设备 ID 失败');
 				}
 			} catch (e) {
-				this.showToast('失败', e.message || '连接失败，请检查设备是否通电并处于 AP 模式');
+				this.showConfirm('失败', e.message || '连接失败，请检查设备是否通电并处于 AP 模式');
 			} finally { this.connecting = false; this.loadingVisible = false; }
 		},
 		async fetchStaStatus() {
@@ -229,6 +238,11 @@ export default {
 				const res = await apiService.getStaWifi();
 				if (res.status === 'success' && res.data && res.data.connected && res.data.local_ip) {
 					this.staIp = res.data.local_ip;
+					// 记住家庭网络对应的 IP，下次自动匹配
+					const ssid = res.data.ssid || this.wifiSSID;
+					if (ssid) {
+						uni.setStorageSync('staNetwork', { ssid: ssid, ip: res.data.local_ip });
+					}
 				}
 			} catch (e) { /* 静默 */ }
 		},
@@ -236,6 +250,11 @@ export default {
 			this.modalTitle = title; this.modalContent = content;
 			this.modalHasCancel = false; this.modalVisible = true;
 			setTimeout(() => { this.modalVisible = false; }, 1500);
+		},
+		showConfirm(title, content) {
+			this.modalTitle = title; this.modalContent = content;
+			this.modalHasCancel = false; this.modalShowButtons = true; this.modalConfirmText = '确定';
+			this.modalVisible = true;
 		},
 		handleModalConfirm() {
 			this.modalVisible = false;
