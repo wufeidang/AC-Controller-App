@@ -70,26 +70,23 @@
 import Loading from '../../components/Loading';
 import CustomModal from '../../components/CustomModal';
 import apiService from '../../services/api';
+import deviceMixin from '../../../mixins/device-mixin.js';
 
 export default {
 	components: { Loading, CustomModal },
+	mixins: [deviceMixin],
 	data() {
 		return {
-			tempOffset: 0.0, humOffset: 0.0, deviceConnected: false,
+			tempOffset: 0.0, humOffset: 0.0,
 			loadingVisible: false, loadingText: '', saving: false,
 			modalVisible: false, modalTitle: '', modalContent: ''
 		};
 	},
-	onLoad() { this.checkDevice(); this.getSettings(); },
+	onLoad() { this.checkDevice(); if (this.deviceConnected) apiService.setDeviceAddress(this.deviceAddress); this.getSettings(); },
 	methods: {
 		showModal(title, content) {
 			this.modalTitle = title; this.modalContent = content; this.modalVisible = true;
 			setTimeout(() => { this.modalVisible = false; }, 1500);
-		},
-		checkDevice() {
-			const d = uni.getStorageSync('connectedDevice');
-			this.deviceConnected = d && d.connected;
-			if (d) apiService.setDeviceAddress(d.address);
 		},
 		async getSettings() {
 			if (!this.deviceConnected) return;
