@@ -150,6 +150,7 @@ export default {
 			}
 		},
 		async startWifiScan() {
+				if (this.wifiScanning) return;
 				this.wifiScanning = true;
 				// 不清空旧列表避免闪烁，新结果延迟批量更新
 				try {
@@ -209,7 +210,7 @@ export default {
 		async doConnect() {
 			if (this.connecting || this.deviceConnected) return;
 			const addr = this.inputAddress.trim();
-			if (!/^\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}$/.test(addr)) {
+			if (!/^(\d|[1-9]\d|1\d\d|2[0-4]\d|25[0-5])\.(\d|[1-9]\d|1\d\d|2[0-4]\d|25[0-5])\.(\d|[1-9]\d|1\d\d|2[0-4]\d|25[0-5])\.(\d|[1-9]\d|1\d\d|2[0-4]\d|25[0-5])$/.test(addr)) {
 				this.showToast('提示', '请输入有效的 IP 地址'); return;
 			}
 			try {
