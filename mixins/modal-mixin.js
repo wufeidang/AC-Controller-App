@@ -1,61 +1,48 @@
-// 弹窗 mixin — 抽取 showToast() + showConfirm() + 弹窗相关 data
-// 所有页面导入此 mixin 后，不再需要重复实现弹窗逻辑
+// 弹窗 mixin — 统一 showToast / showConfirm / showLoading / hideLoading
+// 所有页面导入此 mixin 后，不再需要各自实现 modal 状态
 
 export default {
 	data() {
 		return {
-			modalVisible: false,
-			modalTitle: '',
-			modalContent: '',
-			modalConfirmText: '确定',
-			modalCancelText: '',
-			modalHasCancel: false,
-			modalShowButtons: true,
-			_modalCallback: null
+			loadingVisible: false,
+			loadingText: ''
 		};
 	},
 	methods: {
 		/**
 		 * 轻提示 — 1.5 秒后自动消失
+		 * @param {string} title - 标题（如"成功"/"失败"/"提示"）
+		 * @param {string} content - 内容
+		 * @param {string} type - 图标类型: success | error | warning | info
 		 */
-		showToast(title, content) {
-			this.modalTitle = title;
-			this.modalContent = content;
-			this.modalHasCancel = false;
-			this.modalShowButtons = false;
-			this.modalVisible = true;
-			setTimeout(() => { this.modalVisible = false; }, 1500);
+		showToast(title, content, type = 'info') {
+			this.$emit('show-toast', { title, content, type });
 		},
 
 		/**
 		 * 确认弹窗 — 显示「确定」按钮，用户手动关闭
+		 * @param {string} title - 标题
+		 * @param {string} content - 内容
 		 */
 		showConfirm(title, content) {
-			this.modalTitle = title;
-			this.modalContent = content;
-			this.modalHasCancel = false;
-			this.modalShowButtons = true;
-			this.modalConfirmText = '确定';
-			this.modalVisible = true;
+			this.$emit('show-confirm', { title, content });
 		},
 
 		/**
-		 * 弹窗确认回调
+		 * 显示 Loading 遮罩
+		 * @param {string} text - 提示文字
 		 */
-		handleModalConfirm() {
-			this.modalVisible = false;
-			if (this._modalCallback) {
-				this._modalCallback();
-				this._modalCallback = null;
-			}
+		showLoading(text = '加载中...') {
+			this.loadingVisible = true;
+			this.loadingText = text;
 		},
 
 		/**
-		 * 弹窗取消回调
+		 * 隐藏 Loading 遮罩
 		 */
-		handleModalCancel() {
-			this.modalVisible = false;
-			this._modalCallback = null;
+		hideLoading() {
+			this.loadingVisible = false;
+			this.loadingText = '';
 		}
 	}
 };

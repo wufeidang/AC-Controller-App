@@ -138,27 +138,26 @@ import Loading from '../../components/Loading';
 import CustomModal from '../../components/CustomModal';
 import apiService from '../../services/api';
 import constants from '../../config/constants';
+import deviceMixin from '../../mixins/device-mixin';
 
 export default {
 	components: { Loading, CustomModal },
+	mixins: [deviceMixin],
 	data() {
 		return {
-					device: null,
-					currentTemp: 0,
+			currentTemp: 0,
 			currentHum: 0,
 			acStatus: false,
-				acTemp: 26,
-				acMode: 'cool',
-				acFanSpeed: 'medium',
-				acSwing: 'auto',
-				acBrand: '',
-				controlType: 'temperature',
+			acTemp: 26,
+			acMode: 'cool',
+			acFanSpeed: 'medium',
+			acSwing: 'auto',
+			acBrand: '',
+			controlType: 'temperature',
 			tempOnThreshold: 28,
-				tempOffThreshold: 26,
-				humOnThreshold: 70,
-				humOffThreshold: 60,
-			deviceConnected: false,
-			deviceLocation: '',
+			tempOffThreshold: 26,
+			humOnThreshold: 70,
+			humOffThreshold: 60,
 			switchLoading: false,
 			pollTimer: null,
 			currentScene: '',
@@ -168,11 +167,10 @@ export default {
 				{ value: 'energy_saving', label: '节能', icon: 'lightning' },
 				{ value: 'quick',  label: '快速', icon: 'light' }
 			],
-			loadingVisible: false,
-			loadingText: '',
 			modalVisible: false, modalTitle: '', modalContent: '',
 			modalConfirmText: '确定', modalCancelText: '', modalHasCancel: false,
-			modalShowButtons: true
+			modalShowButtons: true,
+			statusPending: false  // 防止 fetchStatus 竞态
 		};
 	},
 	computed: {
@@ -207,47 +205,25 @@ export default {
 				uni.redirectTo({ url: '/pages/device/device' });
 				return;
 			}
-			this.fetchStatus();
-			this.startPoll();
+			// onShow 时不再立即 fetchStatus，依赖轮询即可（避免竞态）
 		},
 		onUnload() {
 			this.stopPoll();
 			uni.$off('deviceConnected', this.onDeviceEvent);
 		},
 	methods: {
-		checkDevice() {
-			const d = uni.getStorageSync('connectedDevice');
-			if (d && d.connected) {
-				this.deviceConnected = true;
-				if (!this.device || this.device.address !== d.address) {
-					this.device = d;
-					this.deviceLocation = d.location || '';
-					apiService.setDeviceAddress(d.address);
-				}
-			} else if (this.deviceConnected) {
-				// 从已连接变为未连接，自动跳转
-				this.deviceConnected = false;
-				this.device = null;
-				this.deviceLocation = '';
-				uni.redirectTo({ url: '/pages/device/device' });
-			}
-		},
 		onDeviceEvent(e) {
 			if (e.connected) {
-				this.device = e.device;
-				this.deviceConnected = true;
-				this.deviceLocation = e.device.location || '';
-				apiService.setDeviceAddress(e.device.address);
+				this.setDevice(e.device);
 				this.fetchStatus();
 			} else {
-				this.deviceConnected = false;
-				this.device = null;
-				this.deviceLocation = '';
+				this.disconnectDevice();
 				uni.redirectTo({ url: '/pages/device/device' });
 			}
 		},
 		async fetchStatus() {
-			if (!this.deviceConnected) return;
+			if (!this.deviceConnected || this.statusPending) return;
+			this.statusPending = true;
 			try {
 				const res = await apiService.getStatus();
 				if (res.status !== 'success') return;
@@ -257,31 +233,32 @@ export default {
 				this.acStatus = d.ac_status === 'on';
 				this.controlType = d.control_type || 'temperature';
 				this.tempOnThreshold = d.temp_on_threshold ?? this.tempOnThreshold;
-					this.tempOffThreshold = d.temp_off_threshold ?? this.tempOffThreshold;
-					this.humOnThreshold = d.hum_on_threshold ?? this.humOnThreshold;
-					this.humOffThreshold = d.hum_off_threshold ?? this.humOffThreshold;
+				this.tempOffThreshold = d.temp_off_threshold ?? this.tempOffThreshold;
+				this.humOnThreshold = d.hum_on_threshold ?? this.humOnThreshold;
+				this.humOffThreshold = d.hum_off_threshold ?? this.humOffThreshold;
 				if (d.ac_params) {
-						this.acTemp = d.ac_params.temperature ?? this.acTemp;
-						this.acMode = d.ac_params.mode || this.acMode;
-						this.acFanSpeed = d.ac_params.fan_speed || this.acFanSpeed;
-						this.acSwing = d.ac_params.swing || this.acSwing;
-						this.acBrand = d.ac_params.brand || '';
-					}
+					this.acTemp = d.ac_params.temperature ?? this.acTemp;
+					this.acMode = d.ac_params.mode || this.acMode;
+					this.acFanSpeed = d.ac_params.fan_speed || this.acFanSpeed;
+					this.acSwing = d.ac_params.swing || this.acSwing;
+					this.acBrand = d.ac_params.brand || '';
+				}
 				if (d.device_info) {
-						const loc = d.device_info.device_location;
-						if (loc && loc !== this.deviceLocation) { this.deviceLocation = loc; }
-					}
+					const loc = d.device_info.device_location;
+					if (loc && loc !== this.deviceLocation) { this.deviceLocation = loc; }
+				}
 				const dev = uni.getStorageSync('connectedDevice');
 				if (dev) { dev.acStatus = this.acStatus; uni.setStorageSync('connectedDevice', dev); }
-			} catch (e) { console.error(e); }
+			} catch (e) { /* 静默失败，轮询会重试 */ }
+			finally { this.statusPending = false; }
 		},
-			startPoll() {
-				this.stopPoll();
-				this.pollTimer = setInterval(() => {
-					this.checkDevice();
-					if (this.deviceConnected) this.fetchStatus();
-				}, 10000);
-			},
+		startPoll() {
+			this.stopPoll();
+			this.pollTimer = setInterval(() => {
+				this.checkDevice();
+				if (this.deviceConnected) this.fetchStatus();
+			}, 10000);
+		},
 		stopPoll() {
 			if (this.pollTimer) { clearInterval(this.pollTimer); this.pollTimer = null; }
 		},
@@ -348,13 +325,11 @@ export default {
 		doDisconnect() {
 			uni.removeStorageSync('connectedDevice');
 			uni.$emit('deviceConnected', { connected: false });
-			this.deviceConnected = false;
-			this.device = null;
-			this.deviceLocation = '';
+			this.disconnectDevice();
 			this.modalVisible = false;
 		},
 		navigateTo(page) { uni.navigateTo({ url: '/pages/' + page }); }
-		}
+	}
 };
 </script>
 

@@ -1,19 +1,21 @@
-// 设备状态 mixin — 抽取 checkDevice() + 设备相关 data
-// 所有页面导入此 mixin 后，不再需要重复实现 checkDevice()
-// API 地址设置（apiService.setDeviceAddress）由调用方在外层处理
+// 设备状态 mixin — 统一设备连接状态管理
+// 所有页面导入此 mixin 后，自动获得 deviceConnected / deviceAddress / deviceId / deviceLocation
+// 以及 checkDevice() 方法和 API 地址同步
+
+import apiService from '../services/api';
 
 export default {
 	data() {
 		return {
 			deviceConnected: false,
 			deviceAddress: '',
-			deviceId: ''
+			deviceId: '',
+			deviceLocation: ''
 		};
 	},
 	methods: {
 		/**
-		 * 从 localStorage 读取设备连接状态
-		 * 调用方需在外层自行调用 api.setDeviceAddress(this.deviceAddress)
+		 * 从 localStorage 读取设备连接状态，同步 API 地址
 		 */
 		checkDevice() {
 			const d = uni.getStorageSync('connectedDevice');
@@ -21,9 +23,38 @@ export default {
 				this.deviceConnected = true;
 				this.deviceAddress = d.address || '';
 				this.deviceId = d.deviceId || '';
+				this.deviceLocation = d.location || '';
+				apiService.setDeviceAddress(this.deviceAddress);
 			} else {
 				this.deviceConnected = false;
+				this.deviceAddress = '';
+				this.deviceId = '';
+				this.deviceLocation = '';
 			}
+			return this.deviceConnected;
+		},
+
+		/**
+		 * 手动设置设备信息（用于连接成功后初始化）
+		 */
+		setDevice(info) {
+			this.deviceConnected = true;
+			this.deviceAddress = info.address || '';
+			this.deviceId = info.deviceId || '';
+			this.deviceLocation = info.location || '';
+			apiService.setDeviceAddress(this.deviceAddress);
+		},
+
+		/**
+		 * 断开设备连接
+		 */
+		disconnectDevice() {
+			uni.removeStorageSync('connectedDevice');
+			uni.$emit('deviceConnected', { connected: false });
+			this.deviceConnected = false;
+			this.deviceAddress = '';
+			this.deviceId = '';
+			this.deviceLocation = '';
 		}
 	}
 };

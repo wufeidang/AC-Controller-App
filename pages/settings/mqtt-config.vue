@@ -83,10 +83,10 @@ export default {
 		};
 	},
 	computed: { hasConfig() { return !!(this.mqttServer || this.mqttTopic); } },
-	onLoad() { this.checkDevice(); if (this.deviceConnected) api.setDeviceAddress(this.deviceAddress); this.loadConfig(); },
-	onShow() { this.checkDevice(); if (this.deviceConnected) api.setDeviceAddress(this.deviceAddress); },
+	onLoad() { this.checkDevice(); this.loadConfig(); },
+	onShow() { this.checkDevice(); },
 	methods: {
-		async loadConfig() { if (!this.deviceConnected) return; try { this.loadingVisible = true; this.loadingText = '加载中...'; const res = await api.getMqttConfig(); if (res.status === 'success') { const d = res.data; this.mqttServer = d.server || ''; this.mqttPort = d.port ? String(d.port) : '1883'; this.mqttUser = d.user || ''; this.mqttPass = d.pass || ''; this.mqttTopic = d.topic || ''; } } catch (e) { console.error(e); } finally { this.loadingVisible = false; } },
+		async loadConfig() { if (!this.deviceConnected) return; try { this.showLoading('加载中...'); const res = await api.getMqttConfig(); if (res.status === 'success') { const d = res.data; this.mqttServer = d.server || ''; this.mqttPort = d.port ? String(d.port) : '1883'; this.mqttUser = d.user || ''; this.mqttPass = d.pass || ''; this.mqttTopic = d.topic || ''; } } catch (e) { /* 静默 */ } finally { this.hideLoading(); } },
 		showToast(title, content, type = 'info') { this.modalTitle = title; this.modalContent = content; this.modalType = type; this.modalVisible = true; setTimeout(() => { this.modalVisible = false; }, 1500); },
 		async saveSettings() {
 			if (!this.deviceConnected) { this.showToast('提示', '请先连接设备', 'warning'); return; }
@@ -94,7 +94,19 @@ export default {
 			if (!isNonEmpty(this.mqttServer)) { this.showToast('提示', '请输入服务器地址', 'warning'); return; }
 			if (!isValidAddress(this.mqttServer)) { this.showToast('提示', '服务器地址格式不正确', 'warning'); return; }
 			if (!isValidPort(this.mqttPort)) { this.showToast('提示', '端口号必须在 1-65535 之间', 'warning'); return; }
-			try { this.saving = true; this.loadingVisible = true; this.loadingText = '保存中...'; const cfg = {}; if (this.mqttServer) cfg.server = this.mqttServer; if (this.mqttPort) cfg.port = parseInt(this.mqttPort) || 1883; if (this.mqttUser) cfg.user = this.mqttUser; if (this.mqttPass) cfg.pass = this.mqttPass; if (this.mqttTopic) cfg.topic = this.mqttTopic; await api.setMqttConfig(cfg); this.showToast('成功', 'MQTT 配置已保存', 'success'); } catch (e) { this.showToast('失败', e.message || '保存失败', 'error'); } finally { this.saving = false; this.loadingVisible = false; }
+			try {
+				this.saving = true;
+				this.showLoading('保存中...');
+				const cfg = {};
+				if (this.mqttServer) cfg.server = this.mqttServer;
+				if (this.mqttPort) cfg.port = parseInt(this.mqttPort) || 1883;
+				if (this.mqttUser) cfg.user = this.mqttUser;
+				if (this.mqttPass) cfg.pass = this.mqttPass;
+				if (this.mqttTopic) cfg.topic = this.mqttTopic;
+				await api.setMqttConfig(cfg);
+				this.showToast('成功', 'MQTT 配置已保存', 'success');
+			} catch (e) { this.showToast('失败', e.message || '保存失败', 'error'); }
+			finally { this.saving = false; this.hideLoading(); }
 		}
 	}
 };

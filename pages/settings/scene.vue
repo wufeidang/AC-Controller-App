@@ -49,14 +49,15 @@
 import apiService from '../../services/api';
 import Loading from '../../components/Loading';
 import CustomModal from '../../components/CustomModal';
+import deviceMixin from '../../mixins/device-mixin';
 
 export default {
 	components: { Loading, CustomModal },
+	mixins: [deviceMixin],
 	data() {
 		return {
 			currentScene: '',
-			saving: false, deviceConnected: false,
-			loadingVisible: false, loadingText: '',
+			saving: false,
 			modalVisible: false, modalTitle: '', modalContent: '',
 			scenes: [
 				{ value: 'sleep', label: '睡眠', icon: 'moon', description: '低风速，静音运行', temp: '26', fanSpeed: '低速', swing: '固定' },
@@ -67,13 +68,11 @@ export default {
 		};
 	},
 	onLoad() {
-		const d = uni.getStorageSync('connectedDevice');
-		this.deviceConnected = d && d.connected;
-		if (d) apiService.setDeviceAddress(d.address);
+		this.checkDevice();
 		this.getCurrentScene();
 	},
 	methods: {
-		showModal(title, content) {
+		showToast(title, content) {
 			this.modalTitle = title; this.modalContent = content; this.modalVisible = true;
 			setTimeout(() => { this.modalVisible = false; }, 1500);
 		},
@@ -81,7 +80,7 @@ export default {
 		async getCurrentScene() {
 			if (!this.deviceConnected) return;
 			try {
-				this.loadingVisible = true;
+				this.showLoading('获取中...');
 				const res = await apiService.getScene();
 				if (res.status === 'success') {
 					const d = res.data;
@@ -93,20 +92,24 @@ export default {
 						}
 					});
 				}
-			} catch (e) { console.error(e); }
-			finally { this.loadingVisible = false; }
+			} catch (e) { /* 静默 */ }
+			finally { this.hideLoading(); }
 		},
 		async saveScene() {
-			if (!this.currentScene) { this.showModal('提示', '请选择场景模式'); return; }
-			if (!this.deviceConnected) { this.showModal('提示', '请先连接设备'); return; }
+			if (!this.currentScene) { this.showToast('提示', '请选择场景模式'); return; }
+			if (!this.deviceConnected) { this.showToast('提示', '请先连接设备'); return; }
 			if (this.saving) return;
 			try {
-				this.saving = true; this.loadingVisible = true; this.loadingText = '保存中...';
+				this.saving = true;
+				this.showLoading('保存中...');
 				const res = await apiService.setScene(this.currentScene);
-				if (res.status === 'success') { this.showModal('成功', '场景已切换'); await this.getCurrentScene(); }
-				else { this.showModal('失败', (res.data && res.data.message) || '保存失败'); }
-			} catch (e) { this.showModal('失败', e.message || '保存失败'); }
-			finally { this.saving = false; this.loadingVisible = false; }
+				if (res.status === 'success') {
+					this.showToast('成功', '场景已切换');
+					await this.getCurrentScene();
+				}
+				else { this.showToast('失败', (res.data && res.data.message) || '保存失败'); }
+			} catch (e) { this.showToast('失败', e.message || '保存失败'); }
+			finally { this.saving = false; this.hideLoading(); }
 		}
 	}
 };

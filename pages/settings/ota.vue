@@ -86,13 +86,13 @@ export default {
 			modalVisible: false, modalTitle: '', modalContent: ''
 		};
 	},
-	onLoad() { this.checkDevice(); if (this.deviceConnected) apiService.setDeviceAddress(this.deviceAddress); this.loadSaved(); this.getFw(); },
+	onLoad() { this.checkDevice(); this.loadSaved(); this.getFw(); },
 	methods: {
 		loadSaved() {
 			const u = uni.getStorageSync('otaUrl'); if (u) this.firmwareUrl = u;
 			const s = uni.getStorageSync('wifiSsid'); if (s) { this.wifiSsid = s; const p = uni.getStorageSync('wifiPassword'); if (p) this.wifiPassword = p; }
 		},
-		async getFw() { if (!this.deviceConnected) return; try { this.loadingVisible = true; this.loadingText = '获取中...'; const res = await apiService.getFirmwareVersion(); if (res.status === 'success') this.currentVersion = res.data.firmware_version || '未知'; } catch (e) { console.error(e); } finally { this.loadingVisible = false; } },
+		async getFw() { if (!this.deviceConnected) return; try { this.showLoading('获取中...'); const res = await apiService.getFirmwareVersion(); if (res.status === 'success') this.currentVersion = res.data.firmware_version || '未知'; } catch (e) { /* 静默 */ } finally { this.hideLoading(); } },
 		togglePassword() { this.showPassword = !this.showPassword; },
 		startUpdate() {
 			if (!this.deviceConnected) { this.showModal('警告', '请先连接设备'); return; }
@@ -109,7 +109,8 @@ export default {
 		handleResultModalConfirm() { this.resultModalVisible = false; },
 		async performOtaUpdate() {
 			try {
-				this.updating = true; this.loadingVisible = true; this.loadingText = '正在升级...';
+				this.updating = true;
+				this.showLoading('正在升级...');
 				const data = { firmware_url: this.firmwareUrl };
 				if (this.wifiSsid) { data.wifi_ssid = this.wifiSsid; if (this.wifiPassword) data.wifi_password = this.wifiPassword; }
 				const res = await apiService.otaUpdate(data);
@@ -123,7 +124,7 @@ export default {
 					this.resultModalVisible = true;
 				} else { this.showModal('失败', (res && res.data && res.data.message) || '升级失败'); }
 			} catch (e) { this.showModal('失败', e.message || '升级失败'); }
-			finally { this.updating = false; this.loadingVisible = false; }
+			finally { this.updating = false; this.hideLoading(); }
 		},
 		showModal(title, content) {
 			this.modalTitle = title; this.modalContent = content; this.modalVisible = true;

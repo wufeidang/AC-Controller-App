@@ -44,24 +44,23 @@
 import apiService from '../../services/api';
 import Loading from '../../components/Loading';
 import CustomModal from '../../components/CustomModal';
+import deviceMixin from '../../mixins/device-mixin';
 
 export default {
 	components: { Loading, CustomModal },
+	mixins: [deviceMixin],
 	data() {
 		return {
-			sleepEnabled: false, saving: false, deviceConnected: false,
-			loadingVisible: false, loadingText: '',
+			sleepEnabled: false, saving: false,
 			modalVisible: false, modalTitle: '', modalContent: ''
 		};
 	},
 	onLoad() {
-		const d = uni.getStorageSync('connectedDevice');
-		this.deviceConnected = d && d.connected;
-		if (d) apiService.setDeviceAddress(d.address);
+		this.checkDevice();
 		this.getSleepStatus();
 	},
 	methods: {
-		showModal(title, content) {
+		showToast(title, content) {
 			this.modalTitle = title; this.modalContent = content; this.modalVisible = true;
 			setTimeout(() => { this.modalVisible = false; }, 1500);
 		},
@@ -69,22 +68,26 @@ export default {
 		async getSleepStatus() {
 			if (!this.deviceConnected) return;
 			try {
-				this.loadingVisible = true;
+				this.showLoading('获取中...');
 				const res = await apiService.getSleepEnabled();
 				if (res.status === 'success') this.sleepEnabled = !!res.data.sleep_enabled;
-			} catch (e) { console.error(e); }
-			finally { this.loadingVisible = false; }
+			} catch (e) { /* 静默 */ }
+			finally { this.hideLoading(); }
 		},
 		async saveSettings() {
-			if (!this.deviceConnected) { this.showModal('提示', '请先连接设备'); return; }
+			if (!this.deviceConnected) { this.showToast('提示', '请先连接设备'); return; }
 			if (this.saving) return;
 			try {
-				this.saving = true; this.loadingVisible = true; this.loadingText = '保存中...';
+				this.saving = true;
+				this.showLoading('保存中...');
 				const res = await apiService.setSleepEnabled(this.sleepEnabled);
-				if (res.status === 'success') { this.showModal('成功', '保存成功'); await this.getSleepStatus(); }
-				else { this.showModal('失败', (res.data && res.data.message) || '保存失败'); }
-			} catch (e) { this.showModal('失败', e.message || '保存失败'); }
-			finally { this.saving = false; this.loadingVisible = false; }
+				if (res.status === 'success') {
+					this.showToast('成功', '保存成功');
+					await this.getSleepStatus();
+				}
+				else { this.showToast('失败', (res.data && res.data.message) || '保存失败'); }
+			} catch (e) { this.showToast('失败', e.message || '保存失败'); }
+			finally { this.saving = false; this.hideLoading(); }
 		}
 	}
 };

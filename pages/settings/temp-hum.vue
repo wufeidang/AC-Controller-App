@@ -105,7 +105,7 @@
 		</view>
 
 		<Loading :visible="loadingVisible" :text="loadingText" />
-		<CustomModal :visible="toastVisible" :title="toastTitle" :content="toastContent" :close-on-click-overlay="false" :type="toastType" :show-buttons="false" />
+		<CustomModal :visible="modalVisible" :title="modalTitle" :content="modalContent" :close-on-click-overlay="false" :show-buttons="false" />
 	</view>
 </template>
 
@@ -113,6 +113,7 @@
 import Loading from '../../components/Loading';
 import CustomModal from '../../components/CustomModal';
 import apiService from '../../services/api';
+import deviceMixin from '../../mixins/device-mixin';
 
 // 各 slider 的范围配置
 const RANGES = {
@@ -125,14 +126,13 @@ const RANGES = {
 
 export default {
 	components: { Loading, CustomModal },
+	mixins: [deviceMixin],
 	data() {
 		return {
 			controlType: 'temperature',
 			tempOnThreshold: 28, tempOffThreshold: 26,
 			humOnThreshold: 70, humOffThreshold: 60,
 			checkInterval: 5,
-			deviceConnected: false,
-			loadingVisible: false, loadingText: '',
 			saving: false,
 			toastVisible: false, toastTitle: '', toastContent: '', toastType: 'info'
 		};
@@ -140,18 +140,14 @@ export default {
 	onLoad() { this.checkDevice(); this.getSettings(); },
 	methods: {
 		showToast(title, content, type = 'info') {
-			this.toastTitle = title; this.toastContent = content; this.toastType = type;
-			this.toastVisible = true; setTimeout(() => { this.toastVisible = false; }, 1500);
-		},
-		checkDevice() {
-			const d = uni.getStorageSync('connectedDevice');
-			this.deviceConnected = d && d.connected;
-			if (d) apiService.setDeviceAddress(d.address);
+			this.modalTitle = title; this.modalContent = content; this.toastType = type;
+			this.modalHasCancel = false; this.modalShowButtons = false; this.modalVisible = true;
+			setTimeout(() => { this.modalVisible = false; }, 1500);
 		},
 		async getSettings() {
 			if (!this.deviceConnected) return;
 			try {
-				this.loadingVisible = true; this.loadingText = '获取设置...';
+				this.showLoading('获取设置...');
 				const res = await apiService.getTempHumThreshold();
 				if (res.status === 'success') {
 					const d = res.data;
@@ -162,8 +158,8 @@ export default {
 					this.humOffThreshold = d.hum_off_threshold ?? 60;
 					this.checkInterval = d.check_interval ?? 5;
 				}
-			} catch (e) { console.error(e); }
-			finally { this.loadingVisible = false; }
+			} catch (e) { /* 静默 */ }
+			finally { this.hideLoading(); }
 		},
 		// slider 拖拽
 		onTempOnChanging(e)  { this.tempOnThreshold = parseInt(e.detail.value); },
@@ -190,7 +186,8 @@ export default {
 			if (this.controlType === 'temperature' && this.tempOnThreshold <= this.tempOffThreshold) { this.showToast('提示', '开机温度应高于关机温度', 'warning'); return; }
 			if (this.controlType === 'humidity' && this.humOnThreshold <= this.humOffThreshold) { this.showToast('提示', '开机湿度应高于关机湿度', 'warning'); return; }
 			try {
-				this.saving = true; this.loadingVisible = true; this.loadingText = '保存中...';
+				this.saving = true;
+				this.showLoading('保存中...');
 				const res = await apiService.setTempHum({
 					controlType: this.controlType, tempOnThreshold: this.tempOnThreshold,
 					tempOffThreshold: this.tempOffThreshold, humOnThreshold: this.humOnThreshold,
@@ -205,7 +202,7 @@ export default {
 					this.showToast('成功', '保存成功', 'success');
 				} else { this.showToast('失败', (res.data && res.data.message) || '保存失败', 'error'); }
 			} catch (e) { this.showToast('失败', e.message || '保存失败', 'error'); }
-			finally { this.saving = false; this.loadingVisible = false; }
+			finally { this.saving = false; this.hideLoading(); }
 		}
 	}
 };

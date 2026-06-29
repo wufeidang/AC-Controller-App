@@ -49,39 +49,35 @@ export default {
 			return {
 				loadingVisible: false, loadingText: '',
 				apSsid: '', apPassword: '', showPassword: false, saving: false,
-				modalVisible: false, modalTitle: '', modalContent: ''
+				modalVisible: false, modalTitle: '', modalContent: '', modalType: 'info'
 			};
 		},
-		onLoad() { this.checkDevice(); if (this.deviceConnected) api.setDeviceAddress(this.deviceAddress); this.loadSettings(); },
-		onShow() { this.checkDevice(); if (this.deviceConnected) api.setDeviceAddress(this.deviceAddress); },
+		onLoad() { this.checkDevice(); this.loadSettings(); },
+		onShow() { this.checkDevice(); },
 		methods: {
-				async loadSettings() {
-			if (!this.deviceConnected) return;
-			try {
-				this.loadingVisible = true; this.loadingText = '加载中...';
-				const res = await api.getStatus();
-				if (res.status === 'success' && res.data.device_info) this.apSsid = res.data.device_info.wifi_name || '';
-			} catch (e) { console.error(e); }
-			finally { this.loadingVisible = false; }
-		},
-		showToast(title, content, type = 'info') {
-			this.modalTitle = title; this.modalContent = content; this.modalType = type;
-			this.modalVisible = true;
-			setTimeout(() => { this.modalVisible = false; }, 1500);
-		},
-		async saveSettings() {
-			if (!this.deviceConnected) { this.showToast('提示', '请先连接设备', 'warning'); return; }
-			if (!this.apSsid) { this.showToast('提示', '请输入热点名称', 'warning'); return; }
-			if (this.saving) return;
-			try {
-				this.saving = true; this.loadingVisible = true; this.loadingText = '保存中...';
-				await api.setSsid({ ssid: this.apSsid });
-				if (this.apPassword && this.apPassword.length >= 8) await api.setWifiPassword({ password: this.apPassword });
-				this.showToast('成功', '已保存', 'success');
-				this.apPassword = '';
-			} catch (e) { this.showToast('失败', e.message || '保存失败', 'error'); }
-			finally { this.saving = false; this.loadingVisible = false; }
-		}
+			async loadSettings() {
+				if (!this.deviceConnected) return;
+				try { this.showLoading('加载中...'); const res = await api.getStatus(); if (res.status === 'success' && res.data.device_info) this.apSsid = res.data.device_info.wifi_name || ''; } catch (e) { /* 静默 */ } finally { this.hideLoading(); }
+			},
+			showToast(title, content, type = 'info') {
+				this.modalTitle = title; this.modalContent = content; this.modalType = type;
+				this.modalVisible = true;
+				setTimeout(() => { this.modalVisible = false; }, 1500);
+			},
+			async saveSettings() {
+				if (!this.deviceConnected) { this.showToast('提示', '请先连接设备', 'warning'); return; }
+				if (!this.apSsid) { this.showToast('提示', '请输入热点名称', 'warning'); return; }
+				if (this.saving) return;
+				try {
+					this.saving = true;
+					this.showLoading('保存中...');
+					await api.setSsid({ ssid: this.apSsid });
+					if (this.apPassword && this.apPassword.length >= 8) await api.setWifiPassword({ password: this.apPassword });
+					this.showToast('成功', '已保存', 'success');
+					this.apPassword = '';
+				} catch (e) { this.showToast('失败', e.message || '保存失败', 'error'); }
+				finally { this.saving = false; this.hideLoading(); }
+			}
 	}
 };
 </script>

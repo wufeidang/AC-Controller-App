@@ -57,12 +57,12 @@ export default {
 			modalVisible: false, modalTitle: '', modalContent: '', modalType: 'info'
 		};
 	},
-		onLoad() { this.checkDevice(); if (this.deviceConnected) api.setDeviceAddress(this.deviceAddress); this.loadStatus(); },
-			onShow() { this.checkDevice(); if (this.deviceConnected) { api.setDeviceAddress(this.deviceAddress); this.loadStatus(); } },
-			methods: {
+	onLoad() { this.checkDevice(); this.loadStatus(); },
+	onShow() { this.checkDevice(); },
+	methods: {
 		async loadStatus() {
 			if (!this.deviceConnected) return;
-			try { this.loadingVisible = true; this.loadingText = '加载中...'; const res = await api.getStaWifi(); if (res.status === 'success') { this.staInfo = res.data; this.staSsid = res.data.ssid || ''; } } catch (e) { console.error(e); } finally { this.loadingVisible = false; }
+			try { this.showLoading('加载中...'); const res = await api.getStaWifi(); if (res.status === 'success') { this.staInfo = res.data; this.staSsid = res.data.ssid || ''; } } catch (e) { /* 静默 */ } finally { this.hideLoading(); }
 		},
 		showToast(title, content, type = 'info') { this.modalTitle = title; this.modalContent = content; this.modalType = type; this.modalVisible = true; setTimeout(() => { this.modalVisible = false; }, 1500); },
 		async saveSettings() {
@@ -70,14 +70,14 @@ export default {
 			if (!this.staSsid || !this.staPassword) { this.showToast('提示', '请输入 WiFi 名称和密码', 'warning'); return; }
 			if (this.saving) return;
 			try {
-				this.saving = true; this.loadingVisible = true; this.loadingText = '配置中...';
+				this.saving = true;
+				this.showLoading('配置中...');
 				await api.setStaWifi({ ssid: this.staSsid, password: this.staPassword });
 				this.showToast('成功', '已保存，设备正在连接 WiFi...', 'success');
 				// 轮询连接状态，最多尝试 10 次（30 秒）
 				for (let i = 0; i < 10; i++) {
 					await new Promise(r => setTimeout(r, 3000));
 					if (!this.deviceConnected) break;
-					this.loadingText = `等待连接...(${i + 1}/10)`;
 					try {
 						const res = await api.getStaWifi();
 						if (res.status === 'success') {
@@ -92,7 +92,7 @@ export default {
 				this.showToast('提示', '连接超时，请检查 WiFi 名称和密码是否正确', 'warning');
 			} catch (e) {
 				this.showToast('失败', e.message || '保存失败', 'error');
-			} finally { this.saving = false; this.loadingVisible = false; }
+			} finally { this.saving = false; this.hideLoading(); }
 		}
 	}
 };

@@ -82,7 +82,7 @@ export default {
 			modalVisible: false, modalTitle: '', modalContent: ''
 		};
 	},
-	onLoad() { this.checkDevice(); if (this.deviceConnected) apiService.setDeviceAddress(this.deviceAddress); this.getSettings(); },
+	onLoad() { this.checkDevice(); this.getSettings(); },
 	methods: {
 		showModal(title, content) {
 			this.modalTitle = title; this.modalContent = content; this.modalVisible = true;
@@ -91,14 +91,14 @@ export default {
 		async getSettings() {
 			if (!this.deviceConnected) return;
 			try {
-				this.loadingVisible = true; this.loadingText = '获取中...';
+				this.showLoading('获取中...');
 				const res = await apiService.getStatus();
 				if (res.status === 'success' && res.data.calibration) {
 					this.tempOffset = res.data.calibration.temp_offset || 0;
 					this.humOffset = res.data.calibration.hum_offset || 0;
 				}
-			} catch (e) { console.error(e); }
-			finally { this.loadingVisible = false; }
+			} catch (e) { /* 静默 */ }
+			finally { this.hideLoading(); }
 		},
 		onTempChanging(e) { this.tempOffset = parseFloat(e.detail.value); },
 		onHumChanging(e) { this.humOffset = parseInt(e.detail.value); },
@@ -110,12 +110,13 @@ export default {
 			if (!this.deviceConnected) { this.showModal('提示', '请先连接设备'); return; }
 			if (this.saving) return;
 			try {
-				this.saving = true; this.loadingVisible = true; this.loadingText = '保存中...';
+				this.saving = true;
+				this.showLoading('保存中...');
 				const res = await apiService.setCalibration({ temp_offset: this.tempOffset, hum_offset: this.humOffset });
 				if (res.status === 'success') { this.showModal('成功', '保存成功'); }
 				else { this.showModal('失败', (res.data && res.data.message) || '保存失败'); }
 			} catch (e) { this.showModal('失败', e.message || '保存失败'); }
-			finally { this.saving = false; this.loadingVisible = false; }
+			finally { this.saving = false; this.hideLoading(); }
 		}
 	}
 };

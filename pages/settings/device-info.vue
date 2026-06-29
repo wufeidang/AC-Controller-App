@@ -62,7 +62,7 @@ export default {
 			modalVisible: false, modalTitle: '', modalContent: ''
 		};
 	},
-	onLoad() { this.checkDevice(); if (this.deviceConnected) apiService.setDeviceAddress(this.deviceAddress); this.getInfo(); },
+	onLoad() { this.checkDevice(); this.getInfo(); },
 	methods: {
 		showModal(title, content) {
 			this.modalTitle = title; this.modalContent = content; this.modalVisible = true;
@@ -71,15 +71,15 @@ export default {
 		async getInfo() {
 			if (!this.deviceConnected) return;
 			try {
-				this.loadingVisible = true; this.loadingText = '获取中...';
+				this.showLoading('获取中...');
 				const res = await apiService.getStatus();
 				if (res.status === 'success') {
-				if (res.data.device_info) this.deviceInfo = res.data.device_info;
-					}
+					if (res.data.device_info) this.deviceInfo = res.data.device_info;
+				}
 				const sys = await apiService.getSystemInfo();
 				if (sys.status === 'success') this.systemInfo = sys.data;
-			} catch (e) { console.error(e); }
-			finally { this.loadingVisible = false; }
+			} catch (e) { /* 静默 */ }
+			finally { this.hideLoading(); }
 		},
 		formatUptime(s) {
 			if (!s) return '-';
@@ -93,12 +93,13 @@ export default {
 			if (!isLengthValid(this.deviceInfo.device_name, 1, 32)) { this.showModal('提示', '设备名称不能超过 32 个字符'); return; }
 			if (this.deviceInfo.device_location && !isLengthValid(this.deviceInfo.device_location, 1, 64)) { this.showModal('提示', '设备位置不能超过 64 个字符'); return; }
 			try {
-				this.saving = true; this.loadingVisible = true; this.loadingText = '保存中...';
+				this.saving = true;
+				this.showLoading('保存中...');
 				const r = await apiService.setDeviceInfo(this.deviceInfo);
 				if (r.status === 'success') { this.showModal('成功', '保存成功'); await this.getInfo(); }
 				else { this.showModal('失败', (r.data && r.data.message) || '保存失败'); }
 			} catch (e) { this.showModal('失败', e.message || '保存失败'); }
-			finally { this.saving = false; this.loadingVisible = false; }
+			finally { this.saving = false; this.hideLoading(); }
 		}
 	}
 };

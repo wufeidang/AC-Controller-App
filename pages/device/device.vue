@@ -105,24 +105,34 @@
 import Loading from '../../components/Loading';
 import CustomModal from '../../components/CustomModal';
 import apiService from '../../services/api';
+import deviceMixin from '../../mixins/device-mixin';
+import errorHandler from '../../services/errorHandler';
 
 export default {
 	components: { Loading, CustomModal },
+	mixins: [deviceMixin],
 	data() {
 		return {
-			connecting: false, deviceConnected: false,
-			deviceAddress: '', deviceId: '', staIp: '',
+			connecting: false,
 			inputAddress: '192.168.4.1', inputFocused: false,
 			wifiSSID: '', wifiScanning: false, wifiList: [],
-			loadingVisible: false, loadingText: '',
-			modalVisible: false, modalTitle: '', modalContent: '',
-			modalConfirmText: '确定', modalCancelText: '', modalHasCancel: false,
+			staIp: '',
 			_modalCallback: null
 		};
 	},
-		onLoad() { this.checkStatus(); this.getWifiStatus().then(() => this.autoFillIp()); this.startWifiScan(); },
-		onShow() { this.getWifiStatus().then(() => this.autoFillIp()); if (this.wifiList.length === 0) this.startWifiScan(); },
-	onUnload() { try { uni.offGetWifiList(); } catch (e) {} },
+		onLoad() {
+			this.checkDevice();
+			if (this.deviceConnected) return;  // 已连接则跳过
+			this.getWifiStatus().then(() => this.autoFillIp());
+			this.startWifiScan();
+		},
+		onShow() {
+			this.checkDevice();
+			if (this.deviceConnected) return;
+			this.getWifiStatus().then(() => { this.autoFillIp(); this.onWifiChanged(); });
+			if (this.wifiList.length === 0) this.startWifiScan();
+		},
+		onUnload() { try { uni.offGetWifiList(); } catch (e) {} },
 	methods: {
 		async getWifiStatus() {
 			try {
@@ -136,8 +146,8 @@ export default {
 						uni.getConnectedWifi({ success: resolve, fail: reject });
 					});
 					this.wifiSSID = (wifi && wifi.wifi) ? (wifi.wifi.SSID || wifi.wifi.ssid || '') : '';
-			} catch (e) { /* 静默 */ }
-		} catch (e) { this.wifiSSID = ''; }
+				} catch (e) { /* 静默 */ }
+			} catch (e) { this.wifiSSID = ''; }
 		},
 		autoFillIp() {
 			if (this.deviceConnected) return;
@@ -149,10 +159,14 @@ export default {
 				this.inputAddress = saved.ip;
 			}
 		},
+		async onWifiChanged() {
+			// WiFi 变化时重新获取状态 + 自动填充 IP
+			await this.getWifiStatus();
+			this.autoFillIp();
+		},
 		async startWifiScan() {
 				if (this.wifiScanning) return;
 				this.wifiScanning = true;
-				// 不清空旧列表避免闪烁，新结果延迟批量更新
 				try {
 					if (uni.getSystemInfoSync().platform === 'android') {
 						await this.requestLocationPermission();
@@ -164,15 +178,19 @@ export default {
 						if (res && res.wifiList) pending = res.wifiList;
 					});
 					await uni.getWifiList({});
-					// 延迟一帧等回调全部到达再渲染
-					await this.$nextTick();
-					await new Promise(r => setTimeout(r, 300));
+					// 动态等待：每 100ms 检查一次，最多等 2s
+					for (let i = 0; i < 20; i++) {
+						if (pending.length > 0) break;
+						await new Promise(r => setTimeout(r, 100));
+					}
 					if (pending.length > 0) {
 						const seen = new Set();
 						this.wifiList = pending
 							.filter(w => { const s = w.SSID || w.ssid || ''; if (!s || seen.has(s)) return false; seen.add(s); return true; })
 							.sort((a, b) => (b.signalStrength || 0) - (a.signalStrength || 0));
 					}
+					// 扫描完成，重新获取 WiFi 状态 + 自动填充 IP
+					this.onWifiChanged();
 				} catch (e) {
 					const msg = e.errMsg || e.message || '';
 					if (msg.indexOf('location') > -1) this.showToast('提示', '请开启位置服务后重试');
@@ -220,18 +238,16 @@ export default {
 				if (res.status === 'success') {
 					const info = { address: addr, deviceId: res.data.device_id, connected: true };
 					uni.setStorageSync('connectedDevice', info);
+					this.setDevice(info);
 					uni.$emit('deviceConnected', { connected: true, device: info });
-					this.deviceConnected = true;
-					this.deviceAddress = addr;
-					this.deviceId = res.data.device_id;
+					// 连接 AP 模式，清空 STA IP
 					this.staIp = '';
-					// 异步查 STA 状态
 					this.fetchStaStatus();
 				} else {
 					this.showConfirm('失败', (res.data && res.data.message) || '获取设备 ID 失败');
 				}
 			} catch (e) {
-				this.showConfirm('失败', e.message || '连接失败，请检查设备是否通电并处于 AP 模式');
+				errorHandler.handleError(e);
 			} finally { this.connecting = false; this.loadingVisible = false; }
 		},
 		async fetchStaStatus() {
@@ -239,17 +255,19 @@ export default {
 				const res = await apiService.getStaWifi();
 				if (res.status === 'success' && res.data && res.data.connected && res.data.local_ip) {
 					this.staIp = res.data.local_ip;
-					// 记住家庭网络对应的 IP，下次自动匹配
 					const ssid = res.data.ssid || this.wifiSSID;
 					if (ssid) {
 						uni.setStorageSync('staNetwork', { ssid: ssid, ip: res.data.local_ip });
 					}
+				} else {
+					// 设备未连上家庭 WiFi（可能是 AP 模式），清空 STA IP
+					this.staIp = '';
 				}
-			} catch (e) { /* 静默 */ }
+			} catch (e) { this.staIp = ''; }
 		},
-		showToast(title, content) {
+		showToast(title, content, type = 'info') {
 			this.modalTitle = title; this.modalContent = content;
-			this.modalHasCancel = false; this.modalVisible = true;
+			this.modalHasCancel = false; this.modalShowButtons = false; this.modalVisible = true;
 			setTimeout(() => { this.modalVisible = false; }, 1500);
 		},
 		showConfirm(title, content) {
@@ -269,21 +287,9 @@ export default {
 			this._modalCallback = () => { this.doDisconnect(); };
 		},
 		doDisconnect() {
-			uni.removeStorageSync('connectedDevice');
-			uni.$emit('deviceConnected', { connected: false });
-			this.deviceConnected = false; this.deviceId = ''; this.deviceAddress = ''; this.staIp = '';
+			this.disconnectDevice();
 		},
 		navigateBack() { uni.redirectTo({ url: '/pages/index/index' }); },
-			checkStatus() {
-				const d = uni.getStorageSync('connectedDevice');
-				if (d && d.connected) {
-					this.deviceConnected = true;
-					this.deviceAddress = d.address || '';
-					this.deviceId = d.deviceId || '';
-					apiService.setDeviceAddress(this.deviceAddress);
-					this.fetchStaStatus();
-				}
-			}
 		}
 	};
 </script>

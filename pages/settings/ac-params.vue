@@ -96,14 +96,7 @@
 
 		<Loading :visible="loadingVisible" :text="loadingText" />
 
-		<CustomModal
-			:visible="toastVisible"
-			:title="toastTitle"
-			:content="toastContent"
-			:close-on-click-overlay="false"
-			:type="toastType"
-			:show-buttons="false"
-		/>
+		<CustomModal :visible="modalVisible" :title="modalTitle" :content="modalContent" :close-on-click-overlay="false" :show-buttons="false" />
 	</view>
 </template>
 
@@ -111,9 +104,11 @@
 import Loading from '../../components/Loading';
 import CustomModal from '../../components/CustomModal';
 import apiService from '../../services/api';
+import deviceMixin from '../../mixins/device-mixin';
 
 export default {
 	components: { Loading, CustomModal },
+	mixins: [deviceMixin],
 	data() {
 		return {
 			temperature: 26,
@@ -122,14 +117,8 @@ export default {
 			currentSwing: 'auto',
 			currentBrand: 'tcl',
 			brandExpanded: false,
-			deviceConnected: false,
-			loadingVisible: false,
-			loadingText: '',
 			saving: false,
-			toastVisible: false,
-			toastTitle: '',
-			toastContent: '',
-			toastType: 'info',
+			modalVisible: false, modalTitle: '', modalContent: '', modalShowButtons: false,
 			modes: [
 				{ label: '制冷', value: 'cool', icon: 'air-conditioner', color: '#1677FF', bg: '#E6F4FF', filter: '' },
 				{ label: '制热', value: 'heat', icon: 'sun', color: '#FA541C', bg: '#FFF2E8', filter: '' },
@@ -163,20 +152,15 @@ export default {
 		}
 	},
 	onLoad() {
-		this.checkDeviceStatus();
+		this.checkDevice();
 		this.loadSettings();
 		this.getDeviceSettings();
 	},
 	methods: {
 		showToast(title, content, type = 'info') {
-			this.toastTitle = title; this.toastContent = content; this.toastType = type;
-			this.toastVisible = true;
-			setTimeout(() => { this.toastVisible = false; }, 1500);
-		},
-		checkDeviceStatus() {
-			const d = uni.getStorageSync('connectedDevice');
-			this.deviceConnected = d && d.connected;
-			if (d) apiService.setDeviceAddress(d.address);
+			this.modalTitle = title; this.modalContent = content;
+			this.modalShowButtons = false; this.modalVisible = true;
+			setTimeout(() => { this.modalVisible = false; }, 1500);
 		},
 		loadSettings() {
 			const s = uni.getStorageSync('acSettings');
@@ -190,7 +174,7 @@ export default {
 		async getDeviceSettings() {
 			if (!this.deviceConnected) return;
 			try {
-				this.loadingVisible = true; this.loadingText = '获取设置...';
+				this.showLoading('获取设置...');
 				const res = await apiService.getAcParams();
 				if (res.status === 'success' && res.data) {
 					const d = res.data;
@@ -204,7 +188,7 @@ export default {
 				}
 			} catch (e) {
 				this.loadSettings();
-			} finally { this.loadingVisible = false; }
+			} finally { this.hideLoading(); }
 		},
 		decreaseTemp() { if (this.temperature > 16) this.temperature--; },
 		increaseTemp() { if (this.temperature < 30) this.temperature++; },
@@ -219,22 +203,25 @@ export default {
 			});
 		},
 		async saveSettings() {
-				if (!this.deviceConnected) { this.showToast('提示', '请先连接设备', 'warning'); return; }
-				if (this.saving) return;
-				try {
-					this.saving = true; this.loadingVisible = true; this.loadingText = '保存中...';
-					// 品牌必须先设置：红外编码库决定了后续 setAcParams 发射的红外信号
-					await apiService.setAcBrand(this.currentBrand);
-					await apiService.setAcParams({
-						temperature: this.temperature, mode: this.currentMode,
-						fan_speed: this.currentFanSpeed, swing: this.currentSwing
-					});
-					this.saveToLocalStorage();
-					this.showToast('成功', '已保存：' + this.temperature + '°C ' + (this.modes.find(m=>m.value===this.currentMode)||{label:''}).label + ' ' + (this.fanSpeeds.find(f=>f.value===this.currentFanSpeed)||{label:''}).label + ' ' + this.currentBrand.toUpperCase(), 'success');
-				} catch (e) {
-					this.showToast('失败', e.message || '保存失败', 'error');
-				} finally { this.saving = false; this.loadingVisible = false; }
+			if (!this.deviceConnected) { this.showToast('提示', '请先连接设备', 'warning'); return; }
+			if (this.saving) return;
+			try {
+				this.saving = true;
+				this.showLoading('保存中...');
+				await apiService.setAcBrand(this.currentBrand);
+				await apiService.setAcParams({
+					temperature: this.temperature, mode: this.currentMode,
+					fan_speed: this.currentFanSpeed, swing: this.currentSwing
+				});
+				this.saveToLocalStorage();
+				this.showToast('成功', '已保存：' + this.temperature + '°C ' + (this.modes.find(m => m.value === this.currentMode) || { label: '' }).label + ' ' + (this.fanSpeeds.find(f => f.value === this.currentFanSpeed) || { label: '' }).label + ' ' + this.currentBrand.toUpperCase(), 'success');
+			} catch (e) {
+				this.showToast('失败', e.message || '保存失败', 'error');
+			} finally {
+				this.saving = false;
+				this.hideLoading();
 			}
+		}
 	}
 };
 </script>

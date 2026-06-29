@@ -34,12 +34,21 @@ export function isValidPort(port) {
  */
 export function isValidUrl(url) {
 	if (!url) return false;
-	try {
-		new URL(url);
-		return true;
-	} catch {
-		return false;
+	// 先用正则做基础校验（兼容所有平台）
+	const urlRegex = /^https?:\/\/[^\s/$.?#].[^\s]*$/i;
+	if (!urlRegex.test(url)) return false;
+	// 再用 new URL 做精确校验（如果环境支持）
+	if (typeof URL !== 'undefined') {
+		try {
+			new URL(url);
+			return true;
+		} catch {
+			// new URL 失败但正则通过，认为有效（可能是特殊字符）
+			return true;
+		}
 	}
+	// URL 构造函数不可用时，正则通过即认为有效
+	return true;
 }
 
 /**

@@ -22,6 +22,17 @@
 		<view class="card">
 			<text class="card-title">更新内容</text>
 				<view class="changelog">
+					<view class="cl-item"><text class="cl-ver">v2.3.0</text><text class="cl-date">2026-06-29</text>
+						<text class="cl-line">【设备连接优化 + P0 统一状态管理】</text>
+						<text class="cl-line">· WiFi 扫描改用动态轮询（每 100ms 检查，最多 2s），告别固定 300ms 等待</text>
+						<text class="cl-line">· AP/家庭 WiFi 切换时自动更新 IP 地址，无需手动刷新</text>
+						<text class="cl-line">· 连接成功后自动清空 STA IP，避免 AP 模式显示旧地址</text>
+						<text class="cl-line">· 统一设备状态管理：所有页面接入 device-mixin，消除重复 checkDevice 逻辑</text>
+						<text class="cl-line">· 统一弹窗组件：所有页面使用 CustomModal 替代手写 showToast</text>
+						<text class="cl-line">· 修复首页 onShow 轮询竞态（移除 onShow 中的重复 fetchStatus）</text>
+						<text class="cl-line">· 修复首页 fetchStatus 并发竞态（statusPending 标志位）</text>
+						<text class="cl-line">· 新增 errorHandler 服务，统一错误分类和用户提示</text>
+					</view>
 					<view class="cl-item"><text class="cl-ver">v2.2.0</text><text class="cl-date">2026-06-24</text>
 						<text class="cl-line">【连接流程重构】</text>
 						<text class="cl-line">· 首页与设备连接页面完全分离，首页自动跳转连接页</text>
@@ -95,7 +106,7 @@ export default {
 	data() {
 		return {
 			appName: '空调温控系统', appDesc: '广通电梯机房智能温控管理',
-				appVersion: '2.2.0', appVersionCode: '220', firmwareVersion: '',
+				appVersion: '2.3.0', appVersionCode: '230', firmwareVersion: '',
 				loadingVisible: false, loadingText: '',
 				showHistory: false
 		};
