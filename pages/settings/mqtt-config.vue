@@ -69,6 +69,7 @@ import Loading from '../../components/Loading';
 import CustomModal from '../../components/CustomModal';
 import api from '../../services/api';
 import deviceMixin from '../../mixins/device-mixin.js';
+import { isValidAddress, isValidPort, isNonEmpty } from '../../utils/validator';
 
 export default {
 	components: { Loading, CustomModal },
@@ -90,6 +91,9 @@ export default {
 		async saveSettings() {
 			if (!this.deviceConnected) { this.showToast('提示', '请先连接设备', 'warning'); return; }
 			if (this.saving) return;
+			if (!isNonEmpty(this.mqttServer)) { this.showToast('提示', '请输入服务器地址', 'warning'); return; }
+			if (!isValidAddress(this.mqttServer)) { this.showToast('提示', '服务器地址格式不正确', 'warning'); return; }
+			if (!isValidPort(this.mqttPort)) { this.showToast('提示', '端口号必须在 1-65535 之间', 'warning'); return; }
 			try { this.saving = true; this.loadingVisible = true; this.loadingText = '保存中...'; const cfg = {}; if (this.mqttServer) cfg.server = this.mqttServer; if (this.mqttPort) cfg.port = parseInt(this.mqttPort) || 1883; if (this.mqttUser) cfg.user = this.mqttUser; if (this.mqttPass) cfg.pass = this.mqttPass; if (this.mqttTopic) cfg.topic = this.mqttTopic; await api.setMqttConfig(cfg); this.showToast('成功', 'MQTT 配置已保存', 'success'); } catch (e) { this.showToast('失败', e.message || '保存失败', 'error'); } finally { this.saving = false; this.loadingVisible = false; }
 		}
 	}

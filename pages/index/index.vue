@@ -137,10 +137,7 @@
 import Loading from '../../components/Loading';
 import CustomModal from '../../components/CustomModal';
 import apiService from '../../services/api';
-
-const MODE_LABEL = { cool: '制冷', heat: '制热', dry: '除湿', fan: '送风', auto: '自动' };
-const FAN_LABEL  = { auto: '自动', low: '低速', medium: '中速', high: '高速', quiet: '静音' };
-const SWING_LABEL = { auto: '摆风', fixed: '定向' };
+import constants from '../../config/constants';
 
 export default {
 	components: { Loading, CustomModal },
@@ -185,10 +182,10 @@ export default {
 			if (this.currentTemp > 28) return 'hot';
 			return 'warm';
 		},
-		modeLabel() { return MODE_LABEL[this.acMode] || this.acMode; },
-		fanLabel()  { return FAN_LABEL[this.acFanSpeed] || this.acFanSpeed; },
-		swingLabel() { return SWING_LABEL[this.acSwing] || this.acSwing; },
-		brandLabel() { const m={tcl:'TCL',midea:'美的',haier:'海尔',gree:'格力',daikin:'大金',mitsubishi:'三菱',panasonic:'松下',samsung:'三星',lg:'LG',toshiba:'东芝',hitachi:'日立',fujitsu:'富士通',sharp:'夏普',carrier:'开利',whirlpool:'惠而浦'}; return m[this.acBrand] || this.acBrand.toUpperCase(); },
+		modeLabel() { return constants.MODE_LABELS[this.acMode] || this.acMode; },
+		fanLabel()  { return constants.FAN_LABELS[this.acFanSpeed] || this.acFanSpeed; },
+		swingLabel() { return constants.SWING_LABELS[this.acSwing] || this.acSwing; },
+		brandLabel() { return constants.BRAND_MAP[this.acBrand] || (this.acBrand && this.acBrand.toUpperCase()) || ''; },
 		ruleBrief() {
 			if (this.controlType === 'temperature') return this.tempOnThreshold + '°';
 			return this.humOnThreshold + '%';

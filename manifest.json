@@ -85,9 +85,9 @@
                 "useOriginalMsgbox" : true,
                 "androidStyle" : "common",
                 "android" : {
-                    "hdpi" : "C:/Users/Nemo/Desktop/AI画室出品/写实风格_20260622_232529.png",
-                    "xhdpi" : "C:/Users/Nemo/Desktop/AI画室出品/写实风格_20260622_232529.png",
-                    "xxhdpi" : "C:/Users/Nemo/Desktop/AI画室出品/写实风格_20260622_232529.png"
+                    "hdpi" : "static/logo.png",
+                    "xhdpi" : "static/logo.png",
+                    "xxhdpi" : "static/logo.png"
                 }
             }
         },

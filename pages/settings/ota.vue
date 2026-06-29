@@ -69,6 +69,7 @@ import Loading from '../../components/Loading';
 import CustomModal from '../../components/CustomModal';
 import apiService from '../../services/api';
 import deviceMixin from '../../mixins/device-mixin.js';
+import { isValidUrl, isNonEmpty } from '../../utils/validator';
 
 export default {
 	components: { Loading, CustomModal },
@@ -95,8 +96,9 @@ export default {
 		togglePassword() { this.showPassword = !this.showPassword; },
 		startUpdate() {
 			if (!this.deviceConnected) { this.showModal('警告', '请先连接设备'); return; }
-			if (!this.firmwareUrl) { this.showModal('提示', '请输入固件 URL'); return; }
-			if (!this.wifiSsid) { this.showModal('提示', '请输入 WiFi 名称'); return; }
+			if (!isNonEmpty(this.firmwareUrl)) { this.showModal('提示', '请输入固件 URL'); return; }
+			if (!isValidUrl(this.firmwareUrl)) { this.showModal('提示', '固件 URL 格式不正确，请输入有效的 HTTP/HTTPS 地址'); return; }
+			if (!isNonEmpty(this.wifiSsid)) { this.showModal('提示', '请输入 WiFi 名称'); return; }
 			if (this.updating) return;
 			this.confirmModalVisible = true;
 		},

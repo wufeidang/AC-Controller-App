@@ -49,6 +49,7 @@ import Loading from '../../components/Loading';
 import CustomModal from '../../components/CustomModal';
 import apiService from '../../services/api';
 import deviceMixin from '../../mixins/device-mixin.js';
+import { isNonEmpty, isLengthValid } from '../../utils/validator';
 
 export default {
 	components: { Loading, CustomModal },
@@ -86,16 +87,19 @@ export default {
 			return d > 0 ? d + '天' + h + 'h' : h > 0 ? h + 'h' + m + 'm' : m + '分钟';
 		},
 		async saveDeviceInfo() {
-				if (!this.deviceConnected) { this.showModal('提示', '请先连接设备'); return; }
-				if (this.saving) return;
-				try {
-					this.saving = true; this.loadingVisible = true; this.loadingText = '保存中...';
-					const r = await apiService.setDeviceInfo(this.deviceInfo);
-					if (r.status === 'success') { this.showModal('成功', '保存成功'); await this.getInfo(); }
-					else { this.showModal('失败', (r.data && r.data.message) || '保存失败'); }
-				} catch (e) { this.showModal('失败', e.message || '保存失败'); }
-				finally { this.saving = false; this.loadingVisible = false; }
-			}
+			if (!this.deviceConnected) { this.showModal('提示', '请先连接设备'); return; }
+			if (this.saving) return;
+			if (!isNonEmpty(this.deviceInfo.device_name)) { this.showModal('提示', '请输入设备名称'); return; }
+			if (!isLengthValid(this.deviceInfo.device_name, 1, 32)) { this.showModal('提示', '设备名称不能超过 32 个字符'); return; }
+			if (this.deviceInfo.device_location && !isLengthValid(this.deviceInfo.device_location, 1, 64)) { this.showModal('提示', '设备位置不能超过 64 个字符'); return; }
+			try {
+				this.saving = true; this.loadingVisible = true; this.loadingText = '保存中...';
+				const r = await apiService.setDeviceInfo(this.deviceInfo);
+				if (r.status === 'success') { this.showModal('成功', '保存成功'); await this.getInfo(); }
+				else { this.showModal('失败', (r.data && r.data.message) || '保存失败'); }
+			} catch (e) { this.showModal('失败', e.message || '保存失败'); }
+			finally { this.saving = false; this.loadingVisible = false; }
+		}
 	}
 };
 </script>
