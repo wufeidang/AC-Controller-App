@@ -117,6 +117,15 @@ export default {
 			inputAddress: '192.168.4.1', inputFocused: false,
 			wifiSSID: '', wifiScanning: false, wifiList: [],
 			staIp: '',
+			loadingVisible: false,
+			loadingText: '',
+			modalVisible: false,
+			modalTitle: '',
+			modalContent: '',
+			modalConfirmText: '确定',
+			modalCancelText: '',
+			modalHasCancel: false,
+			modalShowButtons: true,
 			_modalCallback: null
 		};
 	},

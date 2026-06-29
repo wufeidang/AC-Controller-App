@@ -52,6 +52,7 @@ export default {
 	data() {
 		return {
 			sleepEnabled: false, saving: false,
+			loadingVisible: false, loadingText: '',
 			modalVisible: false, modalTitle: '', modalContent: ''
 		};
 	},
@@ -60,6 +61,13 @@ export default {
 		this.getSleepStatus();
 	},
 	methods: {
+		showLoading(text = '加载中...') {
+			this.loadingText = text;
+			this.loadingVisible = true;
+		},
+		hideLoading() {
+			this.loadingVisible = false;
+		},
 		showToast(title, content) {
 			this.modalTitle = title; this.modalContent = content; this.modalVisible = true;
 			setTimeout(() => { this.modalVisible = false; }, 1500);

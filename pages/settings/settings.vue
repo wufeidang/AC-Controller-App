@@ -68,7 +68,7 @@ export default {
 	components: { SettingItem, CustomModal },
 	data() {
 		return {
-			appVersion: '2.0.0',
+			appVersion: '2.3.0',
 			confirmModalVisible: false,
 			confirmModalTitle: '', confirmModalContent: '',
 			confirmModalConfirmText: '确定', confirmModalCancelText: '取消',

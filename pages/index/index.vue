@@ -3,7 +3,7 @@
 		<!-- 顶部 -->
 		<view class="top-bar">
 			<view class="top-left">
-				<text class="top-location">{{ deviceConnected ? (deviceLocation || '温控') : '空调温控' }}</text>
+				<text class="top-location">{{ deviceConnected ? deviceLocation  : '空调温控' }}</text>
 			</view>
 			<view class="top-right" v-if="deviceConnected">
 				<view class="status-badge on">
@@ -161,6 +161,8 @@ export default {
 			switchLoading: false,
 			pollTimer: null,
 			currentScene: '',
+			loadingVisible: false,
+			loadingText: '',
 			scenes: [
 				{ value: 'sleep',  label: '睡眠', icon: 'moon' },
 				{ value: 'comfort', label: '舒适', icon: 'smile' },
@@ -212,12 +214,20 @@ export default {
 			uni.$off('deviceConnected', this.onDeviceEvent);
 		},
 	methods: {
+		setIfChanged(key, value) {
+			if (this[key] !== value) {
+				this[key] = value;
+			}
+		},
 		onDeviceEvent(e) {
 			if (e.connected) {
 				this.setDevice(e.device);
 				this.fetchStatus();
 			} else {
-				this.disconnectDevice();
+				this.deviceConnected = false;
+				this.deviceAddress = '';
+				this.deviceId = '';
+				this.deviceLocation = '';
 				uni.redirectTo({ url: '/pages/device/device' });
 			}
 		},
@@ -228,27 +238,40 @@ export default {
 				const res = await apiService.getStatus();
 				if (res.status !== 'success') return;
 				const d = res.data;
-				this.currentTemp = d.temperature;
-				this.currentHum = d.humidity;
-				this.acStatus = d.ac_status === 'on';
-				this.controlType = d.control_type || 'temperature';
-				this.tempOnThreshold = d.temp_on_threshold ?? this.tempOnThreshold;
-				this.tempOffThreshold = d.temp_off_threshold ?? this.tempOffThreshold;
-				this.humOnThreshold = d.hum_on_threshold ?? this.humOnThreshold;
-				this.humOffThreshold = d.hum_off_threshold ?? this.humOffThreshold;
+				this.setIfChanged('currentTemp', d.temperature);
+				this.setIfChanged('currentHum', d.humidity);
+				this.setIfChanged('acStatus', d.ac_status === 'on');
+				this.setIfChanged('controlType', d.control_type || 'temperature');
+				this.setIfChanged('tempOnThreshold', d.temp_on_threshold ?? this.tempOnThreshold);
+				this.setIfChanged('tempOffThreshold', d.temp_off_threshold ?? this.tempOffThreshold);
+				this.setIfChanged('humOnThreshold', d.hum_on_threshold ?? this.humOnThreshold);
+				this.setIfChanged('humOffThreshold', d.hum_off_threshold ?? this.humOffThreshold);
 				if (d.ac_params) {
-					this.acTemp = d.ac_params.temperature ?? this.acTemp;
-					this.acMode = d.ac_params.mode || this.acMode;
-					this.acFanSpeed = d.ac_params.fan_speed || this.acFanSpeed;
-					this.acSwing = d.ac_params.swing || this.acSwing;
-					this.acBrand = d.ac_params.brand || '';
+					this.setIfChanged('acTemp', d.ac_params.temperature ?? this.acTemp);
+					this.setIfChanged('acMode', d.ac_params.mode || this.acMode);
+					this.setIfChanged('acFanSpeed', d.ac_params.fan_speed || this.acFanSpeed);
+					this.setIfChanged('acSwing', d.ac_params.swing || this.acSwing);
+					this.setIfChanged('acBrand', d.ac_params.brand || '');
 				}
 				if (d.device_info) {
 					const loc = d.device_info.device_location;
-					if (loc && loc !== this.deviceLocation) { this.deviceLocation = loc; }
+					if (loc) this.setIfChanged('deviceLocation', loc);
 				}
 				const dev = uni.getStorageSync('connectedDevice');
-				if (dev) { dev.acStatus = this.acStatus; uni.setStorageSync('connectedDevice', dev); }
+				if (dev) {
+					let changed = false;
+					if (dev.acStatus !== this.acStatus) {
+						dev.acStatus = this.acStatus;
+						changed = true;
+					}
+					if (d.device_info && d.device_info.device_location && dev.location !== d.device_info.device_location) {
+						dev.location = d.device_info.device_location;
+						changed = true;
+					}
+					if (changed) {
+					uni.setStorageSync('connectedDevice', dev);
+					}
+				}
 			} catch (e) { /* 静默失败，轮询会重试 */ }
 			finally { this.statusPending = false; }
 		},
@@ -323,8 +346,6 @@ export default {
 			this.modalVisible = true;
 		},
 		doDisconnect() {
-			uni.removeStorageSync('connectedDevice');
-			uni.$emit('deviceConnected', { connected: false });
 			this.disconnectDevice();
 			this.modalVisible = false;
 		},

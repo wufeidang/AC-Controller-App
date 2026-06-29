@@ -69,11 +69,12 @@ import Loading from '../../components/Loading';
 import CustomModal from '../../components/CustomModal';
 import api from '../../services/api';
 import deviceMixin from '../../mixins/device-mixin.js';
+import modalMixin from '../../mixins/modal-mixin.js';
 import { isValidAddress, isValidPort, isNonEmpty } from '../../utils/validator';
 
 export default {
 	components: { Loading, CustomModal },
-	mixins: [deviceMixin],
+	mixins: [deviceMixin, modalMixin],
 	data() {
 		return {
 			loadingVisible: false, loadingText: '',

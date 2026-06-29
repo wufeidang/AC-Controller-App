@@ -96,7 +96,7 @@
 
 		<Loading :visible="loadingVisible" :text="loadingText" />
 
-		<CustomModal :visible="modalVisible" :title="modalTitle" :content="modalContent" :close-on-click-overlay="false" :show-buttons="false" />
+		<CustomModal :visible="modalVisible" :title="modalTitle" :content="modalContent" :close-on-click-overlay="false" :type="modalType" :show-buttons="false" />
 	</view>
 </template>
 
@@ -118,7 +118,9 @@ export default {
 			currentBrand: 'tcl',
 			brandExpanded: false,
 			saving: false,
-			modalVisible: false, modalTitle: '', modalContent: '', modalShowButtons: false,
+			loadingVisible: false,
+			loadingText: '',
+			modalVisible: false, modalTitle: '', modalContent: '', modalType: 'info', modalShowButtons: false,
 			modes: [
 				{ label: '制冷', value: 'cool', icon: 'air-conditioner', color: '#1677FF', bg: '#E6F4FF', filter: '' },
 				{ label: '制热', value: 'heat', icon: 'sun', color: '#FA541C', bg: '#FFF2E8', filter: '' },
@@ -157,8 +159,15 @@ export default {
 		this.getDeviceSettings();
 	},
 	methods: {
+		showLoading(text = '加载中...') {
+			this.loadingText = text;
+			this.loadingVisible = true;
+		},
+		hideLoading() {
+			this.loadingVisible = false;
+		},
 		showToast(title, content, type = 'info') {
-			this.modalTitle = title; this.modalContent = content;
+			this.modalTitle = title; this.modalContent = content; this.modalType = type;
 			this.modalShowButtons = false; this.modalVisible = true;
 			setTimeout(() => { this.modalVisible = false; }, 1500);
 		},

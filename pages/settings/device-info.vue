@@ -49,11 +49,12 @@ import Loading from '../../components/Loading';
 import CustomModal from '../../components/CustomModal';
 import apiService from '../../services/api';
 import deviceMixin from '../../mixins/device-mixin.js';
+import modalMixin from '../../mixins/modal-mixin.js';
 import { isNonEmpty, isLengthValid } from '../../utils/validator';
 
 export default {
 	components: { Loading, CustomModal },
-	mixins: [deviceMixin],
+	mixins: [deviceMixin, modalMixin],
 	data() {
 		return {
 			deviceInfo: { device_name: '', device_location: '', wifi_name: '' },

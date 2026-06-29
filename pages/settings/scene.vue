@@ -58,6 +58,7 @@ export default {
 		return {
 			currentScene: '',
 			saving: false,
+			loadingVisible: false, loadingText: '',
 			modalVisible: false, modalTitle: '', modalContent: '',
 			scenes: [
 				{ value: 'sleep', label: '睡眠', icon: 'moon', description: '低风速，静音运行', temp: '26', fanSpeed: '低速', swing: '固定' },
@@ -72,6 +73,13 @@ export default {
 		this.getCurrentScene();
 	},
 	methods: {
+		showLoading(text = '加载中...') {
+			this.loadingText = text;
+			this.loadingVisible = true;
+		},
+		hideLoading() {
+			this.loadingVisible = false;
+		},
 		showToast(title, content) {
 			this.modalTitle = title; this.modalContent = content; this.modalVisible = true;
 			setTimeout(() => { this.modalVisible = false; }, 1500);

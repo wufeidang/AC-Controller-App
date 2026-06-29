@@ -23,7 +23,9 @@ export default {
 				this.deviceConnected = true;
 				this.deviceAddress = d.address || '';
 				this.deviceId = d.deviceId || '';
-				this.deviceLocation = d.location || '';
+				if (d.location) {
+					this.deviceLocation = d.location;
+				}
 				apiService.setDeviceAddress(this.deviceAddress);
 			} else {
 				this.deviceConnected = false;
@@ -41,7 +43,9 @@ export default {
 			this.deviceConnected = true;
 			this.deviceAddress = info.address || '';
 			this.deviceId = info.deviceId || '';
-			this.deviceLocation = info.location || '';
+			if (info.location) {
+				this.deviceLocation = info.location;
+			}
 			apiService.setDeviceAddress(this.deviceAddress);
 		},
 

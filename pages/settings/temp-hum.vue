@@ -105,7 +105,7 @@
 		</view>
 
 		<Loading :visible="loadingVisible" :text="loadingText" />
-		<CustomModal :visible="modalVisible" :title="modalTitle" :content="modalContent" :close-on-click-overlay="false" :show-buttons="false" />
+		<CustomModal :visible="modalVisible" :title="modalTitle" :content="modalContent" :close-on-click-overlay="false" :type="toastType" :show-buttons="false" />
 	</view>
 </template>
 
@@ -134,11 +134,25 @@ export default {
 			humOnThreshold: 70, humOffThreshold: 60,
 			checkInterval: 5,
 			saving: false,
+			loadingVisible: false,
+			loadingText: '',
+			modalVisible: false,
+			modalTitle: '',
+			modalContent: '',
+			modalHasCancel: false,
+			modalShowButtons: false,
 			toastVisible: false, toastTitle: '', toastContent: '', toastType: 'info'
 		};
 	},
 	onLoad() { this.checkDevice(); this.getSettings(); },
 	methods: {
+		showLoading(text = '加载中...') {
+			this.loadingText = text;
+			this.loadingVisible = true;
+		},
+		hideLoading() {
+			this.loadingVisible = false;
+		},
 		showToast(title, content, type = 'info') {
 			this.modalTitle = title; this.modalContent = content; this.toastType = type;
 			this.modalHasCancel = false; this.modalShowButtons = false; this.modalVisible = true;

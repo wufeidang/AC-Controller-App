@@ -21,69 +21,18 @@
 		<!-- 更新日志 -->
 		<view class="card">
 			<text class="card-title">更新内容</text>
-				<view class="changelog">
-					<view class="cl-item"><text class="cl-ver">v2.3.0</text><text class="cl-date">2026-06-29</text>
-						<text class="cl-line">【设备连接优化 + P0 统一状态管理】</text>
-						<text class="cl-line">· WiFi 扫描改用动态轮询（每 100ms 检查，最多 2s），告别固定 300ms 等待</text>
-						<text class="cl-line">· AP/家庭 WiFi 切换时自动更新 IP 地址，无需手动刷新</text>
-						<text class="cl-line">· 连接成功后自动清空 STA IP，避免 AP 模式显示旧地址</text>
-						<text class="cl-line">· 统一设备状态管理：所有页面接入 device-mixin，消除重复 checkDevice 逻辑</text>
-						<text class="cl-line">· 统一弹窗组件：所有页面使用 CustomModal 替代手写 showToast</text>
-						<text class="cl-line">· 修复首页 onShow 轮询竞态（移除 onShow 中的重复 fetchStatus）</text>
-						<text class="cl-line">· 修复首页 fetchStatus 并发竞态（statusPending 标志位）</text>
-						<text class="cl-line">· 新增 errorHandler 服务，统一错误分类和用户提示</text>
-					</view>
-					<view class="cl-item"><text class="cl-ver">v2.2.0</text><text class="cl-date">2026-06-24</text>
-						<text class="cl-line">【连接流程重构】</text>
-						<text class="cl-line">· 首页与设备连接页面完全分离，首页自动跳转连接页</text>
-						<text class="cl-line">· 新增 WiFi 扫描功能，自动检测附近设备热点</text>
-						<text class="cl-line">· 连接页面显示 STA 网络 IP，支持家庭 WiFi 远程连接</text>
-						<text class="cl-line">· 首页新增断开连接按钮，设备离线时自动跳转连接页</text>
-						<text class="cl-line">· API 超时优化（8s 超时，连续 3 次失败才判定离线）</text>
-						<text class="cl-line">· 场景切换弹窗 1.5s 自动消失，显示切换到的场景名称</text>
-						<text class="cl-line">· STA 配置保存后轮询状态，最多 30 秒实时更新</text>
-						<text class="cl-line">· 修复 5 个页面弹窗不自动消失的 Bug</text>
-						<text class="cl-line">· WiFi 设置页移除重复的 MQTT 入口</text>
-					</view>
-					<view class="cl-item"><text class="cl-ver">v2.0.0</text><text class="cl-date">2026-06-23</text>
-					<text class="cl-line">【界面全面升级】</text>
-					<text class="cl-line">· 全新设计语言：Ant Design 蓝 + 小米风格弹窗，统一 24rpx 卡片体系</text>
-					<text class="cl-line">· 首页改造为自动温控看板：大温度/湿度 C 位展示，根据控制类型自动切换</text>
-					<text class="cl-line">· 首页新增场景快捷切换（睡眠/舒适/节能/快速）+ 空调品牌显示</text>
-					<text class="cl-line">· 空调遥控器页：模式卡片五色区分（制冷蓝/制热橙/除湿青/送风灰）</text>
-					<text class="cl-line">· 设置页按功能域分组，危险操作红色降权</text>
-					<text class="cl-line">· 温湿度阈值页新增快速调节按钮，滑动+点选双模式</text>
-					<text class="cl-line">· 所有弹窗升级为小米风格（橙主色/大圆角/弹簧动画）</text>
-					<text class="cl-line">· 设置图标统一灰底 Pill 容器，未连接页丰富引导</text>
+			<view class="changelog">
+				<view class="cl-item" v-for="(item, idx) in changelogData" :key="idx">
+					<text class="cl-ver">{{ item.ver }}</text>
+					<text class="cl-date">{{ item.date }}</text>
+					<text class="cl-title" v-if="item.title">{{ item.title }}</text>
+					<text class="cl-line" v-for="(line, li) in item.lines" :key="li">{{ line }}</text>
 				</view>
-
-				<!-- 历史版本折叠 -->
-				<view v-if="showHistory">
-					<view class="cl-item"><text class="cl-ver">v1.2.1</text><text class="cl-date">2026-06-23</text>
-						<text class="cl-line">· 修复输入框无法输入、风速换行、滑块不响应、格力不响应等 Bug</text>
-						<text class="cl-line">· 全页面错误信息透传后端 message，精准排障</text>
-						<text class="cl-line">· OTA 固件 URL 预设、触觉震动反馈等体验优化</text>
-					</view>
-					<view class="cl-item"><text class="cl-ver">v1.2.0</text><text class="cl-date">2026-06-22</text>
-						<text class="cl-line">· 新增 STA 客户端 WiFi 配网、MQTT 配置</text>
-						<text class="cl-line">· 空调品牌扩展至 15 个，补全运行模式和风速选项</text>
-						<text class="cl-line">· 新增深度睡眠功能入口，品牌选择器折叠展开</text>
-					</view>
-					<view class="cl-item"><text class="cl-ver">v1.1.0</text><text class="cl-date">2025-03</text>
-						<text class="cl-line">· 新增 MQTT 集成（Home Assistant）、STA 双模共存</text>
-						<text class="cl-line">· 新增休眠开关、EEPROM 结构体化管理</text>
-					</view>
-					<view class="cl-item"><text class="cl-ver">v1.0.0</text><text class="cl-date">初始版本</text>
-						<text class="cl-line">· 温湿度实时监测 + TCL/美的/海尔/格力红外控制 + Web API</text>
-					</view>
-				</view>
-
 				<view class="cl-toggle" @click="showHistory = !showHistory">
 					<text>{{ showHistory ? '收起历史版本 ▲' : '展开历史版本 ▼' }}</text>
 				</view>
 			</view>
 		</view>
-
 		<!-- 底部信息 -->
 		<view class="footer">
 			<text class="footer-author">党武飞</text>
@@ -106,10 +55,67 @@ export default {
 	data() {
 		return {
 			appName: '空调温控系统', appDesc: '广通电梯机房智能温控管理',
-				appVersion: '2.3.0', appVersionCode: '230', firmwareVersion: '',
-				loadingVisible: false, loadingText: '',
-				showHistory: false
+			appVersion: '2.3.0', appVersionCode: '230', firmwareVersion: '',
+			loadingVisible: false, loadingText: '',
+			showHistory: false,
+			changelogRaw: [
+				{ ver: 'v2.3.0', date: '2026-06-29', title: '设备连接优化 + P0 统一状态管理', lines: [
+					'· WiFi 扫描改用动态轮询（每 100ms 检查，最多 2s），告别固定 300ms 等待',
+					'· AP/家庭 WiFi 切换时自动更新 IP 地址，无需手动刷新',
+					'· 连接成功后自动清空 STA IP，避免 AP 模式显示旧地址',
+					'· 统一设备状态管理：所有页面接入 device-mixin，消除重复 checkDevice 逻辑',
+					'· 统一弹窗组件：所有页面使用 CustomModal 替代手写 showToast',
+					'· 修复首页 onShow 轮询竞态（移除 onShow 中的重复 fetchStatus）',
+					'· 修复首页 fetchStatus 并发竞态（statusPending 标志位）',
+					'· 新增 errorHandler 服务，统一错误分类和用户提示'
+				]},
+				{ ver: 'v2.2.0', date: '2026-06-24', title: '连接流程重构', lines: [
+					'· 首页与设备连接页面完全分离，首页自动跳转连接页',
+					'· 新增 WiFi 扫描功能，自动检测附近设备热点',
+					'· 连接页面显示 STA 网络 IP，支持家庭 WiFi 远程连接',
+					'· 首页新增断开连接按钮，设备离线时自动跳转连接页',
+					'· API 超时优化（8s 超时，连续 3 次失败才判定离线）',
+					'· 场景切换弹窗 1.5s 自动消失，显示切换到的场景名称',
+					'· STA 配置保存后轮询状态，最多 30 秒实时更新',
+					'· 修复 5 个页面弹窗不自动消失的 Bug',
+					'· WiFi 设置页移除重复的 MQTT 入口'
+				]},
+				{ ver: 'v2.0.0', date: '2026-06-23', title: '界面全面升级', lines: [
+					'· 全新设计语言：Ant Design 蓝 + 小米风格弹窗，统一 24rpx 卡片体系',
+					'· 首页改造为自动温控看板：大温度/湿度 C 位展示，根据控制类型自动切换',
+					'· 首页新增场景快捷切换（睡眠/舒适/节能/快速）+ 空调品牌显示',
+					'· 空调遥控器页：模式卡片五色区分（制冷蓝/制热橙/除湿青/送风灰）',
+					'· 设置页按功能域分组，危险操作红色降权',
+					'· 温湿度阈值页新增快速调节按钮，滑动+点选双模式',
+					'· 所有弹窗升级为小米风格（橙主色/大圆角/弹簧动画）',
+					'· 设置图标统一灰底 Pill 容器，未连接页丰富引导'
+				]},
+				{ ver: 'v1.2.1', date: '2026-06-23', lines: [
+					'· 修复输入框无法输入、风速换行、滑块不响应、格力不响应等 Bug',
+					'· 全页面错误信息透传后端 message，精准排障',
+					'· OTA 固件 URL 预设、触觉震动反馈等体验优化'
+				]},
+				{ ver: 'v1.2.0', date: '2026-06-22', lines: [
+					'· 新增 STA 客户端 WiFi 配网、MQTT 配置',
+					'· 空调品牌扩展至 15 个，补全运行模式和风速选项',
+					'· 新增深度睡眠功能入口，品牌选择器折叠展开'
+				]},
+				{ ver: 'v1.1.0', date: '2025-03', lines: [
+					'· 新增 MQTT 集成（Home Assistant）、STA 双模共存',
+					'· 新增休眠开关、EEPROM 结构体化管理'
+				]},
+				{ ver: 'v1.0.0', date: '初始版本', lines: [
+					'· 温湿度实时监测 + TCL/美的/海尔/格力红外控制 + Web API'
+				]}
+			]
 		};
+	},
+	computed: {
+		changelogData() {
+			const first = this.changelogRaw[0];
+			const others = this.showHistory ? this.changelogRaw.slice(1) : [];
+			return [{ ...first, expanded: true }, ...others.map(o => ({ ...o, expanded: false }))];
+		}
 	},
 	onLoad() { this.getFw(); },
 	methods: {
@@ -149,6 +155,7 @@ export default {
 .cl-item { background: #FAFAFA; border-radius: 12rpx; padding: 20rpx; }
 .cl-ver { font-size: 28rpx; font-weight: 700; color: #1677FF; display: block; margin-bottom: 4rpx; }
 .cl-date { font-size: 22rpx; color: #999; margin-bottom: 12rpx; display: block; }
+.cl-title { font-size: 26rpx; color: #333; font-weight: 600; margin-bottom: 8rpx; display: block; }
 .cl-line { font-size: 24rpx; color: #666; line-height: 1.8; display: block; }
 .cl-toggle { text-align: center; padding: 20rpx 0 0; }
 .cl-toggle text { font-size: 24rpx; color: #1677FF; }

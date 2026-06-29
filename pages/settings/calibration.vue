@@ -84,6 +84,13 @@ export default {
 	},
 	onLoad() { this.checkDevice(); this.getSettings(); },
 	methods: {
+		showLoading(text = '加载中...') {
+			this.loadingText = text;
+			this.loadingVisible = true;
+		},
+		hideLoading() {
+			this.loadingVisible = false;
+		},
 		showModal(title, content) {
 			this.modalTitle = title; this.modalContent = content; this.modalVisible = true;
 			setTimeout(() => { this.modalVisible = false; }, 1500);
