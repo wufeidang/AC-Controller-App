@@ -22,6 +22,9 @@ export default {
 		// OTA 超时 (ms)
 		OTA_TIMEOUT: 60000,
 
+		// OTA 默认固件 URL
+		OTA_DEFAULT_FIRMWARE_URL: 'http://bin.bemfa.com/b/27002/3BcZGI1OTA5NDczM2FjYjkzMTg2N2Q1YWY5NGE1N2ZjNzg=FRESTEC.bin',
+
 		// OTA 进度追踪
 		OTA_PROGRESS_MAX: 80,       // 模拟进度最高到 80%，余下靠轮询确认
 		OTA_POLL_INTERVAL: 5000,     // 轮询检测设备重启间隔 (ms)

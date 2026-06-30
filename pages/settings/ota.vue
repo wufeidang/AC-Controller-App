@@ -108,9 +108,9 @@ const PHASE_LABELS = {
 export default {
 	components: { Loading, CustomModal },
 	mixins: [deviceMixin, modalMixin],
-		data() {
-			return {
-				currentVersion: '', firmwareUrl: '', wifiSsid: '', wifiPassword: '', showPassword: false,
+			data() {
+				return {
+					currentVersion: '', firmwareUrl: constants.OTA_DEFAULT_FIRMWARE_URL, wifiSsid: '', wifiPassword: '', showPassword: false,
 				updating: false,
 				confirmModalVisible: false, confirmModalContent: '设备将开始固件升级，升级完成后自动重启。确定继续吗？',
 				validateModalVisible: false, validateModalTitle: '输入验证',
