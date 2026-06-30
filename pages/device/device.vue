@@ -46,10 +46,10 @@
 				<text class="card-title">mDNS 设备发现</text>
 				<view class="mdns-scan-row">
 					<text class="mdns-hint">{{ mdnsScanning ? '正在扫描局域网设备…' : (mdnsDevices.length > 0 ? '发现 ' + mdnsDevices.length + ' 台设备' : '未发现设备，点击扫描') }}</text>
-					<view class="scan-btn mdns-scan-btn" @click="scanMdns" :class="{ off: mdnsScanning }">
-						<view class="scan-dot" v-if="mdnsScanning"></view>
-						<text>扫描</text>
-					</view>
+				<view class="scan-btn" @click="scanMdns" :class="{ off: mdnsScanning }">
+					<view class="scan-dot" v-if="mdnsScanning"></view>
+					<text>扫描</text>
+				</view>
 				</view>
 
 				<!-- 发现的设备列表 -->
@@ -290,33 +290,49 @@ import { isValidAddress } from '../../utils/validator';
 		},
 		async scanMdns() {
 			if (this.mdnsScanning || this.deviceConnected) return;
-			this.mdnsScanning = true;
-			this.mdnsDevices = [];
-			const candidates = constants.MDNS_SCAN_CANDIDATES;
-			for (const hostname of candidates) {
-				try {
-					const res = await new Promise((resolve, reject) => {
-						const timer = setTimeout(() => reject(new Error('timeout')), constants.MDNS_SCAN_TIMEOUT);
-						uni.request({
-							url: `http://${hostname}:80`,
-							method: 'POST',
-							data: { cmd: 'get_device_id', data: {} },
-							timeout: constants.MDNS_SCAN_TIMEOUT,
-							success: (r) => { clearTimeout(timer); resolve(r); },
-							fail: (e) => { clearTimeout(timer); reject(e); }
-						});
-					});
-					if (res.statusCode === 200 && res.data && res.data.status === 'success') {
-						this.mdnsDevices.push({
-							hostname: hostname,
-							deviceId: res.data.data.device_id || ''
-						});
-					}
-				} catch (e) {
-					// 该候选域名不可达，继续下一个
-				}
+			this.mdnsScanning = true; this.mdnsDevices = [];
+
+			// 构建候选列表（去重）
+			const set = new Set();
+			// 1. .local 域名（iOS / Android 12+ 系统解析）
+			constants.MDNS_SCAN_CANDIDATES.forEach(h => set.add(h));
+			// 2. 若当前连的是 ESP 热点 → 直试 AP IP
+			if (this.wifiSSID && /esp|8266/i.test(this.wifiSSID)) {
+				set.add(constants.DEFAULT_IP);
 			}
+			// 3. 上次保存的 STA IP 优先
+			const sta = uni.getStorageSync('staNetwork');
+			if (sta && sta.ip) set.add(sta.ip);
+			// 4. 默认 AP IP（兜底）
+			set.add(constants.DEFAULT_IP);
+
+			const candidates = [...set];
+			const results = await Promise.allSettled(
+				candidates.map(h => this._tryHost(h))
+			);
+			this.mdnsDevices = results
+				.filter(r => r.status === 'fulfilled' && r.value)
+				.map(r => r.value);
 			this.mdnsScanning = false;
+		},
+		_tryHost(hostname) {
+			return new Promise((resolve) => {
+				const timer = setTimeout(() => resolve(null), constants.MDNS_SCAN_TIMEOUT);
+				uni.request({
+					url: `http://${hostname}:80`,
+					method: 'POST',
+					data: { cmd: 'get_device_id', data: {} },
+					timeout: constants.MDNS_SCAN_TIMEOUT,
+					success: (r) => {
+						clearTimeout(timer);
+						if (r.statusCode === 200 && r.data && r.data.status === 'success') {
+							resolve({ hostname, deviceId: r.data.data.device_id || '' });
+						} else { resolve(null); }
+					},
+					fail: () => { clearTimeout(timer); resolve(null); }
+				});
+			});
+		},
 		},
 		selectMdnsDevice(device) {
 			this.inputAddress = device.hostname;
@@ -380,11 +396,11 @@ import { isValidAddress } from '../../utils/validator';
 .ws-dot { width: 14rpx; height: 14rpx; border-radius: 50%; background: $border-normal; margin-right: 10rpx; flex-shrink: 0; }
 .ws-dot.on { background: $color-success; }
 .wifi-status text { font-size: $fs-label; color: $text-secondary; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.scan-btn { padding: 12rpx 24rpx; border-radius: $radius-lg; background: $brand-primary; flex-shrink: 0; display: flex; align-items: center; gap: 8rpx; }
+.scan-btn { height: 48rpx; padding: 0 20rpx; border-radius: 32rpx; background: $brand-primary; flex-shrink: 0; display: flex; align-items: center; }
 .scan-btn:active { background: $brand-primary-hover; }
 .scan-btn text { color: $bg-card; font-size: $fs-label; font-weight: 500; }
 .scan-btn.off { opacity: 0.6; pointer-events: none; }
-.scan-dot { width: 12rpx; height: 12rpx; border-radius: 50%; background: rgba(255,255,255,0.7); animation: scanPulse 800ms ease-in-out infinite; }
+.scan-dot { width: 12rpx; height: 12rpx; border-radius: 50%; background: rgba(255,255,255,0.7); animation: scanPulse 800ms ease-in-out infinite; margin-right: 6rpx; }
 @keyframes scanPulse { 0%,100% { opacity: 0.4; transform: scale(0.8); } 50% { opacity: 1; transform: scale(1.2); } }
 
 /* WiFi 列表 */
@@ -405,9 +421,8 @@ import { isValidAddress } from '../../utils/validator';
 .wifi-empty text { font-size: $fs-label; color: $text-disabled; }
 
 /* mDNS 设备发现 */
-.mdns-scan-row { display: flex; align-items: center; justify-content: space-between; margin-bottom: 16rpx; }
-.mdns-hint { font-size: $fs-label; color: $text-hint; flex: 1; }
-.mdns-scan-btn { padding: 12rpx 24rpx; }
+.mdns-scan-row { display: flex; align-items: center; justify-content: space-between; min-height: 56rpx; margin-bottom: 16rpx; }
+.mdns-hint { font-size: $fs-label; color: $text-hint; flex: 1; line-height: 1.4; padding-right: 16rpx; }
 .mdns-list { max-height: 260rpx; background: $bg-elevated; border-radius: $radius-lg; padding: 0 16rpx; }
 .md-item { display: flex; align-items: center; justify-content: space-between; padding: 22rpx 0; border-bottom: 1rpx solid $border-light; }
 .md-item:last-child { border-bottom: none; }
@@ -448,7 +463,7 @@ import { isValidAddress } from '../../utils/validator';
 .success-hero { display: flex; flex-direction: column; align-items: center; padding: 64rpx 0 40rpx; }
 .sh-icon {
 	width: 112rpx; height: 112rpx; border-radius: 50%;
-	background: $color-success-bg-alt; color: $color-success;
+	background: #F6FFED; color: $color-success;
 	display: flex; align-items: center; justify-content: center;
 	font-size: 56rpx; font-weight: 700; margin-bottom: 24rpx;
 }
