@@ -5,14 +5,14 @@
 			<view class="temp-card">
 				<text class="t-label">设定温度</text>
 				<view class="t-row">
-					<view class="t-btn" @click="decreaseTemp" :class="{ off: temperature <= 16 }">
-						<text class="t-btn-icon">−</text>
-					</view>
-					<view class="t-display">
-						<text class="t-num">{{ temperature }}</text>
-						<text class="t-unit">°C</text>
-					</view>
-					<view class="t-btn" @click="increaseTemp" :class="{ off: temperature >= 30 }">
+					<view class="t-btn" @click="decreaseTemp" @touchstart="startHold(decreaseTemp)" @touchend="stopHold" @touchcancel="stopHold" :class="{ off: temperature <= 16 }">
+							<text class="t-btn-icon">−</text>
+						</view>
+						<view class="t-display">
+							<text class="t-num">{{ temperature }}</text>
+							<text class="t-unit">°C</text>
+						</view>
+						<view class="t-btn" @click="increaseTemp" @touchstart="startHold(increaseTemp)" @touchend="stopHold" @touchcancel="stopHold" :class="{ off: temperature >= 30 }">
 						<text class="t-btn-icon">+</text>
 					</view>
 				</view>
@@ -185,8 +185,8 @@ export default {
 				this.loadSettings();
 			} finally { this.hideLoading(); }
 		},
-		decreaseTemp() { if (this.temperature > 16) this.temperature--; },
-		increaseTemp() { if (this.temperature < 30) this.temperature++; },
+			decreaseTemp() { if (this.temperature > 16) this.temperature--; else this.stopHold(); },
+			increaseTemp() { if (this.temperature < 30) this.temperature++; else this.stopHold(); },
 		setMode(v)    { this.currentMode = v; },
 		setFanSpeed(v) { this.currentFanSpeed = v; },
 		setSwing(v)   { this.currentSwing = v; },

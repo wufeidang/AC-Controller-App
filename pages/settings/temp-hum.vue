@@ -23,56 +23,56 @@
 					<view class="slider-head"><text class="slider-label">开机温度</text><text class="slider-val">{{ tempOnThreshold }}°C</text></view>
 					<slider :value="tempOnThreshold" @changing="onTempOnChanging" @change="onTempOnChanging" :min="20" :max="50" :step="1" activeColor="#FF4D4F" backgroundColor="#F0F0F0" block-size="22" />
 					<view class="range"><text>20°C</text><text>50°C</text></view>
-					<view class="quick">
-						<view class="q-btn" @click="adjust('tempOn', -5)"><text>-5</text></view>
-						<view class="q-btn" @click="adjust('tempOn', -1)"><text>-1</text></view>
-						<view class="q-btn reset" @click="reset('tempOn', 28)"><text>重置</text></view>
-						<view class="q-btn" @click="adjust('tempOn', 1)"><text>+1</text></view>
-						<view class="q-btn" @click="adjust('tempOn', 5)"><text>+5</text></view>
-					</view>
+						<view class="quick">
+							<view class="q-btn" @click="adjust('tempOn', -5)"><text>-5</text></view>
+							<view class="q-btn" @click="adjust('tempOn', -1)" @touchstart="startHold(() => adjust('tempOn', -1))" @touchend="stopHold" @touchcancel="stopHold"><text>-1</text></view>
+							<view class="q-btn reset" @click="reset('tempOn', 28)"><text>重置</text></view>
+							<view class="q-btn" @click="adjust('tempOn', 1)" @touchstart="startHold(() => adjust('tempOn', 1))" @touchend="stopHold" @touchcancel="stopHold"><text>+1</text></view>
+							<view class="q-btn" @click="adjust('tempOn', 5)"><text>+5</text></view>
+						</view>
 				</view>
 				<view class="slider-item">
 					<view class="slider-head"><text class="slider-label">关机温度</text><text class="slider-val">{{ tempOffThreshold }}°C</text></view>
 					<slider :value="tempOffThreshold" @changing="onTempOffChanging" @change="onTempOffChanging" :min="18" :max="35" :step="1" activeColor="#1677FF" backgroundColor="#F0F0F0" block-size="22" />
 					<view class="range"><text>18°C</text><text>35°C</text></view>
-					<view class="quick">
-						<view class="q-btn" @click="adjust('tempOff', -3)"><text>-3</text></view>
-						<view class="q-btn" @click="adjust('tempOff', -1)"><text>-1</text></view>
-						<view class="q-btn reset" @click="reset('tempOff', 26)"><text>重置</text></view>
-						<view class="q-btn" @click="adjust('tempOff', 1)"><text>+1</text></view>
-						<view class="q-btn" @click="adjust('tempOff', 3)"><text>+3</text></view>
-					</view>
+						<view class="quick">
+							<view class="q-btn" @click="adjust('tempOff', -3)"><text>-3</text></view>
+							<view class="q-btn" @click="adjust('tempOff', -1)" @touchstart="startHold(() => adjust('tempOff', -1))" @touchend="stopHold" @touchcancel="stopHold"><text>-1</text></view>
+							<view class="q-btn reset" @click="reset('tempOff', 26)"><text>重置</text></view>
+							<view class="q-btn" @click="adjust('tempOff', 1)" @touchstart="startHold(() => adjust('tempOff', 1))" @touchend="stopHold" @touchcancel="stopHold"><text>+1</text></view>
+							<view class="q-btn" @click="adjust('tempOff', 3)"><text>+3</text></view>
+						</view>
 				</view>
 			</view>
 
 			<!-- 湿度阈值 -->
-			<view class="card" v-if="controlType === 'humidity'">
-				<text class="card-title">湿度阈值</text>
-				<view class="slider-item">
-					<view class="slider-head"><text class="slider-label">开机湿度</text><text class="slider-val">{{ humOnThreshold }}%</text></view>
-					<slider :value="humOnThreshold" @changing="onHumOnChanging" @change="onHumOnChanging" :min="40" :max="80" :step="1" activeColor="#FF4D4F" backgroundColor="#F0F0F0" block-size="22" />
-					<view class="range"><text>40%</text><text>80%</text></view>
-					<view class="quick">
-						<view class="q-btn" @click="adjust('humOn', -10)"><text>-10</text></view>
-						<view class="q-btn" @click="adjust('humOn', -5)"><text>-5</text></view>
-						<view class="q-btn reset" @click="reset('humOn', 70)"><text>重置</text></view>
-						<view class="q-btn" @click="adjust('humOn', 5)"><text>+5</text></view>
-						<view class="q-btn" @click="adjust('humOn', 10)"><text>+10</text></view>
+				<view class="card" v-if="controlType === 'humidity'">
+					<text class="card-title">湿度阈值</text>
+					<view class="slider-item">
+						<view class="slider-head"><text class="slider-label">开机湿度</text><text class="slider-val">{{ humOnThreshold }}%</text></view>
+						<slider :value="humOnThreshold" @changing="onHumOnChanging" @change="onHumOnChanging" :min="40" :max="80" :step="1" activeColor="#FF4D4F" backgroundColor="#F0F0F0" block-size="22" />
+						<view class="range"><text>40%</text><text>80%</text></view>
+						<view class="quick">
+							<view class="q-btn" @click="adjust('humOn', -10)"><text>-10</text></view>
+							<view class="q-btn" @click="adjust('humOn', -5)" @touchstart="startHold(() => adjust('humOn', -5))" @touchend="stopHold" @touchcancel="stopHold"><text>-5</text></view>
+							<view class="q-btn reset" @click="reset('humOn', 70)"><text>重置</text></view>
+							<view class="q-btn" @click="adjust('humOn', 5)" @touchstart="startHold(() => adjust('humOn', 5))" @touchend="stopHold" @touchcancel="stopHold"><text>+5</text></view>
+							<view class="q-btn" @click="adjust('humOn', 10)"><text>+10</text></view>
+						</view>
+					</view>
+					<view class="slider-item">
+						<view class="slider-head"><text class="slider-label">关机湿度</text><text class="slider-val">{{ humOffThreshold }}%</text></view>
+						<slider :value="humOffThreshold" @changing="onHumOffChanging" @change="onHumOffChanging" :min="40" :max="80" :step="1" activeColor="#1677FF" backgroundColor="#F0F0F0" block-size="22" />
+						<view class="range"><text>40%</text><text>80%</text></view>
+						<view class="quick">
+							<view class="q-btn" @click="adjust('humOff', -10)"><text>-10</text></view>
+							<view class="q-btn" @click="adjust('humOff', -5)" @touchstart="startHold(() => adjust('humOff', -5))" @touchend="stopHold" @touchcancel="stopHold"><text>-5</text></view>
+							<view class="q-btn reset" @click="reset('humOff', 60)"><text>重置</text></view>
+							<view class="q-btn" @click="adjust('humOff', 5)" @touchstart="startHold(() => adjust('humOff', 5))" @touchend="stopHold" @touchcancel="stopHold"><text>+5</text></view>
+							<view class="q-btn" @click="adjust('humOff', 10)"><text>+10</text></view>
+						</view>
 					</view>
 				</view>
-				<view class="slider-item">
-					<view class="slider-head"><text class="slider-label">关机湿度</text><text class="slider-val">{{ humOffThreshold }}%</text></view>
-					<slider :value="humOffThreshold" @changing="onHumOffChanging" @change="onHumOffChanging" :min="40" :max="80" :step="1" activeColor="#1677FF" backgroundColor="#F0F0F0" block-size="22" />
-					<view class="range"><text>40%</text><text>80%</text></view>
-					<view class="quick">
-						<view class="q-btn" @click="adjust('humOff', -10)"><text>-10</text></view>
-						<view class="q-btn" @click="adjust('humOff', -5)"><text>-5</text></view>
-						<view class="q-btn reset" @click="reset('humOff', 60)"><text>重置</text></view>
-						<view class="q-btn" @click="adjust('humOff', 5)"><text>+5</text></view>
-						<view class="q-btn" @click="adjust('humOff', 10)"><text>+10</text></view>
-					</view>
-				</view>
-			</view>
 
 			<!-- 规则说明 -->
 			<view class="card rule-card">
@@ -88,13 +88,13 @@
 					<view class="slider-head"><text class="slider-label">间隔时间</text><text class="slider-val">{{ checkInterval }} 分钟</text></view>
 					<slider :value="checkInterval" @changing="onCheckIntervalChanging" @change="onCheckIntervalChanging" :min="5" :max="180" :step="5" activeColor="#00B96B" backgroundColor="#F0F0F0" block-size="22" />
 					<view class="range"><text>5分钟</text><text>180分钟</text></view>
-					<view class="quick">
-						<view class="q-btn" @click="adjust('check', -30)"><text>-30</text></view>
-						<view class="q-btn" @click="adjust('check', -10)"><text>-10</text></view>
-						<view class="q-btn reset" @click="reset('check', 5)"><text>重置</text></view>
-						<view class="q-btn" @click="adjust('check', 10)"><text>+10</text></view>
-						<view class="q-btn" @click="adjust('check', 30)"><text>+30</text></view>
-					</view>
+						<view class="quick">
+							<view class="q-btn" @click="adjust('check', -30)"><text>-30</text></view>
+							<view class="q-btn" @click="adjust('check', -10)" @touchstart="startHold(() => adjust('check', -10))" @touchend="stopHold" @touchcancel="stopHold"><text>-10</text></view>
+							<view class="q-btn reset" @click="reset('check', 5)"><text>重置</text></view>
+							<view class="q-btn" @click="adjust('check', 10)" @touchstart="startHold(() => adjust('check', 10))" @touchend="stopHold" @touchcancel="stopHold"><text>+10</text></view>
+							<view class="q-btn" @click="adjust('check', 30)"><text>+30</text></view>
+						</view>
 				</view>
 			</view>
 
@@ -162,15 +162,16 @@ export default {
 		onHumOnChanging(e)   { this.humOnThreshold = parseInt(e.detail.value); },
 		onHumOffChanging(e)  { this.humOffThreshold = parseInt(e.detail.value); },
 		onCheckIntervalChanging(e) { this.checkInterval = parseInt(e.detail.value); },
-		// 快速调整按钮
-		adjust(field, delta) {
-			const r = RANGES[field];
-			if (!r) return;
-			const key = field === 'tempOn' ? 'tempOnThreshold' : field === 'tempOff' ? 'tempOffThreshold' : field === 'humOn' ? 'humOnThreshold' : field === 'humOff' ? 'humOffThreshold' : 'checkInterval';
-			let v = this[key] + delta;
-			v = Math.max(r.min, Math.min(r.max, v));
-			this[key] = v;
-		},
+			// 快速调整按钮
+			adjust(field, delta) {
+				const r = RANGES[field];
+				if (!r) { this.stopHold(); return; }
+				const key = field === 'tempOn' ? 'tempOnThreshold' : field === 'tempOff' ? 'tempOffThreshold' : field === 'humOn' ? 'humOnThreshold' : field === 'humOff' ? 'humOffThreshold' : 'checkInterval';
+				let v = this[key] + delta;
+				v = Math.max(r.min, Math.min(r.max, v));
+				if (v === this[key]) { this.stopHold(); return; } // 到达边界，停止长按
+				this[key] = v;
+			},
 		reset(field, defVal) {
 			const key = field === 'tempOn' ? 'tempOnThreshold' : field === 'tempOff' ? 'tempOffThreshold' : field === 'humOn' ? 'humOnThreshold' : field === 'humOff' ? 'humOffThreshold' : 'checkInterval';
 			this[key] = defVal;

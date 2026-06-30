@@ -92,12 +92,43 @@ export default {
 		},
 
 		/** 隐藏 Loading 遮罩 */
-		hideLoading() {
-			this.loadingVisible = false;
-		}
-	},
-	beforeDestroy() {
-		if (this._toastTimer) { clearTimeout(this._toastTimer); this._toastTimer = null; }
+			hideLoading() {
+				this.loadingVisible = false;
+			},
+
+			// ===== 长按快增 =====
+			/**
+			 * 开始长按连续触发 — 500ms 后首次步进，之后间隔逐级加速
+			 * @param {Function} stepFn - 每次步进执行的回调（如 decreaseTemp）
+			 */
+			startHold(stepFn) {
+				this.stopHold(); // 防止重复触发
+				let steps = 0;
+				let interval = 300;
+				this._holdTimer = setTimeout(() => {
+					stepFn(); // 首次步进
+					steps++;
+					this._holdInterval = setInterval(() => {
+						stepFn();
+						steps++;
+						// 动态加速：每 5 步减 50ms，最低 80ms
+						if (steps % 5 === 0 && interval > 80) {
+							interval -= 50;
+							clearInterval(this._holdInterval);
+							this._holdInterval = setInterval(stepFn, interval);
+						}
+					}, interval);
+				}, 500);
+			},
+			/** 停止长按 */
+			stopHold() {
+				if (this._holdTimer) { clearTimeout(this._holdTimer); this._holdTimer = null; }
+				if (this._holdInterval) { clearInterval(this._holdInterval); this._holdInterval = null; }
+			}
+		},
+		beforeDestroy() {
+			if (this._toastTimer) { clearTimeout(this._toastTimer); this._toastTimer = null; }
+			this.stopHold();
 		// 清理全局事件监听
 		if (this._errorHandler) { uni.$off('app-error', this._errorHandler); this._errorHandler = null; }
 		if (this._appToastHandler) { uni.$off('app-toast', this._appToastHandler); this._appToastHandler = null; }

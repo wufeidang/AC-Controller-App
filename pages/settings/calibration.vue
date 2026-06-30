@@ -11,13 +11,13 @@
 				<slider :value="tempOffset" @changing="onTempChanging" :min="-5.0" :max="5.0" :step="0.1"
 					activeColor="#1677FF" backgroundColor="#F0F0F0" block-size="22" />
 				<view class="range"><text>-5.0</text><text>+5.0</text></view>
-				<view class="quick">
-					<view class="q-btn" @click="adjustTemp(-1.0)"><text>-1.0</text></view>
-					<view class="q-btn" @click="adjustTemp(-0.5)"><text>-0.5</text></view>
-					<view class="q-btn reset" @click="resetTemp"><text>重置</text></view>
-					<view class="q-btn" @click="adjustTemp(0.5)"><text>+0.5</text></view>
-					<view class="q-btn" @click="adjustTemp(1.0)"><text>+1.0</text></view>
-				</view>
+					<view class="quick">
+						<view class="q-btn" @click="adjustTemp(-1.0)"><text>-1.0</text></view>
+						<view class="q-btn" @click="adjustTemp(-0.5)" @touchstart="startHold(() => adjustTemp(-0.5))" @touchend="stopHold" @touchcancel="stopHold"><text>-0.5</text></view>
+						<view class="q-btn reset" @click="resetTemp"><text>重置</text></view>
+						<view class="q-btn" @click="adjustTemp(0.5)" @touchstart="startHold(() => adjustTemp(0.5))" @touchend="stopHold" @touchcancel="stopHold"><text>+0.5</text></view>
+						<view class="q-btn" @click="adjustTemp(1.0)"><text>+1.0</text></view>
+					</view>
 				<text class="hint">正值表示增加显示温度，用于校准传感器读数</text>
 			</view>
 
@@ -31,13 +31,13 @@
 				<slider :value="humOffset" @changing="onHumChanging" :min="-10" :max="10" :step="1"
 					activeColor="#13C2C2" backgroundColor="#F0F0F0" block-size="22" />
 				<view class="range"><text>-10</text><text>+10</text></view>
-				<view class="quick">
-					<view class="q-btn" @click="adjustHum(-5)"><text>-5</text></view>
-					<view class="q-btn" @click="adjustHum(-1)"><text>-1</text></view>
-					<view class="q-btn reset" @click="resetHum"><text>重置</text></view>
-					<view class="q-btn" @click="adjustHum(1)"><text>+1</text></view>
-					<view class="q-btn" @click="adjustHum(5)"><text>+5</text></view>
-				</view>
+					<view class="quick">
+						<view class="q-btn" @click="adjustHum(-5)"><text>-5</text></view>
+						<view class="q-btn" @click="adjustHum(-1)" @touchstart="startHold(() => adjustHum(-1))" @touchend="stopHold" @touchcancel="stopHold"><text>-1</text></view>
+						<view class="q-btn reset" @click="resetHum"><text>重置</text></view>
+						<view class="q-btn" @click="adjustHum(1)" @touchstart="startHold(() => adjustHum(1))" @touchend="stopHold" @touchcancel="stopHold"><text>+1</text></view>
+						<view class="q-btn" @click="adjustHum(5)"><text>+5</text></view>
+					</view>
 				<text class="hint">正值表示增加显示湿度，用于校准传感器读数</text>
 			</view>
 
@@ -98,8 +98,16 @@ export default {
 		},
 		onTempChanging(e) { this.tempOffset = parseFloat(e.detail.value); },
 		onHumChanging(e) { this.humOffset = parseInt(e.detail.value); },
-		adjustTemp(d) { this.tempOffset = Math.max(-5, Math.min(5, +(this.tempOffset + d).toFixed(1))); },
-		adjustHum(d) { this.humOffset = Math.max(-10, Math.min(10, this.humOffset + d)); },
+			adjustTemp(d) {
+				const v = Math.max(-5, Math.min(5, +(this.tempOffset + d).toFixed(1)));
+				if (v === this.tempOffset) { this.stopHold(); return; }
+				this.tempOffset = v;
+			},
+			adjustHum(d) {
+				const v = Math.max(-10, Math.min(10, this.humOffset + d));
+				if (v === this.humOffset) { this.stopHold(); return; }
+				this.humOffset = v;
+			},
 		resetTemp() { this.tempOffset = 0; },
 		resetHum() { this.humOffset = 0; },
 		async saveCalibration() {
