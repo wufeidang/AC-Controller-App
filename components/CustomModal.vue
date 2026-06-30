@@ -1,5 +1,5 @@
 <template>
-		<view class="overlay" v-if="visible" @click="handleOverlayClick" role="dialog" aria-modal="true" :aria-labelledby="title ? 'modal-title-' + _uid : ''">
+		<view class="overlay" v-if="visible" @click="handleOverlayClick" role="dialog" aria-modal="true" :aria-labelledby="title ? titleId : ''">
 			<view class="modal" @click.stop :class="{ toast: !showButtons }">
 				<!-- 图标区 -->
 				<view class="modal-icon-wrap" v-if="type || customIcon">
@@ -21,7 +21,7 @@
 				</view>
 
 				<!-- 标题 -->
-				<text class="modal-title" v-if="title" :id="'modal-title-' + _uid">{{ title }}</text>
+				<text class="modal-title" v-if="title" :id="titleId">{{ title }}</text>
 
 			<!-- 内容 -->
 			<text class="modal-text" v-if="content && !$slots.default">{{ content }}</text>
@@ -37,9 +37,9 @@
 						class="modal-input"
 						:maxlength="passwordInput ? 16 : 50"
 					/>
-					<view v-if="passwordInput" class="pw-eye" @click="handleTogglePassword">
-						<text>{{ showPassword ? '🙈' : '👁' }}</text>
-					</view>
+						<view v-if="passwordInput" class="pw-eye" @click="handleTogglePassword">
+							<image :src="showPassword ? '/static/icons/eye-slash.svg' : '/static/icons/eye.svg'" class="pw-eye-icon" mode="aspectFit" />
+						</view>
 				</view>
 				<text v-if="passwordInput" class="pw-hint">8-16 位字符</text>
 			</view>
@@ -75,7 +75,12 @@ export default {
 		passwordInput: { type: Boolean, default: false },
 		showPassword:  { type: Boolean, default: false }
 	},
-	data() { return { inputValue: '' }; },
+	data() {
+		return {
+			inputValue: '',
+			titleId: 'modal-title-' + Math.random().toString(36).slice(2, 10)
+		};
+	},
 	methods: {
 		handleConfirm()   { this.$emit('confirm', this.inputValue); this.inputValue = ''; },
 		handleCancel()    { this.$emit('cancel'); this.inputValue = ''; },
@@ -154,12 +159,12 @@ export default {
 	font-size: 28rpx; color: #333; background: #FAFAFA;
 	text-align: center; box-sizing: border-box;
 }
-.modal-input:focus { border-color: #FF6900; }
-.pw-eye {
-	position: absolute; right: 16rpx; top: 50%;
-	transform: translateY(-50%); padding: 8rpx;
-}
-.pw-eye text { font-size: 28rpx; }
+	.modal-input:focus { border-color: #1677FF; }
+	.pw-eye {
+		position: absolute; right: 16rpx; top: 50%;
+		transform: translateY(-50%); padding: 8rpx;
+	}
+	.pw-eye-icon { width: 36rpx; height: 36rpx; opacity: 0.5; }
 .pw-hint { font-size: 22rpx; color: #999; text-align: center; margin-top: 10rpx; }
 
 /* ========== 按钮区 ========== */
@@ -175,7 +180,7 @@ export default {
 .btn:active { transform: scale(0.97); }
 .btn.cancel { background: #F5F5F5; }
 .btn.cancel text { font-size: 28rpx; color: #666; font-weight: 500; }
-.btn.confirm { background: #FF6900; }
+	.btn.confirm { background: #1677FF; }
 .btn.confirm text { font-size: 28rpx; color: #FFF; font-weight: 500; }
 .btn.confirm.success { background: #00B96B; }
 .btn.confirm.error   { background: #FF4D4F; }

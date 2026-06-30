@@ -63,16 +63,16 @@
 						<text class="switch-meta" v-if="acBrand" :style="{color:'#999'}">{{ brandLabel }} 品牌</text>
 						<text class="switch-meta" v-else>点击右侧开关开启</text>
 					</view>
-					<switch
-						class="switch-ctl"
-						:checked="acStatus"
-						color="#00B96B"
-						@change="toggleACStatus"
-						:disabled="switchLoading"
-						role="switch"
-						:aria-checked="acStatus"
-						aria-label="空调开关"
-					/>
+						<switch
+							class="switch-ctl"
+							:checked="acStatus"
+							color="#1677FF"
+							@change="toggleACStatus"
+							:disabled="switchLoading"
+							role="switch"
+							:aria-checked="acStatus"
+							aria-label="空调开关"
+						/>
 			</view>
 
 			<!-- 场景快捷 -->

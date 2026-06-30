@@ -61,7 +61,7 @@ export default {
 	width: 60rpx;
 	height: 60rpx;
 	border: 4rpx solid #f3f3f3;
-	border-top: 4rpx solid #007aff;
+		border-top: 4rpx solid #1677FF;
 	border-radius: 50%;
 	animation: spin 1s linear infinite;
 }
