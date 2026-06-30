@@ -1,27 +1,27 @@
 <template>
-	<view class="overlay" v-if="visible" @click="handleOverlayClick">
-		<view class="modal" @click.stop :class="{ toast: !showButtons }">
-			<!-- 图标区 -->
-			<view class="modal-icon-wrap" v-if="type || customIcon">
-				<view v-if="customIcon" class="modal-icon" :class="type">
-					<image :src="customIcon" class="modal-icon-img" mode="aspectFit" />
+		<view class="overlay" v-if="visible" @click="handleOverlayClick" role="dialog" aria-modal="true" :aria-labelledby="title ? 'modal-title-' + _uid : ''">
+			<view class="modal" @click.stop :class="{ toast: !showButtons }">
+				<!-- 图标区 -->
+				<view class="modal-icon-wrap" v-if="type || customIcon">
+					<view v-if="customIcon" class="modal-icon" :class="type">
+						<image :src="customIcon" class="modal-icon-img" mode="aspectFit" />
+					</view>
+					<view v-else-if="type === 'success'" class="modal-icon success">
+						<text class="modal-icon-text">✓</text>
+					</view>
+					<view v-else-if="type === 'error'" class="modal-icon error">
+						<text class="modal-icon-text">✕</text>
+					</view>
+					<view v-else-if="type === 'warning'" class="modal-icon warning">
+						<text class="modal-icon-text">!</text>
+					</view>
+					<view v-else-if="type === 'info'" class="modal-icon info">
+						<text class="modal-icon-text">i</text>
+					</view>
 				</view>
-				<view v-else-if="type === 'success'" class="modal-icon success">
-					<text class="modal-icon-text">✓</text>
-				</view>
-				<view v-else-if="type === 'error'" class="modal-icon error">
-					<text class="modal-icon-text">✕</text>
-				</view>
-				<view v-else-if="type === 'warning'" class="modal-icon warning">
-					<text class="modal-icon-text">!</text>
-				</view>
-				<view v-else-if="type === 'info'" class="modal-icon info">
-					<text class="modal-icon-text">i</text>
-				</view>
-			</view>
 
-			<!-- 标题 -->
-			<text class="modal-title" v-if="title">{{ title }}</text>
+				<!-- 标题 -->
+				<text class="modal-title" v-if="title" :id="'modal-title-' + _uid">{{ title }}</text>
 
 			<!-- 内容 -->
 			<text class="modal-text" v-if="content && !$slots.default">{{ content }}</text>
@@ -46,13 +46,13 @@
 
 			<!-- 按钮 -->
 			<view v-if="showButtons" class="btn-row">
-				<view class="btn cancel" v-if="cancelText" @click="handleCancel">
-					<text>{{ cancelText }}</text>
+					<view class="btn cancel" v-if="cancelText" @click="handleCancel" role="button" :aria-label="cancelText">
+						<text>{{ cancelText }}</text>
+					</view>
+					<view class="btn confirm" :class="type" @click="handleConfirm" role="button" :aria-label="confirmText">
+						<text>{{ confirmText }}</text>
+					</view>
 				</view>
-				<view class="btn confirm" :class="type" @click="handleConfirm">
-					<text>{{ confirmText }}</text>
-				</view>
-			</view>
 		</view>
 	</view>
 </template>

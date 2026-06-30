@@ -5,14 +5,14 @@
 			<view class="temp-card">
 				<text class="t-label">设定温度</text>
 				<view class="t-row">
-					<view class="t-btn" @click="decreaseTemp" @touchstart="startHold(decreaseTemp)" @touchend="stopHold" @touchcancel="stopHold" :class="{ off: temperature <= 16 }">
-							<text class="t-btn-icon">−</text>
-						</view>
-						<view class="t-display">
-							<text class="t-num">{{ temperature }}</text>
-							<text class="t-unit">°C</text>
-						</view>
-						<view class="t-btn" @click="increaseTemp" @touchstart="startHold(increaseTemp)" @touchend="stopHold" @touchcancel="stopHold" :class="{ off: temperature >= 30 }">
+					<view class="t-btn" @click="decreaseTemp" @touchstart="startHold(decreaseTemp)" @touchend="stopHold" @touchcancel="stopHold" :class="{ off: temperature <= 16 }" role="button" aria-label="降低温度" :aria-disabled="temperature <= 16">
+								<text class="t-btn-icon">−</text>
+							</view>
+							<view class="t-display" aria-label="当前温度" role="text">
+								<text class="t-num">{{ temperature }}</text>
+								<text class="t-unit">°C</text>
+							</view>
+							<view class="t-btn" @click="increaseTemp" @touchstart="startHold(increaseTemp)" @touchend="stopHold" @touchcancel="stopHold" :class="{ off: temperature >= 30 }" role="button" aria-label="升高温度" :aria-disabled="temperature >= 30">
 						<text class="t-btn-icon">+</text>
 					</view>
 				</view>
@@ -21,15 +21,18 @@
 			<!-- 运行模式 -->
 			<view class="card">
 				<text class="card-title">运行模式</text>
-				<view class="mode-grid">
-					<view
-						v-for="m in modes"
-						:key="m.value"
-						class="mode-item"
-						:class="{ active: currentMode === m.value }"
-						:style="m.value === currentMode ? { borderColor: m.color, background: m.bg } : {}"
-						@click="setMode(m.value)"
-					>
+				<view class="mode-grid" role="radiogroup" aria-label="运行模式">
+						<view
+							v-for="m in modes"
+							:key="m.value"
+							class="mode-item"
+							:class="{ active: currentMode === m.value }"
+							:style="m.value === currentMode ? { borderColor: m.color, background: m.bg } : {}"
+							@click="setMode(m.value)"
+							role="radio"
+							:aria-checked="currentMode === m.value"
+							:aria-label="m.label"
+						>
 						<image :src="'/static/icons/' + m.icon + '.svg'" class="mode-icon" mode="aspectFit" :style="m.value === currentMode ? { filter: m.filter } : {}" />
 						<text class="mode-label" :style="m.value === currentMode ? { color: m.color } : {}">{{ m.label }}</text>
 					</view>
@@ -37,32 +40,38 @@
 			</view>
 
 			<!-- 风速 -->
-			<view class="card">
-				<text class="card-title">风速</text>
-				<view class="seg-row">
-					<view
-						v-for="f in fanSpeeds"
-						:key="f.value"
-						class="seg-item"
-						:class="{ active: currentFanSpeed === f.value }"
-						@click="setFanSpeed(f.value)"
-					>
+				<view class="card">
+					<text class="card-title">风速</text>
+					<view class="seg-row" role="radiogroup" aria-label="风速">
+						<view
+							v-for="f in fanSpeeds"
+							:key="f.value"
+							class="seg-item"
+							:class="{ active: currentFanSpeed === f.value }"
+							@click="setFanSpeed(f.value)"
+							role="radio"
+							:aria-checked="currentFanSpeed === f.value"
+							:aria-label="f.label"
+						>
 						<text class="seg-label">{{ f.label }}</text>
 					</view>
 				</view>
 			</view>
 
 			<!-- 摆风 -->
-			<view class="card">
-				<text class="card-title">摆风</text>
-				<view class="seg-row">
-					<view
-						v-for="s in swingModes"
-						:key="s.value"
-						class="seg-item"
-						:class="{ active: currentSwing === s.value }"
-						@click="setSwing(s.value)"
-					>
+				<view class="card">
+					<text class="card-title">摆风</text>
+					<view class="seg-row" role="radiogroup" aria-label="摆风">
+						<view
+							v-for="s in swingModes"
+							:key="s.value"
+							class="seg-item"
+							:class="{ active: currentSwing === s.value }"
+							@click="setSwing(s.value)"
+							role="radio"
+							:aria-checked="currentSwing === s.value"
+							:aria-label="s.label"
+						>
 						<text class="seg-label">{{ s.label }}</text>
 					</view>
 				</view>

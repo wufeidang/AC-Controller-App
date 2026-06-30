@@ -41,10 +41,10 @@
 		</view>
 
 		<!-- OTA 进度遮罩 -->
-		<view class="ota-overlay" v-if="otaPhase !== 'idle'" @click.stop>
-			<view class="ota-panel">
+		<view class="ota-overlay" v-if="otaPhase !== 'idle'" @click.stop role="alert" aria-live="polite">
+			<view class="ota-panel" :class="otaPhase">
 				<!-- 进度环 -->
-				<view class="ota-ring-wrap">
+				<view class="ota-ring-wrap" role="progressbar" :aria-valuenow="otaProgress" aria-valuemin="0" aria-valuemax="100" aria-label="OTA升级进度">
 					<view class="ota-ring">
 						<text class="ota-pct">{{ otaProgress }}</text>
 						<text class="ota-pct-sign">%</text>

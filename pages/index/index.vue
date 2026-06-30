@@ -56,62 +56,68 @@
 			</view>
 
 			<!-- 空调开关 -->
-			<view class="switch-card" :class="{ on: acStatus }">
-				<view class="switch-left">
-					<text class="switch-title">{{ acStatus ? '空调运行中' : '空调已关闭' }}</text>
-					<text class="switch-meta" v-if="acStatus">{{ acTemp }}°C · {{ fanLabel }} · {{ swingLabel }}</text>
-					<text class="switch-meta" v-if="acBrand" :style="{color:'#999'}">{{ brandLabel }} 品牌</text>
-					<text class="switch-meta" v-else>点击右侧开关开启</text>
-				</view>
-				<switch
-					class="switch-ctl"
-					:checked="acStatus"
-					color="#00B96B"
-					@change="toggleACStatus"
-					:disabled="switchLoading"
-				/>
+				<view class="switch-card" :class="{ on: acStatus }">
+					<view class="switch-left">
+						<text class="switch-title">{{ acStatus ? '空调运行中' : '空调已关闭' }}</text>
+						<text class="switch-meta" v-if="acStatus">{{ acTemp }}°C · {{ fanLabel }} · {{ swingLabel }}</text>
+						<text class="switch-meta" v-if="acBrand" :style="{color:'#999'}">{{ brandLabel }} 品牌</text>
+						<text class="switch-meta" v-else>点击右侧开关开启</text>
+					</view>
+					<switch
+						class="switch-ctl"
+						:checked="acStatus"
+						color="#00B96B"
+						@change="toggleACStatus"
+						:disabled="switchLoading"
+						role="switch"
+						:aria-checked="acStatus"
+						aria-label="空调开关"
+					/>
 			</view>
 
 			<!-- 场景快捷 -->
-			<view class="scene-strip">
-				<view
-					v-for="s in scenes"
-					:key="s.value"
-					class="scene-chip"
-					:class="{ active: currentScene === s.value }"
-					@click="switchScene(s.value)"
-				>
+				<view class="scene-strip" role="group" aria-label="场景切换">
+					<view
+						v-for="s in scenes"
+						:key="s.value"
+						class="scene-chip"
+						:class="{ active: currentScene === s.value }"
+						@click="switchScene(s.value)"
+						role="button"
+						:aria-label="s.label + '场景'"
+						:aria-pressed="currentScene === s.value"
+					>
 					<image :src="'/static/icons/' + s.icon + '.svg'" class="chip-icon" mode="aspectFit" />
 					<text class="chip-label">{{ s.label }}</text>
 				</view>
 			</view>
 
 			<!-- 入口 -->
-			<view class="nav-list">
-				<view class="nav-row" @click="navigateTo('settings/ac-params')">
-					<view class="nav-left">
-						<image src="/static/icons/air-conditioner.svg" class="nav-icon" mode="aspectFit" />
-						<text class="nav-label">空调控制</text>
+				<view class="nav-list">
+					<view class="nav-row" @click="navigateTo('settings/ac-params')" role="link" aria-label="空调控制">
+						<view class="nav-left">
+							<image src="/static/icons/air-conditioner.svg" class="nav-icon" mode="aspectFit" />
+							<text class="nav-label">空调控制</text>
+						</view>
+						<view class="nav-arr">›</view>
 					</view>
-					<view class="nav-arr">›</view>
-				</view>
-				<view class="nav-row" @click="navigateTo('settings/temp-hum')">
-					<view class="nav-left">
-						<image src="/static/icons/temperature.svg" class="nav-icon" mode="aspectFit" />
-						<text class="nav-label">温湿度阈值</text>
+					<view class="nav-row" @click="navigateTo('settings/temp-hum')" role="link" aria-label="温湿度阈值">
+						<view class="nav-left">
+							<image src="/static/icons/temperature.svg" class="nav-icon" mode="aspectFit" />
+							<text class="nav-label">温湿度阈值</text>
+						</view>
+						<view class="nav-arr">›</view>
 					</view>
-					<view class="nav-arr">›</view>
-				</view>
-				<view class="nav-row" @click="navigateTo('settings/settings')">
-					<view class="nav-left">
-						<image src="/static/icons/settings.svg" class="nav-icon" mode="aspectFit" />
-						<text class="nav-label">更多设置</text>
+					<view class="nav-row" @click="navigateTo('settings/settings')" role="link" aria-label="更多设置">
+						<view class="nav-left">
+							<image src="/static/icons/settings.svg" class="nav-icon" mode="aspectFit" />
+							<text class="nav-label">更多设置</text>
+						</view>
+						<view class="nav-arr">›</view>
 					</view>
-					<view class="nav-arr">›</view>
 				</view>
-			</view>
 
-			<view class="disconnect-btn" @click="handleDisconnect">
+				<view class="disconnect-btn" @click="handleDisconnect" role="button" aria-label="断开连接">
 				<text>断开连接</text>
 			</view>
 		</view>

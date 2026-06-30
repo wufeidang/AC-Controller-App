@@ -1,5 +1,5 @@
 <template>
-	<view class="item" @click="handleClick" :class="[{ disabled: disabled }, danger ? 'danger' : '']">
+		<view class="item" @click="handleClick" :class="[{ disabled: disabled }, danger ? 'danger' : '']" role="button" :aria-label="label" :aria-disabled="disabled">
 		<view class="item-left">
 			<view class="item-icon-box" v-if="icon">
 				<image v-if="isSvgIcon" :src="'/static/icons/' + icon + '.svg'" class="item-icon-img" mode="aspectFit" />

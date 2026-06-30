@@ -1,5 +1,5 @@
 <template>
-	<view class="loading-container" v-if="visible">
+		<view class="loading-container" v-if="visible" role="alert" aria-live="polite">
 		<view class="loading-content">
 			<view class="loading-spinner"></view>
 			<text class="loading-text" v-if="text">{{ text }}</text>
