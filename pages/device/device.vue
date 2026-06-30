@@ -333,7 +333,6 @@ import { isValidAddress } from '../../utils/validator';
 				});
 			});
 		},
-		},
 		selectMdnsDevice(device) {
 			this.inputAddress = device.hostname;
 			this.doConnect();
@@ -364,8 +363,8 @@ import { isValidAddress } from '../../utils/validator';
 			doDisconnect() {
 				this.disconnectDevice();
 			},
-		navigateBack() { uni.redirectTo({ url: '/pages/index/index' }); },
-		}
+		navigateBack() { uni.redirectTo({ url: '/pages/index/index' }); }
+	},
 	};
 </script>
 
@@ -387,7 +386,7 @@ import { isValidAddress } from '../../utils/validator';
 .hero-desc { font-size: 26rpx; color: $text-hint; }
 
 /* 卡片 */
-.card { background: $bg-card; border-radius: $radius-xl; padding: 32rpx; margin-bottom: 24rpx; box-shadow: $shadow-sm; }
+.card { background: $bg-card; border-radius: $radius-xl; padding: 32rpx; margin-bottom: 24rpx; box-shadow: $shadow-sm; overflow: hidden; }
 .card-title { font-size: $fs-body; font-weight: 700; color: $text-primary; display: block; margin-bottom: 20rpx; }
 
 /* WiFi 行 */
