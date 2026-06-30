@@ -11,7 +11,7 @@
 			<view class="card">
 				<text class="card-title">网络架构说明</text>
 				<view class="tips">
-				<text>· AP 热点 — 设备自身 WiFi (192.168.4.1)，始终可用</text>
+				<text>· AP 热点 — 设备自身 WiFi ({{ defaultIp }})，始终可用</text>
 				<text>· STA 客户端 — 连接家庭 WiFi，获取互联网访问</text>
 				<text>· AP + STA 双模式共存，互不影响</text>
 				</view>
@@ -21,10 +21,14 @@
 </template>
 
 <script>
-import SettingItem from '../../components/SettingItem';
-export default {
-	components: { SettingItem },
-	methods: {
+	import SettingItem from '../../components/SettingItem';
+	import constants from '../../config/constants';
+	export default {
+		components: { SettingItem },
+		computed: {
+			defaultIp() { return constants.DEFAULT_IP; }
+		},
+		methods: {
 		go(p) { uni.navigateTo({ url: '/pages/settings/' + p }); }
 	}
 };

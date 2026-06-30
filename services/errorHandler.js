@@ -1,6 +1,7 @@
 /**
  * 错误处理模块
  * 统一错误分类、用户提示、Loading 管理
+ * 所有提示通过全局事件分发，由页面 modal-mixin 中的 CustomModal 统一展示
  */
 
 import constants from '../config/constants';
@@ -36,7 +37,7 @@ class ErrorHandler {
   }
 
   /**
-   * 处理错误：记录日志 + 用户提示
+   * 处理错误：记录日志 + 全局事件分发（由页面 CustomModal 展示）
    * @param {Error} error - 错误对象
    * @param {Object} options - 选项
    * @param {boolean} options.silent - 是否静默（不弹 toast）
@@ -47,41 +48,15 @@ class ErrorHandler {
     if (options.silent) return;
 
     const message = this.getMessage(error);
-    uni.showToast({
-      title: message,
-      icon: 'none',
-      duration: 2000
-    });
+    uni.$emit('app-error', { message, type: 'error' });
   }
 
   /**
-   * 处理成功
+   * 处理成功：全局事件分发（由页面 CustomModal 展示）
    * @param {string} message - 成功消息
    */
   static handleSuccess(message) {
-    uni.showToast({
-      title: message,
-      icon: 'success',
-      duration: 1500
-    });
-  }
-
-  /**
-   * 显示加载中
-   * @param {string} message - 加载消息
-   */
-  static showLoading(message = '加载中...') {
-    uni.showLoading({
-      title: message,
-      mask: true
-    });
-  }
-
-  /**
-   * 隐藏加载中
-   */
-  static hideLoading() {
-    uni.hideLoading();
+    uni.$emit('app-toast', { message, type: 'success' });
   }
 
   /**
@@ -91,7 +66,7 @@ class ErrorHandler {
    * @returns {Promise} 原始返回值
    */
   static async withLoading(fn, loadingText = '处理中...') {
-    this.showLoading(loadingText);
+    uni.$emit('app-loading', { visible: true, text: loadingText });
     try {
       const result = await fn();
       return result;
@@ -99,7 +74,7 @@ class ErrorHandler {
       this.handleError(error);
       throw error;
     } finally {
-      this.hideLoading();
+      uni.$emit('app-loading', { visible: false });
     }
   }
 }

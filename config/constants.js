@@ -17,9 +17,6 @@ export default {
 	// OTA 超时 (ms)
 	OTA_TIMEOUT: 60000,
 
-	// 防抖间隔 (ms)
-	DEBOUNCE_THRESHOLD: 60000,
-
 	// 品牌映射表
 	BRAND_MAP: {
 		tcl: 'TCL',
@@ -79,8 +76,5 @@ export default {
 		{ value: 'comfort', label: '舒适', icon: 'smile' },
 		{ value: 'energy_saving', label: '节能', icon: 'lightning' },
 		{ value: 'quick',  label: '快速', icon: 'light' }
-	],
-
-	// EEPROM 刷新间隔 (ms)
-	EEPROM_FLUSH_INTERVAL: 60000
+	]
 };

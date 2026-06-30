@@ -20,7 +20,7 @@
 				<text class="card-title">说明</text>
 				<view class="tips">
 					<text>· AP 热点用于手机直连设备进行本地管理</text>
-					<text>· 默认 IP 地址：192.168.4.1</text>
+					<text>· 默认 IP 地址：{{ defaultIp }}</text>
 					<text>· 热点始终开启，修改后需重新连接</text>
 				</view>
 			</view>
@@ -37,22 +37,24 @@
 </template>
 
 <script>
-import Loading from '../../components/Loading';
-import CustomModal from '../../components/CustomModal';
-import api from '../../services/api';
-import deviceMixin from '../../mixins/device-mixin.js';
-import modalMixin from '../../mixins/modal-mixin.js';
+	import Loading from '../../components/Loading';
+	import CustomModal from '../../components/CustomModal';
+	import api from '../../services/api';
+	import deviceMixin from '../../mixins/device-mixin.js';
+	import modalMixin from '../../mixins/modal-mixin.js';
+	import constants from '../../config/constants';
 
-export default {
-	components: { Loading, CustomModal },
-		mixins: [deviceMixin, modalMixin],
-		data() {
-			return {
-				loadingVisible: false, loadingText: '',
-				apSsid: '', apPassword: '', showPassword: false, saving: false,
-				modalVisible: false, modalTitle: '', modalContent: '', modalType: 'info'
-			};
-		},
+	export default {
+		components: { Loading, CustomModal },
+			mixins: [deviceMixin, modalMixin],
+				data() {
+					return {
+						apSsid: '', apPassword: '', showPassword: false, saving: false,
+					};
+			},
+			computed: {
+				defaultIp() { return constants.DEFAULT_IP; }
+			},
 		onLoad() { this.checkDevice(); this.loadSettings(); },
 		onShow() { this.checkDevice(); },
 		methods: {
@@ -60,12 +62,7 @@ export default {
 				if (!this.deviceConnected) return;
 				try { this.showLoading('加载中...'); const res = await api.getStatus(); if (res.status === 'success' && res.data.device_info) this.apSsid = res.data.device_info.wifi_name || ''; } catch (e) { /* 静默 */ } finally { this.hideLoading(); }
 			},
-			showToast(title, content, type = 'info') {
-				this.modalTitle = title; this.modalContent = content; this.modalType = type;
-				this.modalVisible = true;
-				setTimeout(() => { this.modalVisible = false; }, 1500);
-			},
-			async saveSettings() {
+				async saveSettings() {
 				if (!this.deviceConnected) { this.showToast('提示', '请先连接设备', 'warning'); return; }
 				if (!this.apSsid) { this.showToast('提示', '请输入热点名称', 'warning'); return; }
 				if (this.saving) return;
