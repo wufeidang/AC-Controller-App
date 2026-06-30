@@ -3,6 +3,8 @@
  * 实现与ESP8266设备的通信
  */
 
+import constants from '../config/constants';
+
 class ApiService {
   constructor() {
     // 从本地存储获取设备地址
@@ -20,6 +22,14 @@ class ApiService {
    */
   setDeviceAddress(address) {
     this.baseUrl = `http://${address}:80`;
+    this._failCount = 0; // 切换设备时重置失败计数
+  }
+
+  /**
+   * 重置连续失败计数（用于设备断开时清理状态）
+   */
+  resetFailCount() {
+    this._failCount = 0;
   }
 
   /**
@@ -39,7 +49,7 @@ class ApiService {
         url: this.baseUrl,
         method: 'POST',
         data: data,
-        timeout: timeout || 8000
+        timeout: timeout || constants.HTTP_TIMEOUT
       };
 
       const response = await uni.request(config);
@@ -170,7 +180,7 @@ class ApiService {
     return this.request({
       cmd: 'ota_update',
       data: otaData
-    }, 60000); // OTA升级需要更长的超时时间
+    }, constants.OTA_TIMEOUT); // OTA升级需要更长的超时时间
   }
 
   /**

@@ -53,12 +53,13 @@ export default {
 		 * 断开设备连接
 		 */
 		disconnectDevice() {
-			uni.removeStorageSync('connectedDevice');
-			uni.$emit('deviceConnected', { connected: false });
-			this.deviceConnected = false;
-			this.deviceAddress = '';
-			this.deviceId = '';
-			this.deviceLocation = '';
-		}
+				uni.removeStorageSync('connectedDevice');
+				uni.$emit('deviceConnected', { connected: false });
+				this.deviceConnected = false;
+				this.deviceAddress = '';
+				this.deviceId = '';
+				this.deviceLocation = '';
+				apiService.resetFailCount(); // 重置 API 失败计数
+			}
 	}
 };
