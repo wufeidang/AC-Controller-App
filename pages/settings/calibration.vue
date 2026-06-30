@@ -126,36 +126,36 @@ export default {
 };
 </script>
 
-<style scoped>
-.page { min-height: 100vh; background: #F5F5F5; }
+<style scoped lang="scss">
+.page { min-height: 100vh; background: $bg-page; }
 .body { padding: 32rpx; }
 
-.card { background: #FFF; border-radius: 24rpx; padding: 32rpx; margin-bottom: 24rpx; box-shadow: 0 2rpx 12rpx rgba(0,0,0,0.04); }
-.card-title { font-size: 30rpx; font-weight: 600; color: #1A1A1A; margin-bottom: 24rpx; display: block; }
+.card { background: $bg-card; border-radius: $radius-xl; padding: 32rpx; margin-bottom: 24rpx; box-shadow: $shadow-sm; }
+.card-title { font-size: $fs-title; font-weight: 600; color: $text-primary; margin-bottom: 24rpx; display: block; }
 
 .val-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16rpx; }
-.val-label { font-size: 26rpx; color: #666; }
-.val-num { font-size: 32rpx; font-weight: 700; color: #333; }
-.val-num.plus { color: #FF4D4F; }
-.val-num.minus { color: #1677FF; }
+.val-label { font-size: 26rpx; color: $text-secondary; }
+.val-num { font-size: 32rpx; font-weight: 700; color: $text-regular; }
+.val-num.plus { color: $color-danger; }
+.val-num.minus { color: $brand-primary; }
 
 .range { display: flex; justify-content: space-between; margin-bottom: 20rpx; }
-.range text { font-size: 20rpx; color: #C0C0C0; }
+.range text { font-size: $fs-caption; color: $text-disabled; }
 
 .quick { display: flex; gap: 16rpx; margin-bottom: 16rpx; }
-.q-btn { flex: 1; padding: 14rpx 8rpx; border-radius: 12rpx; background: #F5F5F5; text-align: center; transition: 150ms; }
-.q-btn:active { transform: scale(0.96); background: #F0F0F0; }
-.q-btn text { font-size: 24rpx; color: #333; font-weight: 500; }
-.q-btn.reset text { color: #999; }
+.q-btn { flex: 1; padding: 14rpx 8rpx; border-radius: $radius-md; background: $bg-page; text-align: center; transition: 150ms; }
+.q-btn:active { transform: scale(0.96); background: $bg-subtle; }
+.q-btn text { font-size: $fs-label; color: $text-regular; font-weight: 500; }
+.q-btn.reset text { color: $text-hint; }
 
-.hint { font-size: 22rpx; color: #999; line-height: 1.5; display: block; }
+.hint { font-size: $fs-caption; color: $text-hint; line-height: 1.5; display: block; }
 
 .tips { display: flex; flex-direction: column; gap: 12rpx; }
-.tips text { font-size: 24rpx; color: #666; line-height: 1.6; }
+.tips text { font-size: $fs-label; color: $text-secondary; line-height: 1.6; }
 
-.btn { padding: 28rpx 32rpx; border-radius: 24rpx; text-align: center; margin-bottom: 32rpx; transition: 150ms; }
+.btn { padding: 28rpx 32rpx; border-radius: $radius-xl; text-align: center; margin-bottom: 32rpx; transition: 150ms; }
 .btn:active { transform: scale(0.98); }
-.btn-primary { background: #1677FF; }
-.btn-primary text { color: #FFF; font-size: 30rpx; font-weight: 500; }
+.btn-primary { background: $brand-primary; }
+.btn-primary text { color: $bg-card; font-size: $fs-title; font-weight: 500; }
 .btn.off { opacity: 0.5; }
 </style>

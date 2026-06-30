@@ -230,56 +230,56 @@ export default {
 };
 </script>
 
-<style scoped>
-.page { min-height: 100vh; background: #F5F5F5; }
+<style scoped lang="scss">
+.page { min-height: 100vh; background: $bg-page; }
 .body { padding: 32rpx; }
 
 /* 温度卡 */
-.temp-card { background: #FFF; border-radius: 24rpx; padding: 40rpx 32rpx; text-align: center; margin-bottom: 24rpx; box-shadow: 0 2rpx 12rpx rgba(0,0,0,0.04); }
-.t-label { font-size: 26rpx; color: #999; }
+.temp-card { background: $bg-card; border-radius: $radius-xl; padding: 40rpx 32rpx; text-align: center; margin-bottom: 24rpx; box-shadow: $shadow-sm; }
+.t-label { font-size: 26rpx; color: $text-hint; }
 .t-row { display: flex; justify-content: center; align-items: center; gap: 48rpx; margin-top: 24rpx; }
-.t-btn { width: 80rpx; height: 80rpx; border-radius: 50%; background: #F0F0F0; display: flex; align-items: center; justify-content: center; transition: transform 150ms; }
+.t-btn { width: 80rpx; height: 80rpx; border-radius: 50%; background: $bg-subtle; display: flex; align-items: center; justify-content: center; transition: transform 150ms; }
 .t-btn:active { transform: scale(0.92); }
 .t-btn.off { opacity: 0.3; }
-.t-btn-icon { font-size: 48rpx; color: #333; font-weight: 500; }
+.t-btn-icon { font-size: 48rpx; color: $text-regular; font-weight: 500; }
 .t-display { display: flex; align-items: baseline; }
-.t-num { font-size: 96rpx; font-weight: 700; color: #1A1A1A; line-height: 1; }
-.t-unit { font-size: 32rpx; color: #999; margin-left: 4rpx; }
+.t-num { font-size: 96rpx; font-weight: 700; color: $text-primary; line-height: 1; }
+.t-unit { font-size: 32rpx; color: $text-hint; margin-left: 4rpx; }
 
 /* 卡片 */
-.card { background: #FFF; border-radius: 24rpx; padding: 32rpx; margin-bottom: 24rpx; box-shadow: 0 2rpx 12rpx rgba(0,0,0,0.04); }
-.card-title { font-size: 30rpx; font-weight: 600; color: #1A1A1A; margin-bottom: 20rpx; display: block; }
-.card-hint { font-size: 24rpx; color: #999; display: block; margin-top: -12rpx; margin-bottom: 20rpx; }
+.card { background: $bg-card; border-radius: $radius-xl; padding: 32rpx; margin-bottom: 24rpx; box-shadow: $shadow-sm; }
+.card-title { font-size: $fs-title; font-weight: 600; color: $text-primary; margin-bottom: 20rpx; display: block; }
+.card-hint { font-size: $fs-label; color: $text-hint; display: block; margin-top: -12rpx; margin-bottom: 20rpx; }
 
 /* 模式网格 */
 .mode-grid { display: flex; flex-wrap: wrap; gap: 16rpx; }
-.mode-item { width: calc(20% - 13rpx); box-sizing: border-box; border: 2rpx solid #F0F0F0; border-radius: 16rpx; padding: 20rpx 8rpx; display: flex; flex-direction: column; align-items: center; transition: 150ms; }
+.mode-item { width: calc(20% - 13rpx); box-sizing: border-box; border: 2rpx solid $bg-subtle; border-radius: $radius-lg; padding: 20rpx 8rpx; display: flex; flex-direction: column; align-items: center; transition: 150ms; }
 .mode-item:active { transform: scale(0.96); }
 .mode-icon { width: 48rpx; height: 48rpx; margin-bottom: 8rpx; opacity: 0.5; }
-.mode-label { font-size: 24rpx; color: #999; }
+.mode-label { font-size: $fs-label; color: $text-hint; }
 
 /* 分段 */
 .seg-row { display: flex; flex-wrap: wrap; gap: 12rpx; }
-.seg-item { padding: 16rpx 20rpx; border: 2rpx solid #F0F0F0; border-radius: 14rpx; transition: 150ms; }
+.seg-item { padding: 16rpx 20rpx; border: 2rpx solid $bg-subtle; border-radius: 14rpx; transition: 150ms; }
 .seg-item:active { transform: scale(0.96); }
-.seg-item.active { border-color: #1677FF; background: #E6F4FF; }
-.seg-label { font-size: 26rpx; color: #666; }
-.seg-item.active .seg-label { color: #1677FF; font-weight: 500; }
+.seg-item.active { border-color: $brand-primary; background: $brand-primary-bg; }
+.seg-label { font-size: 26rpx; color: $text-secondary; }
+.seg-item.active .seg-label { color: $brand-primary; font-weight: 500; }
 
 /* 品牌 */
 .brand-grid { display: flex; flex-wrap: wrap; gap: 16rpx; }
-.brand-item { width: calc(20% - 13rpx); box-sizing: border-box; padding: 18rpx 6rpx; border: 1rpx solid #D9D9D9; border-radius: 12rpx; text-align: center; transition: 150ms; }
+.brand-item { width: calc(20% - 13rpx); box-sizing: border-box; padding: 18rpx 6rpx; border: 1rpx solid $border-normal; border-radius: $radius-md; text-align: center; transition: 150ms; }
 .brand-item:active { transform: scale(0.96); }
-.brand-item.active { border-color: #1677FF; background: #E6F4FF; }
-.brand-label { font-size: 24rpx; color: #666; }
-.brand-item.active .brand-label { color: #1677FF; font-weight: 500; }
-.brand-more { text-align: center; margin-top: 16rpx; padding: 12rpx; border-radius: 12rpx; background: #FAFAFA; }
-.brand-more text { font-size: 24rpx; color: #1677FF; }
+.brand-item.active { border-color: $brand-primary; background: $brand-primary-bg; }
+.brand-label { font-size: $fs-label; color: $text-secondary; }
+.brand-item.active .brand-label { color: $brand-primary; font-weight: 500; }
+.brand-more { text-align: center; margin-top: 16rpx; padding: 12rpx; border-radius: $radius-md; background: $bg-elevated; }
+.brand-more text { font-size: $fs-label; color: $brand-primary; }
 
 /* 按钮 */
-.btn { padding: 28rpx 32rpx; border-radius: 24rpx; text-align: center; margin-bottom: 32rpx; transition: 150ms; }
+.btn { padding: 28rpx 32rpx; border-radius: $radius-xl; text-align: center; margin-bottom: 32rpx; transition: 150ms; }
 .btn:active { transform: scale(0.98); }
-.btn-primary { background: #1677FF; }
-.btn-primary text { color: #FFF; font-size: 30rpx; font-weight: 500; }
+.btn-primary { background: $brand-primary; }
+.btn-primary text { color: $bg-card; font-size: $fs-title; font-weight: 500; }
 .btn.off { opacity: 0.5; }
 </style>

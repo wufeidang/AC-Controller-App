@@ -34,12 +34,12 @@
 };
 </script>
 
-<style scoped>
-.page { min-height: 100vh; background: #F5F5F5; }
+<style scoped lang="scss">
+.page { min-height: 100vh; background: $bg-page; }
 .body { padding: 32rpx; }
-.desc { font-size: 26rpx; color: #999; margin-bottom: 24rpx; }
-.card { background: #FFF; border-radius: 24rpx; box-shadow: 0 2rpx 12rpx rgba(0,0,0,0.04); overflow: hidden; margin-bottom: 24rpx; }
-.card-title { font-size: 30rpx; font-weight: 600; color: #1A1A1A; padding: 32rpx 32rpx 0; display: block; }
+.desc { font-size: 26rpx; color: $text-hint; margin-bottom: 24rpx; }
+.card { background: $bg-card; border-radius: $radius-xl; box-shadow: $shadow-sm; overflow: hidden; margin-bottom: 24rpx; }
+.card-title { font-size: $fs-title; font-weight: 600; color: $text-primary; padding: 32rpx 32rpx 0; display: block; }
 .tips { padding: 20rpx 32rpx 32rpx; display: flex; flex-direction: column; gap: 12rpx; }
-.tips text { font-size: 24rpx; color: #666; line-height: 1.6; }
+.tips text { font-size: $fs-label; color: $text-secondary; line-height: 1.6; }
 </style>

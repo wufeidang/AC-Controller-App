@@ -29,7 +29,7 @@ export default {
 };
 </script>
 
-<style scoped>
+<style scoped lang="scss">
 .loading-container {
 	position: fixed;
 	top: 0;
@@ -45,8 +45,8 @@ export default {
 }
 
 .loading-content {
-	background-color: #ffffff;
-	border-radius: 16rpx;
+	background-color: $bg-card;
+	border-radius: $radius-lg;
 	padding: 40rpx;
 	display: flex;
 	flex-direction: column;
@@ -60,15 +60,15 @@ export default {
 .loading-spinner {
 	width: 60rpx;
 	height: 60rpx;
-	border: 4rpx solid #f3f3f3;
-		border-top: 4rpx solid #1677FF;
+	border: 4rpx solid $bg-subtle;
+		border-top: 4rpx solid $brand-primary;
 	border-radius: 50%;
 	animation: spin 1s linear infinite;
 }
 
 .loading-text {
-	font-size: 28rpx;
-	color: #333333;
+	font-size: $fs-body;
+	color: $text-regular;
 }
 
 @keyframes fadeIn {

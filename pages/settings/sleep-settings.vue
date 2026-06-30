@@ -89,27 +89,27 @@ export default {
 };
 </script>
 
-<style scoped>
-.page { min-height: 100vh; background: #F5F5F5; }
+<style scoped lang="scss">
+.page { min-height: 100vh; background: $bg-page; }
 .body { padding: 32rpx; }
-.desc { font-size: 26rpx; color: #999; margin-bottom: 24rpx; }
+.desc { font-size: 26rpx; color: $text-hint; margin-bottom: 24rpx; }
 
-.card { background: #FFF; border-radius: 24rpx; padding: 32rpx; margin-bottom: 24rpx; box-shadow: 0 2rpx 12rpx rgba(0,0,0,0.04); }
-.card-title { font-size: 30rpx; font-weight: 600; color: #1A1A1A; margin-bottom: 16rpx; display: block; }
+.card { background: $bg-card; border-radius: $radius-xl; padding: 32rpx; margin-bottom: 24rpx; box-shadow: $shadow-sm; }
+.card-title { font-size: $fs-title; font-weight: 600; color: $text-primary; margin-bottom: 16rpx; display: block; }
 
 .switch-row { display: flex; justify-content: space-between; align-items: center; }
 .switch-info { display: flex; align-items: center; gap: 16rpx; flex: 1; }
 .switch-icon { width: 48rpx; height: 48rpx; }
 .switch-text { display: flex; flex-direction: column; }
-.switch-title { font-size: 30rpx; font-weight: 600; color: #1A1A1A; }
-.switch-sub { font-size: 24rpx; color: #999; margin-top: 6rpx; }
+.switch-title { font-size: $fs-title; font-weight: 600; color: $text-primary; }
+.switch-sub { font-size: $fs-label; color: $text-hint; margin-top: 6rpx; }
 
 .tips { display: flex; flex-direction: column; gap: 12rpx; }
-.tips text { font-size: 24rpx; color: #666; line-height: 1.6; }
+.tips text { font-size: $fs-label; color: $text-secondary; line-height: 1.6; }
 
-.btn { padding: 28rpx 32rpx; border-radius: 24rpx; text-align: center; margin-bottom: 32rpx; transition: 150ms; }
+.btn { padding: 28rpx 32rpx; border-radius: $radius-xl; text-align: center; margin-bottom: 32rpx; transition: 150ms; }
 .btn:active { transform: scale(0.98); }
-.btn-primary { background: #1677FF; }
-.btn-primary text { color: #FFF; font-size: 30rpx; font-weight: 500; }
+.btn-primary { background: $brand-primary; }
+.btn-primary text { color: $bg-card; font-size: $fs-title; font-weight: 500; }
 .btn.off { opacity: 0.5; }
 </style>

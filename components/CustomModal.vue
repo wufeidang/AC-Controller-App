@@ -90,7 +90,7 @@ export default {
 };
 </script>
 
-<style scoped>
+<style scoped lang="scss">
 /* ========== 遮罩 ========== */
 .overlay {
 	position: fixed; top: 0; left: 0; right: 0; bottom: 0;
@@ -104,7 +104,7 @@ export default {
 /* ========== 弹窗主体 ========== */
 .modal {
 	width: 85%; max-width: 560rpx;
-	background: #FFFFFF;
+	background: $bg-card;
 	border-radius: 32rpx;
 	padding: 48rpx 40rpx 40rpx;
 	box-shadow: 0 16rpx 48rpx rgba(0,0,0,0.12);
@@ -125,26 +125,26 @@ export default {
 	width: 88rpx; height: 88rpx; border-radius: 50%;
 	display: flex; align-items: center; justify-content: center;
 }
-.modal-icon.success { background: #F0FFF4; }
-.modal-icon.error   { background: #FFF1F0; }
-.modal-icon.warning { background: #FFF7E6; }
-.modal-icon.info    { background: #F0F5FF; }
+.modal-icon.success { background: $color-success-bg-alt; }
+.modal-icon.error   { background: $color-danger-bg; }
+.modal-icon.warning { background: $color-warning-bg; }
+.modal-icon.info    { background: $color-info-bg; }
 .modal-icon-img { width: 48rpx; height: 48rpx; }
 .modal-icon-text { font-size: 44rpx; font-weight: 700; }
-.modal-icon.success .modal-icon-text { color: #00B96B; }
-.modal-icon.error   .modal-icon-text { color: #FF4D4F; }
-.modal-icon.warning .modal-icon-text { color: #FA8C16; }
-.modal-icon.info    .modal-icon-text { color: #1677FF; }
+.modal-icon.success .modal-icon-text { color: $color-success; }
+.modal-icon.error   .modal-icon-text { color: $color-danger; }
+.modal-icon.warning .modal-icon-text { color: $color-warning; }
+.modal-icon.info    .modal-icon-text { color: $brand-primary; }
 
 /* ========== 标题 ========== */
 .modal-title {
-	font-size: 34rpx; font-weight: 600; color: #1A1A1A;
+	font-size: 34rpx; font-weight: 600; color: $text-primary;
 	text-align: center; margin-bottom: 16rpx;
 }
 
 /* ========== 内容文字 ========== */
 .modal-text {
-	font-size: 28rpx; color: #666;
+	font-size: $fs-body; color: $text-secondary;
 	line-height: 1.7; text-align: center;
 	word-break: break-all;
 }
@@ -155,35 +155,35 @@ export default {
 .input-row.has-toggle { /* placeholder */ }
 .modal-input {
 	width: 100%; height: 80rpx; padding: 0 24rpx;
-	border: 1rpx solid #E8E8E8; border-radius: 16rpx;
-	font-size: 28rpx; color: #333; background: #FAFAFA;
+	border: 1rpx solid $border-light; border-radius: $radius-lg;
+	font-size: $fs-body; color: $text-regular; background: $bg-elevated;
 	text-align: center; box-sizing: border-box;
 }
-	.modal-input:focus { border-color: #1677FF; }
+	.modal-input:focus { border-color: $brand-primary; }
 	.pw-eye {
 		position: absolute; right: 16rpx; top: 50%;
 		transform: translateY(-50%); padding: 8rpx;
 	}
 	.pw-eye-icon { width: 36rpx; height: 36rpx; opacity: 0.5; }
-.pw-hint { font-size: 22rpx; color: #999; text-align: center; margin-top: 10rpx; }
+.pw-hint { font-size: $fs-caption; color: $text-hint; text-align: center; margin-top: 10rpx; }
 
 /* ========== 按钮区 ========== */
 .btn-row {
 	display: flex; width: 100%; margin-top: 36rpx;
-	border-top: 1rpx solid #F0F0F0; padding-top: 28rpx;
+	border-top: 1rpx solid $border-light; padding-top: 28rpx;
 	gap: 16rpx;
 }
 .btn {
-	flex: 1; padding: 22rpx 0; border-radius: 20rpx;
+	flex: 1; padding: 22rpx 0; border-radius: $radius-lg;
 	text-align: center; transition: 150ms;
 }
 .btn:active { transform: scale(0.97); }
-.btn.cancel { background: #F5F5F5; }
-.btn.cancel text { font-size: 28rpx; color: #666; font-weight: 500; }
-	.btn.confirm { background: #1677FF; }
-.btn.confirm text { font-size: 28rpx; color: #FFF; font-weight: 500; }
-.btn.confirm.success { background: #00B96B; }
-.btn.confirm.error   { background: #FF4D4F; }
-.btn.confirm.warning { background: #FA8C16; }
-.btn.confirm.info    { background: #1677FF; }
+.btn.cancel { background: $bg-subtle; }
+.btn.cancel text { font-size: $fs-body; color: $text-secondary; font-weight: 500; }
+	.btn.confirm { background: $brand-primary; }
+.btn.confirm text { font-size: $fs-body; color: $bg-card; font-weight: 500; }
+.btn.confirm.success { background: $color-success; }
+.btn.confirm.error   { background: $color-danger; }
+.btn.confirm.warning { background: $color-warning; }
+.btn.confirm.info    { background: $brand-primary; }
 </style>

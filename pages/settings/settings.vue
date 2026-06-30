@@ -142,14 +142,14 @@
 	};
 	</script>
 
-	<style scoped>
-	.page { min-height: 100vh; background: #F5F5F5; }
+	<style scoped lang="scss">
+	.page { min-height: 100vh; background: $bg-page; }
 	.body { padding: 32rpx; }
-	.section-label { font-size: 26rpx; color: #999; padding: 8rpx 0 16rpx 4rpx; }
+	.section-label { font-size: 26rpx; color: $text-hint; padding: 8rpx 0 16rpx 4rpx; }
 	.card {
-		background: #FFF;
-		border-radius: 24rpx;
-		box-shadow: 0 2rpx 12rpx rgba(0,0,0,0.04);
+		background: $bg-card;
+		border-radius: $radius-xl;
+		box-shadow: $shadow-sm;
 		overflow: hidden;
 		margin-bottom: 24rpx;
 	}

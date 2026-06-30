@@ -96,33 +96,33 @@ export default {
 };
 </script>
 
-<style scoped>
-.page { min-height: 100vh; background: #F5F5F5; }
+<style scoped lang="scss">
+.page { min-height: 100vh; background: $bg-page; }
 .body { padding: 32rpx; }
-.desc { font-size: 26rpx; color: #999; margin-bottom: 24rpx; }
-.card { background: #FFF; border-radius: 24rpx; padding: 32rpx; margin-bottom: 24rpx; box-shadow: 0 2rpx 12rpx rgba(0,0,0,0.04); }
-.card-title { font-size: 30rpx; font-weight: 600; color: #1A1A1A; margin-bottom: 20rpx; display: block; }
-.info-row { display: flex; justify-content: space-between; align-items: center; padding: 16rpx 0; border-bottom: 1rpx solid #F5F5F5; }
+.desc { font-size: 26rpx; color: $text-hint; margin-bottom: 24rpx; }
+.card { background: $bg-card; border-radius: $radius-xl; padding: 32rpx; margin-bottom: 24rpx; box-shadow: $shadow-sm; }
+.card-title { font-size: $fs-title; font-weight: 600; color: $text-primary; margin-bottom: 20rpx; display: block; }
+.info-row { display: flex; justify-content: space-between; align-items: center; padding: 16rpx 0; border-bottom: 1rpx solid $bg-page; }
 .info-row:last-child { border-bottom: none; }
-.info-label { font-size: 26rpx; color: #666; }
-.info-value { font-size: 26rpx; color: #333; font-weight: 500; }
-.badge { display: flex; align-items: center; gap: 8rpx; padding: 6rpx 16rpx; border-radius: 16rpx; background: #FFF1F0; }
-.badge.on { background: #F6FFED; }
-.dot { width: 12rpx; height: 12rpx; border-radius: 50%; background: #FF4D4F; }
-.badge.on .dot { background: #00B96B; }
-.badge text { font-size: 22rpx; color: #FF4D4F; }
-.badge.on text { color: #00B96B; }
+.info-label { font-size: 26rpx; color: $text-secondary; }
+.info-value { font-size: 26rpx; color: $text-regular; font-weight: 500; }
+.badge { display: flex; align-items: center; gap: 8rpx; padding: 6rpx 16rpx; border-radius: $radius-lg; background: $color-danger-bg; }
+.badge.on { background: $color-success-bg; }
+.dot { width: 12rpx; height: 12rpx; border-radius: 50%; background: $color-danger; }
+.badge.on .dot { background: $color-success; }
+.badge text { font-size: $fs-caption; color: $color-danger; }
+.badge.on text { color: $color-success; }
 .form-item { margin-bottom: 24rpx; position: relative; }
 .form-item:last-child { margin-bottom: 0; }
-.label { display: block; font-size: 26rpx; color: #333; font-weight: 500; margin-bottom: 12rpx; }
-.input { width: 100%; height: 80rpx; padding: 0 20rpx; border: 1rpx solid #D9D9D9; border-radius: 12rpx; font-size: 28rpx; color: #333; background: #FFF; box-sizing: border-box; }
+.label { display: block; font-size: 26rpx; color: $text-regular; font-weight: 500; margin-bottom: 12rpx; }
+.input { width: 100%; height: 80rpx; padding: 0 20rpx; border: 1rpx solid $border-normal; border-radius: $radius-md; font-size: $fs-body; color: $text-regular; background: $bg-card; box-sizing: border-box; }
 .pw-toggle { position: absolute; right: 16rpx; top: 44rpx; padding: 8rpx 12rpx; }
-.pw-toggle text { font-size: 24rpx; color: #1677FF; }
+.pw-toggle text { font-size: $fs-label; color: $brand-primary; }
 .tips { display: flex; flex-direction: column; gap: 12rpx; }
-.tips text { font-size: 24rpx; color: #666; line-height: 1.6; }
-.btn { padding: 28rpx 32rpx; border-radius: 24rpx; text-align: center; margin-bottom: 32rpx; transition: 150ms; }
+.tips text { font-size: $fs-label; color: $text-secondary; line-height: 1.6; }
+.btn { padding: 28rpx 32rpx; border-radius: $radius-xl; text-align: center; margin-bottom: 32rpx; transition: 150ms; }
 .btn:active { transform: scale(0.98); }
-.btn-primary { background: #1677FF; }
-.btn-primary text { color: #FFF; font-size: 30rpx; font-weight: 500; }
+.btn-primary { background: $brand-primary; }
+.btn-primary text { color: $bg-card; font-size: $fs-title; font-weight: 500; }
 .btn.off { opacity: 0.5; }
 </style>

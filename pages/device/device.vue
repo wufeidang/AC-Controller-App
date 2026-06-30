@@ -290,97 +290,97 @@
 	};
 </script>
 
-<style scoped>
-.page { min-height: 100vh; background: #F5F5F5; }
+<style scoped lang="scss">
+.page { min-height: 100vh; background: $bg-page; }
 .body { padding: 32rpx; }
 
 /* Hero */
 .hero { display: flex; flex-direction: column; align-items: center; padding: 48rpx 0 32rpx; }
 .hero-icon-wrap {
 	width: 112rpx; height: 112rpx; border-radius: 28rpx;
-	background: linear-gradient(145deg, #E6F4FF 0%, #F0F7FF 100%);
+		background: linear-gradient(145deg, $brand-primary-bg 0%, #F0F7FF 100%);
 	display: flex; align-items: center; justify-content: center;
 	margin-bottom: 20rpx;
 	box-shadow: 0 10rpx 28rpx rgba(22, 119, 255, 0.1);
 }
 .hero-icon { width: 60rpx; height: 60rpx; }
-.hero-title { font-size: 38rpx; font-weight: 700; color: #1A1A1A; margin-bottom: 6rpx; }
-.hero-desc { font-size: 26rpx; color: #999; }
+.hero-title { font-size: 38rpx; font-weight: 700; color: $text-primary; margin-bottom: 6rpx; }
+.hero-desc { font-size: 26rpx; color: $text-hint; }
 
 /* 卡片 */
-.card { background: #FFF; border-radius: 24rpx; padding: 32rpx; margin-bottom: 24rpx; box-shadow: 0 2rpx 12rpx rgba(0,0,0,0.04); }
-.card-title { font-size: 28rpx; font-weight: 700; color: #1A1A1A; display: block; margin-bottom: 20rpx; }
+.card { background: $bg-card; border-radius: $radius-xl; padding: 32rpx; margin-bottom: 24rpx; box-shadow: $shadow-sm; }
+.card-title { font-size: $fs-body; font-weight: 700; color: $text-primary; display: block; margin-bottom: 20rpx; }
 
 /* WiFi 行 */
 .wifi-row { display: flex; align-items: center; justify-content: space-between; margin-bottom: 16rpx; }
 .wifi-status { display: flex; align-items: center; flex: 1; min-width: 0; }
-.ws-dot { width: 14rpx; height: 14rpx; border-radius: 50%; background: #D9D9D9; margin-right: 10rpx; flex-shrink: 0; }
-.ws-dot.on { background: #00B96B; }
-.wifi-status text { font-size: 24rpx; color: #666; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.scan-btn { padding: 12rpx 24rpx; border-radius: 20rpx; background: #1677FF; flex-shrink: 0; display: flex; align-items: center; gap: 8rpx; }
-.scan-btn:active { background: #0958D9; }
-.scan-btn text { color: #FFF; font-size: 24rpx; font-weight: 500; }
+.ws-dot { width: 14rpx; height: 14rpx; border-radius: 50%; background: $border-normal; margin-right: 10rpx; flex-shrink: 0; }
+.ws-dot.on { background: $color-success; }
+.wifi-status text { font-size: $fs-label; color: $text-secondary; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.scan-btn { padding: 12rpx 24rpx; border-radius: $radius-lg; background: $brand-primary; flex-shrink: 0; display: flex; align-items: center; gap: 8rpx; }
+.scan-btn:active { background: $brand-primary-hover; }
+.scan-btn text { color: $bg-card; font-size: $fs-label; font-weight: 500; }
 .scan-btn.off { opacity: 0.6; pointer-events: none; }
 .scan-dot { width: 12rpx; height: 12rpx; border-radius: 50%; background: rgba(255,255,255,0.7); animation: scanPulse 800ms ease-in-out infinite; }
 @keyframes scanPulse { 0%,100% { opacity: 0.4; transform: scale(0.8); } 50% { opacity: 1; transform: scale(1.2); } }
 
 /* WiFi 列表 */
-.wifi-list { max-height: 320rpx; background: #F7F8FA; border-radius: 16rpx; padding: 0 16rpx; }
-.wl-item { display: flex; align-items: center; justify-content: space-between; padding: 22rpx 0; border-bottom: 1rpx solid #EBEBEB; }
+.wifi-list { max-height: 320rpx; background: $bg-elevated; border-radius: $radius-lg; padding: 0 16rpx; }
+.wl-item { display: flex; align-items: center; justify-content: space-between; padding: 22rpx 0; border-bottom: 1rpx solid $border-light; }
 .wl-item:last-child { border-bottom: none; }
 .wl-item:active { background: rgba(0,0,0,0.03); }
 .wl-left { display: flex; align-items: center; gap: 10rpx; flex: 1; min-width: 0; }
-.wl-name { font-size: 26rpx; color: #1A1A1A; font-weight: 500; }
-.wl-tag { font-size: 20rpx; color: #1677FF; background: #E6F4FF; padding: 2rpx 10rpx; border-radius: 8rpx; white-space: nowrap; }
+.wl-name { font-size: 26rpx; color: $text-primary; font-weight: 500; }
+.wl-tag { font-size: $fs-caption; color: $brand-primary; background: $brand-primary-bg; padding: 2rpx 10rpx; border-radius: $radius-sm; white-space: nowrap; }
 .wl-signal { display: flex; align-items: flex-end; gap: 3rpx; flex-shrink: 0; margin-left: 12rpx; }
-.wl-bar { width: 5rpx; border-radius: 2rpx; background: #1677FF; }
+.wl-bar { width: 5rpx; border-radius: 2rpx; background: $brand-primary; }
 .wl-bar:nth-child(1) { height: 6rpx; }
 .wl-bar:nth-child(2) { height: 12rpx; }
 .wl-bar:nth-child(3) { height: 18rpx; }
 .wl-bar:nth-child(4) { height: 24rpx; }
 .wifi-empty { padding: 40rpx 0; text-align: center; }
-.wifi-empty text { font-size: 24rpx; color: #BFBFBF; }
+.wifi-empty text { font-size: $fs-label; color: $text-disabled; }
 
 /* 输入 */
 .field { margin-bottom: 24rpx; }
-.label { display: block; font-size: 26rpx; color: #333; font-weight: 500; margin-bottom: 12rpx; }
+.label { display: block; font-size: 26rpx; color: $text-regular; font-weight: 500; margin-bottom: 12rpx; }
 .input-wrap {
-	height: 96rpx; padding: 0 24rpx; background: #F7F8FA; border-radius: 18rpx;
+	height: 96rpx; padding: 0 24rpx; background: $bg-elevated; border-radius: 18rpx;
 	border: 2rpx solid transparent; transition: all 200ms;
 }
-.input-wrap.focus { background: #FFF; border-color: #1677FF; box-shadow: 0 0 0 6rpx rgba(22, 119, 255, 0.07); }
-.input { width: 100%; height: 96rpx; font-size: 30rpx; color: #1A1A1A; font-weight: 500; }
-.ph { color: #C0C4CC; }
+.input-wrap.focus { background: $bg-card; border-color: $brand-primary; box-shadow: 0 0 0 6rpx rgba(22, 119, 255, 0.07); }
+.input { width: 100%; height: 96rpx; font-size: $fs-title; color: $text-primary; font-weight: 500; }
+.ph { color: $text-disabled; }
 
 /* 按钮 */
 .btn {
-	height: 96rpx; border-radius: 20rpx;
+	height: 96rpx; border-radius: $radius-lg;
 	display: flex; align-items: center; justify-content: center;
-	transition: 150ms; background: #1677FF;
+	transition: 150ms; background: $brand-primary;
 	box-shadow: 0 8rpx 20rpx rgba(22, 119, 255, 0.25);
 }
 .btn:active { transform: scale(0.99); }
-.btn text { font-size: 30rpx; font-weight: 600; color: #FFF; }
+.btn text { font-size: $fs-title; font-weight: 600; color: $bg-card; }
 .btn.off { opacity: 0.5; box-shadow: none; }
-.btn-danger { background: #FFF1F0; box-shadow: none; margin-top: 0; }
-.btn-danger text { color: #FF4D4F; }
+.btn-danger { background: $color-danger-bg; box-shadow: none; margin-top: 0; }
+.btn-danger text { color: $color-danger; }
 .btn-primary { margin-bottom: 16rpx; }
 
 /* 已连接 */
 .success-hero { display: flex; flex-direction: column; align-items: center; padding: 64rpx 0 40rpx; }
 .sh-icon {
 	width: 112rpx; height: 112rpx; border-radius: 50%;
-	background: #F0FFF4; color: #00B96B;
+	background: $color-success-bg-alt; color: $color-success;
 	display: flex; align-items: center; justify-content: center;
 	font-size: 56rpx; font-weight: 700; margin-bottom: 24rpx;
 }
-.sh-title { font-size: 36rpx; font-weight: 700; color: #1A1A1A; }
+.sh-title { font-size: $fs-heading; font-weight: 700; color: $text-primary; }
 
-.info-row { display: flex; justify-content: space-between; align-items: center; padding: 16rpx 0; border-bottom: 1rpx solid #F5F5F5; }
+.info-row { display: flex; justify-content: space-between; align-items: center; padding: 16rpx 0; border-bottom: 1rpx solid $border-light; }
 .info-row:last-child { border-bottom: none; }
-.ir-label { font-size: 26rpx; color: #999; }
-.ir-val { font-size: 26rpx; color: #333; font-weight: 500; }
-.ir-val.sta { color: #1677FF; }
+.ir-label { font-size: 26rpx; color: $text-hint; }
+.ir-val { font-size: 26rpx; color: $text-regular; font-weight: 500; }
+.ir-val.sta { color: $brand-primary; }
 
-.tips { font-size: 24rpx; color: #666; line-height: 1.7; }
+.tips { font-size: $fs-label; color: $text-secondary; line-height: 1.7; }
 </style>

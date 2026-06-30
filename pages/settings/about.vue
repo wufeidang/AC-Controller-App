@@ -136,41 +136,41 @@
 };
 </script>
 
-<style scoped>
-.page { min-height: 100vh; background: #F5F5F5; }
+<style scoped lang="scss">
+.page { min-height: 100vh; background: $bg-page; }
 .body { padding: 32rpx; padding-bottom: 60rpx; }
 
-.hero { background: #FFF; border-radius: 24rpx; padding: 48rpx 32rpx; margin-bottom: 24rpx; display: flex; flex-direction: column; align-items: center; box-shadow: 0 2rpx 12rpx rgba(0,0,0,0.04); }
-.hero-icon { width: 120rpx; height: 120rpx; background: linear-gradient(135deg, #1677FF, #69B1FF); border-radius: 28rpx; display: flex; align-items: center; justify-content: center; margin-bottom: 24rpx; box-shadow: 0 8rpx 24rpx rgba(22,119,255,0.25); }
+.hero { background: $bg-card; border-radius: $radius-xl; padding: 48rpx 32rpx; margin-bottom: 24rpx; display: flex; flex-direction: column; align-items: center; box-shadow: $shadow-sm; }
+.hero-icon { width: 120rpx; height: 120rpx; background: linear-gradient(135deg, $brand-primary, #69B1FF); border-radius: 28rpx; display: flex; align-items: center; justify-content: center; margin-bottom: 24rpx; box-shadow: 0 8rpx 24rpx rgba(22,119,255,0.25); }
 .hero-img { width: 64rpx; height: 64rpx; filter: brightness(0) invert(1); }
-.hero-name { font-size: 36rpx; font-weight: 700; color: #1A1A1A; margin-bottom: 8rpx; }
-.hero-desc { font-size: 26rpx; color: #999; }
+.hero-name { font-size: $fs-heading; font-weight: 700; color: $text-primary; margin-bottom: 8rpx; }
+.hero-desc { font-size: 26rpx; color: $text-hint; }
 
-.card { background: #FFF; border-radius: 24rpx; padding: 32rpx; margin-bottom: 24rpx; box-shadow: 0 2rpx 12rpx rgba(0,0,0,0.04); }
-.card-title { font-size: 30rpx; font-weight: 600; color: #1A1A1A; margin-bottom: 20rpx; display: block; }
+.card { background: $bg-card; border-radius: $radius-xl; padding: 32rpx; margin-bottom: 24rpx; box-shadow: $shadow-sm; }
+.card-title { font-size: $fs-title; font-weight: 600; color: $text-primary; margin-bottom: 20rpx; display: block; }
 
-.row { display: flex; justify-content: space-between; align-items: center; padding: 16rpx 0; border-bottom: 1rpx solid #F5F5F5; }
+.row { display: flex; justify-content: space-between; align-items: center; padding: 16rpx 0; border-bottom: 1rpx solid $bg-page; }
 .row:last-child { border-bottom: none; }
-.row-label { font-size: 26rpx; color: #666; }
-.row-val { font-size: 26rpx; color: #333; font-weight: 500; }
-.badge { background: #E6F4FF; padding: 6rpx 16rpx; border-radius: 16rpx; }
-.badge text { font-size: 24rpx; color: #1677FF; font-weight: 600; }
-.badge.fw { background: #F6FFED; }
-.badge.fw text { color: #00B96B; }
+.row-label { font-size: 26rpx; color: $text-secondary; }
+.row-val { font-size: 26rpx; color: $text-regular; font-weight: 500; }
+.badge { background: $brand-primary-bg; padding: 6rpx 16rpx; border-radius: $radius-lg; }
+.badge text { font-size: $fs-label; color: $brand-primary; font-weight: 600; }
+.badge.fw { background: $color-success-bg; }
+.badge.fw text { color: $color-success; }
 
 .changelog { display: flex; flex-direction: column; gap: 20rpx; }
-.cl-item { background: #FAFAFA; border-radius: 12rpx; padding: 20rpx; }
-.cl-ver { font-size: 28rpx; font-weight: 700; color: #1677FF; display: block; margin-bottom: 4rpx; }
-.cl-date { font-size: 22rpx; color: #999; margin-bottom: 12rpx; display: block; }
-.cl-title { font-size: 26rpx; color: #333; font-weight: 600; margin-bottom: 8rpx; display: block; }
-.cl-line { font-size: 24rpx; color: #666; line-height: 1.8; display: block; }
+.cl-item { background: $bg-elevated; border-radius: $radius-md; padding: 20rpx; }
+.cl-ver { font-size: $fs-body; font-weight: 700; color: $brand-primary; display: block; margin-bottom: 4rpx; }
+.cl-date { font-size: $fs-caption; color: $text-hint; margin-bottom: 12rpx; display: block; }
+.cl-title { font-size: 26rpx; color: $text-regular; font-weight: 600; margin-bottom: 8rpx; display: block; }
+.cl-line { font-size: $fs-label; color: $text-secondary; line-height: 1.8; display: block; }
 .cl-toggle { text-align: center; padding: 20rpx 0 0; }
-.cl-toggle text { font-size: 24rpx; color: #1677FF; }
+.cl-toggle text { font-size: $fs-label; color: $brand-primary; }
 
 /* 底部 */
 .footer { display: flex; flex-direction: column; align-items: center; padding: 48rpx 32rpx 40rpx; gap: 8rpx; }
-.footer-author { font-size: 28rpx; color: #333; font-weight: 600; }
-.footer-email { font-size: 24rpx; color: #999; margin-bottom: 16rpx; }
-.footer-copy { font-size: 22rpx; color: #C0C0C0; }
-.footer-tech { font-size: 20rpx; color: #D9D9D9; }
+.footer-author { font-size: $fs-body; color: $text-regular; font-weight: 600; }
+.footer-email { font-size: $fs-label; color: $text-hint; margin-bottom: 16rpx; }
+.footer-copy { font-size: $fs-caption; color: $text-disabled; }
+.footer-tech { font-size: $fs-caption; color: $border-normal; }
 </style>

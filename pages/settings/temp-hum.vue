@@ -204,44 +204,44 @@ export default {
 };
 </script>
 
-<style scoped>
-.page { min-height: 100vh; background: #F5F5F5; }
+<style scoped lang="scss">
+.page { min-height: 100vh; background: $bg-page; }
 .body { padding: 32rpx; }
 
-.card { background: #FFF; border-radius: 24rpx; padding: 32rpx; margin-bottom: 24rpx; box-shadow: 0 2rpx 12rpx rgba(0,0,0,0.04); }
-.card-title { font-size: 30rpx; font-weight: 600; color: #1A1A1A; margin-bottom: 24rpx; display: block; }
+.card { background: $bg-card; border-radius: $radius-xl; padding: 32rpx; margin-bottom: 24rpx; box-shadow: $shadow-sm; }
+.card-title { font-size: $fs-title; font-weight: 600; color: $text-primary; margin-bottom: 24rpx; display: block; }
 
 .seg-row { display: flex; gap: 16rpx; }
-.seg-item { flex: 1; padding: 24rpx; border: 2rpx solid #F0F0F0; border-radius: 16rpx; display: flex; flex-direction: column; align-items: center; gap: 12rpx; transition: 150ms; }
+.seg-item { flex: 1; padding: 24rpx; border: 2rpx solid $bg-subtle; border-radius: $radius-lg; display: flex; flex-direction: column; align-items: center; gap: 12rpx; transition: 150ms; }
 .seg-item:active { transform: scale(0.97); }
-.seg-item.active { border-color: #1677FF; background: #E6F4FF; }
+.seg-item.active { border-color: $brand-primary; background: $brand-primary-bg; }
 .seg-icon { width: 40rpx; height: 40rpx; opacity: 0.4; }
 .seg-item.active .seg-icon { opacity: 1; }
-.seg-label { font-size: 26rpx; color: #999; }
-.seg-item.active .seg-label { color: #1677FF; font-weight: 500; }
+.seg-label { font-size: 26rpx; color: $text-hint; }
+.seg-item.active .seg-label { color: $brand-primary; font-weight: 500; }
 
 .slider-item { margin-bottom: 32rpx; }
 .slider-item:last-child { margin-bottom: 0; }
 .slider-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12rpx; }
-.slider-label { font-size: 26rpx; color: #333; font-weight: 500; }
-.slider-val { font-size: 30rpx; color: #1677FF; font-weight: 700; }
+.slider-label { font-size: 26rpx; color: $text-regular; font-weight: 500; }
+.slider-val { font-size: $fs-title; color: $brand-primary; font-weight: 700; }
 
 .range { display: flex; justify-content: space-between; margin-bottom: 16rpx; }
-.range text { font-size: 20rpx; color: #C0C0C0; }
+.range text { font-size: $fs-caption; color: $text-disabled; }
 
 .quick { display: flex; gap: 12rpx; }
-.q-btn { flex: 1; padding: 14rpx 4rpx; border-radius: 12rpx; background: #F5F5F5; text-align: center; transition: 150ms; }
-.q-btn:active { transform: scale(0.96); background: #EBEBEB; }
-.q-btn text { font-size: 24rpx; color: #333; font-weight: 500; }
-.q-btn.reset text { color: #999; }
+.q-btn { flex: 1; padding: 14rpx 4rpx; border-radius: $radius-md; background: $bg-page; text-align: center; transition: 150ms; }
+.q-btn:active { transform: scale(0.96); background: $border-light; }
+.q-btn text { font-size: $fs-label; color: $text-regular; font-weight: 500; }
+.q-btn.reset text { color: $text-hint; }
 
-.rule-card { display: flex; align-items: flex-start; gap: 16rpx; padding: 24rpx 32rpx; background: #FFFBE6; border: 1rpx solid #FFE58F; border-radius: 16rpx; box-shadow: none; }
+.rule-card { display: flex; align-items: flex-start; gap: 16rpx; padding: 24rpx 32rpx; background: #FFFBE6; border: 1rpx solid $color-warning-border; border-radius: $radius-lg; box-shadow: none; }
 .rule-icon { width: 36rpx; height: 36rpx; flex-shrink: 0; }
-.rule-text { font-size: 24rpx; color: #AD6800; line-height: 1.6; flex: 1; }
+.rule-text { font-size: $fs-label; color: $color-warning-text; line-height: 1.6; flex: 1; }
 
-.btn { padding: 28rpx 32rpx; border-radius: 24rpx; text-align: center; margin-top: 8rpx; margin-bottom: 32rpx; transition: 150ms; }
+.btn { padding: 28rpx 32rpx; border-radius: $radius-xl; text-align: center; margin-top: 8rpx; margin-bottom: 32rpx; transition: 150ms; }
 .btn:active { transform: scale(0.98); }
-.btn-primary { background: #1677FF; }
-.btn-primary text { color: #FFF; font-size: 30rpx; font-weight: 500; }
+.btn-primary { background: $brand-primary; }
+.btn-primary text { color: $bg-card; font-size: $fs-title; font-weight: 500; }
 .btn.off { opacity: 0.5; }
 </style>
