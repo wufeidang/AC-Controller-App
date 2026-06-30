@@ -14,6 +14,11 @@ export default {
 	// 默认设备 IP
 	DEFAULT_IP: '192.168.4.1',
 
+	// mDNS 设备发现
+	MDNS_DEFAULT_HOSTNAME: 'esp8266-ac.local',
+	MDNS_SCAN_CANDIDATES: ['esp8266-ac.local'],
+	MDNS_SCAN_TIMEOUT: 3000,  // 单次扫描超时 (ms)
+
 		// OTA 超时 (ms)
 		OTA_TIMEOUT: 60000,
 

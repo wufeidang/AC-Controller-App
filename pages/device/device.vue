@@ -41,11 +41,37 @@
 				</view>
 			</view>
 
+			<!-- mDNS 设备发现 -->
+			<view class="card mdns-card">
+				<text class="card-title">mDNS 设备发现</text>
+				<view class="mdns-scan-row">
+					<text class="mdns-hint">{{ mdnsScanning ? '正在扫描局域网设备…' : (mdnsDevices.length > 0 ? '发现 ' + mdnsDevices.length + ' 台设备' : '未发现设备，点击扫描') }}</text>
+					<view class="scan-btn mdns-scan-btn" @click="scanMdns" :class="{ off: mdnsScanning }">
+						<view class="scan-dot" v-if="mdnsScanning"></view>
+						<text>扫描</text>
+					</view>
+				</view>
+
+				<!-- 发现的设备列表 -->
+				<scroll-view class="mdns-list" scroll-y v-show="mdnsDevices.length > 0">
+					<view class="md-item" v-for="(d, i) in mdnsDevices" :key="i" @click="selectMdnsDevice(d)">
+						<view class="md-left">
+							<text class="md-hostname">{{ d.hostname }}</text>
+							<text class="md-tag">mDNS</text>
+						</view>
+						<view class="md-right">
+							<text class="md-id" v-if="d.deviceId">{{ d.deviceId }}</text>
+							<text class="md-arr">›</text>
+						</view>
+					</view>
+				</scroll-view>
+			</view>
+
 			<!-- IP 输入（手动连接） -->
 			<view class="card">
 				<text class="card-title">手动连接</text>
 				<view class="field">
-					<text class="label">IP 地址</text>
+					<text class="label">IP 地址 / 域名</text>
 					<view class="input-wrap" :class="{ focus: inputFocused }">
 						<input v-model="inputAddress" class="input"
 								:placeholder="defaultIp" placeholder-class="ph"
@@ -112,18 +138,20 @@
 	import apiService from '../../services/api';
 	import deviceMixin from '../../mixins/device-mixin';
 	import modalMixin from '../../mixins/modal-mixin';
-	import errorHandler from '../../services/errorHandler';
-	import constants from '../../config/constants';
+import errorHandler from '../../services/errorHandler';
+import constants from '../../config/constants';
+import { isValidAddress } from '../../utils/validator';
 
 	export default {
 		components: { Loading, CustomModal },
 		mixins: [deviceMixin, modalMixin],
-		data() {
-			return {
-				connecting: false,
-				inputAddress: constants.DEFAULT_IP, inputFocused: false,
-				wifiSSID: '', wifiScanning: false, wifiList: [],
-				staIp: ''
+			data() {
+				return {
+					connecting: false,
+					inputAddress: constants.DEFAULT_IP, inputFocused: false,
+					wifiSSID: '', wifiScanning: false, wifiList: [],
+					staIp: '',
+					mdnsScanning: false, mdnsDevices: []
 		};
 		},
 		computed: {
@@ -140,6 +168,7 @@
 			if (this.deviceConnected) return;
 			this.getWifiStatus().then(() => { this.autoFillIp(); this.onWifiChanged(); });
 			if (this.wifiList.length === 0) this.startWifiScan();
+			if (this.mdnsDevices.length === 0) this.scanMdns();
 		},
 		onUnload() { try { uni.offGetWifiList(); } catch (e) {} },
 	methods: {
@@ -237,8 +266,8 @@
 		async doConnect() {
 			if (this.connecting || this.deviceConnected) return;
 			const addr = this.inputAddress.trim();
-			if (!/^(\d|[1-9]\d|1\d\d|2[0-4]\d|25[0-5])\.(\d|[1-9]\d|1\d\d|2[0-4]\d|25[0-5])\.(\d|[1-9]\d|1\d\d|2[0-4]\d|25[0-5])\.(\d|[1-9]\d|1\d\d|2[0-4]\d|25[0-5])$/.test(addr)) {
-				this.showToast('提示', '请输入有效的 IP 地址'); return;
+			if (!isValidAddress(addr)) {
+				this.showToast('提示', '请输入有效的 IP 地址或域名'); return;
 			}
 			try {
 				this.connecting = true; this.loadingVisible = true; this.loadingText = '连接中...';
@@ -258,6 +287,40 @@
 			} catch (e) {
 				errorHandler.handleError(e);
 			} finally { this.connecting = false; this.loadingVisible = false; }
+		},
+		async scanMdns() {
+			if (this.mdnsScanning || this.deviceConnected) return;
+			this.mdnsScanning = true;
+			this.mdnsDevices = [];
+			const candidates = constants.MDNS_SCAN_CANDIDATES;
+			for (const hostname of candidates) {
+				try {
+					const res = await new Promise((resolve, reject) => {
+						const timer = setTimeout(() => reject(new Error('timeout')), constants.MDNS_SCAN_TIMEOUT);
+						uni.request({
+							url: `http://${hostname}:80`,
+							method: 'POST',
+							data: { cmd: 'get_device_id', data: {} },
+							timeout: constants.MDNS_SCAN_TIMEOUT,
+							success: (r) => { clearTimeout(timer); resolve(r); },
+							fail: (e) => { clearTimeout(timer); reject(e); }
+						});
+					});
+					if (res.statusCode === 200 && res.data && res.data.status === 'success') {
+						this.mdnsDevices.push({
+							hostname: hostname,
+							deviceId: res.data.data.device_id || ''
+						});
+					}
+				} catch (e) {
+					// 该候选域名不可达，继续下一个
+				}
+			}
+			this.mdnsScanning = false;
+		},
+		selectMdnsDevice(device) {
+			this.inputAddress = device.hostname;
+			this.doConnect();
 		},
 		async fetchStaStatus() {
 			try {
@@ -340,6 +403,21 @@
 .wl-bar:nth-child(4) { height: 24rpx; }
 .wifi-empty { padding: 40rpx 0; text-align: center; }
 .wifi-empty text { font-size: $fs-label; color: $text-disabled; }
+
+/* mDNS 设备发现 */
+.mdns-scan-row { display: flex; align-items: center; justify-content: space-between; margin-bottom: 16rpx; }
+.mdns-hint { font-size: $fs-label; color: $text-hint; flex: 1; }
+.mdns-scan-btn { padding: 12rpx 24rpx; }
+.mdns-list { max-height: 260rpx; background: $bg-elevated; border-radius: $radius-lg; padding: 0 16rpx; }
+.md-item { display: flex; align-items: center; justify-content: space-between; padding: 22rpx 0; border-bottom: 1rpx solid $border-light; }
+.md-item:last-child { border-bottom: none; }
+.md-item:active { background: rgba(0,0,0,0.03); }
+.md-left { display: flex; align-items: center; gap: 10rpx; flex: 1; min-width: 0; }
+.md-hostname { font-size: 26rpx; color: $text-primary; font-weight: 500; }
+.md-tag { font-size: $fs-caption; color: $color-success; background: $color-success-bg-alt; padding: 2rpx 10rpx; border-radius: $radius-sm; white-space: nowrap; }
+.md-right { display: flex; align-items: center; gap: 8rpx; flex-shrink: 0; }
+.md-id { font-size: $fs-label; color: $text-hint; }
+.md-arr { font-size: $fs-body; color: $text-disabled; font-weight: 300; }
 
 /* 输入 */
 .field { margin-bottom: 24rpx; }
