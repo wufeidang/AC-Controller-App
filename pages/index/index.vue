@@ -118,63 +118,64 @@
 
 		<Loading :visible="loadingVisible" :text="loadingText" />
 
-		<CustomModal
-			:visible="modalVisible"
-			:title="modalTitle"
-			:content="modalContent"
-			:confirm-text="modalConfirmText"
-			:cancel-text="modalHasCancel ? modalCancelText : ''"
-			:show-buttons="modalShowButtons"
-			:close-on-click-overlay="false"
-			:type="modalTitle === '失败' ? 'error' : (modalTitle === '已切换' ? 'success' : 'info')"
-			@confirm="handleModalConfirm"
-			@cancel="handleModalCancel"
-		/>
-	</view>
-</template>
+			<!-- Toast 提示 -->
+			<CustomModal
+				:visible="modalVisible"
+				:title="modalTitle"
+				:content="modalContent"
+				:close-on-click-overlay="false"
+				:type="modalType"
+				:show-buttons="false"
+			/>
 
-<script>
-import Loading from '../../components/Loading';
-import CustomModal from '../../components/CustomModal';
-import apiService from '../../services/api';
-import constants from '../../config/constants';
-import deviceMixin from '../../mixins/device-mixin';
+			<!-- 确认弹窗 -->
+			<CustomModal
+				:visible="confirmVisible"
+				:title="confirmTitle"
+				:content="confirmContent"
+				:confirm-text="confirmText"
+				:cancel-text="cancelText"
+				:close-on-click-overlay="false"
+				:type="confirmType"
+				@confirm="handleConfirmOk"
+				@cancel="handleConfirmCancel"
+			/>
+		</view>
+	</template>
 
-export default {
-	components: { Loading, CustomModal },
-	mixins: [deviceMixin],
-	data() {
-		return {
-			currentTemp: 0,
-			currentHum: 0,
-			acStatus: false,
-			acTemp: 26,
-			acMode: 'cool',
-			acFanSpeed: 'medium',
-			acSwing: 'auto',
-			acBrand: '',
-			controlType: 'temperature',
-			tempOnThreshold: 28,
-			tempOffThreshold: 26,
-			humOnThreshold: 70,
-			humOffThreshold: 60,
-			switchLoading: false,
-			pollTimer: null,
-			currentScene: '',
-			loadingVisible: false,
-			loadingText: '',
-			scenes: [
-				{ value: 'sleep',  label: '睡眠', icon: 'moon' },
-				{ value: 'comfort', label: '舒适', icon: 'smile' },
-				{ value: 'energy_saving', label: '节能', icon: 'lightning' },
-				{ value: 'quick',  label: '快速', icon: 'light' }
-			],
-			modalVisible: false, modalTitle: '', modalContent: '',
-			modalConfirmText: '确定', modalCancelText: '', modalHasCancel: false,
-			modalShowButtons: true,
-			statusPending: false  // 防止 fetchStatus 竞态
-		};
-	},
+	<script>
+	import Loading from '../../components/Loading';
+	import CustomModal from '../../components/CustomModal';
+	import apiService from '../../services/api';
+	import constants from '../../config/constants';
+	import deviceMixin from '../../mixins/device-mixin';
+	import modalMixin from '../../mixins/modal-mixin';
+
+	export default {
+		components: { Loading, CustomModal },
+		mixins: [deviceMixin, modalMixin],
+		data() {
+			return {
+				currentTemp: 0,
+				currentHum: 0,
+				acStatus: false,
+				acTemp: 26,
+				acMode: 'cool',
+				acFanSpeed: 'medium',
+				acSwing: 'auto',
+				acBrand: '',
+				controlType: 'temperature',
+				tempOnThreshold: 28,
+				tempOffThreshold: 26,
+				humOnThreshold: 70,
+				humOffThreshold: 60,
+				switchLoading: false,
+				pollTimer: null,
+				currentScene: '',
+				scenes: constants.SCENES,
+				statusPending: false  // 防止 fetchStatus 竞态
+			};
+		},
 	computed: {
 		tempColor() {
 			if (this.currentTemp <= 0) return '';
@@ -198,8 +199,9 @@ export default {
 				return;
 			}
 			this.fetchStatus();
-			this.startPoll();
-			uni.$on('deviceConnected', e => this.onDeviceEvent(e));
+				this.startPoll();
+				this._deviceHandler = (e) => this.onDeviceEvent(e);
+				uni.$on('deviceConnected', this._deviceHandler);
 		},
 		onShow() {
 			this.checkDevice();
@@ -210,9 +212,9 @@ export default {
 			// onShow 时不再立即 fetchStatus，依赖轮询即可（避免竞态）
 		},
 		onUnload() {
-			this.stopPoll();
-			uni.$off('deviceConnected', this.onDeviceEvent);
-		},
+				this.stopPoll();
+				uni.$off('deviceConnected', this._deviceHandler);
+			},
 	methods: {
 		setIfChanged(key, value) {
 			if (this[key] !== value) {
@@ -220,17 +222,17 @@ export default {
 			}
 		},
 		onDeviceEvent(e) {
-			if (e.connected) {
-				this.setDevice(e.device);
-				this.fetchStatus();
-			} else {
-				this.deviceConnected = false;
-				this.deviceAddress = '';
-				this.deviceId = '';
-				this.deviceLocation = '';
-				uni.redirectTo({ url: '/pages/device/device' });
-			}
-		},
+				if (e.connected) {
+					this.setDevice(e.device);
+					this.fetchStatus();
+				} else {
+					this.deviceConnected = false;
+					this.deviceAddress = '';
+					this.deviceId = '';
+					this.deviceLocation = '';
+					uni.redirectTo({ url: '/pages/device/device' });
+				}
+			},
 		async fetchStatus() {
 			if (!this.deviceConnected || this.statusPending) return;
 			this.statusPending = true;
@@ -280,14 +282,14 @@ export default {
 			this.pollTimer = setInterval(() => {
 				this.checkDevice();
 				if (this.deviceConnected) this.fetchStatus();
-			}, 10000);
+			}, constants.POLL_INTERVAL);
 		},
 		stopPoll() {
 			if (this.pollTimer) { clearInterval(this.pollTimer); this.pollTimer = null; }
 		},
 		async toggleACStatus(e) {
 			const on = e.detail.value;
-			if (!this.deviceConnected) { this.toast('提示', '请先连接设备'); return; }
+			if (!this.deviceConnected) { this.showToast('提示', '请先连接设备'); return; }
 			if (this.switchLoading) return;
 			uni.vibrateShort();
 			try {
@@ -299,16 +301,16 @@ export default {
 					const d = uni.getStorageSync('connectedDevice');
 					if (d) { d.acStatus = on; uni.setStorageSync('connectedDevice', d); }
 					await this.fetchStatus();
-					this.toast('成功', on ? '空调已开启' : '空调已关闭');
+					this.showToast('成功', on ? '空调已开启' : '空调已关闭');
 				} else {
-					this.toast('失败', (res.data && res.data.message) || '操作失败');
+					this.showToast('失败', (res.data && res.data.message) || '操作失败');
 				}
 			} catch (e) {
-				this.toast('失败', e.message || '操作失败');
+				this.showToast('失败', e.message || '操作失败');
 			} finally { this.switchLoading = false; this.loadingVisible = false; }
 		},
 		async switchScene(scene) {
-			if (!this.deviceConnected) { this.toast('提示', '请先连接设备'); return; }
+			if (!this.deviceConnected) { this.showToast('提示', '请先连接设备'); return; }
 			if (this.switchLoading) return;
 			this.currentScene = scene;
 			this.switchLoading = true;
@@ -318,37 +320,25 @@ export default {
 				if (res.status === 'success') {
 					await this.fetchStatus();
 					const label = (this.scenes.find(s => s.value === scene) || {}).label || scene;
-					this.toast('已切换', `已切换至「${label}」模式`);
+					this.showToast('已切换', `已切换至「${label}」模式`, 'success');
 				} else {
-					this.toast('失败', (res.data && res.data.message) || '切换失败');
+					this.showToast('失败', (res.data && res.data.message) || '切换失败', 'error');
 				}
 			} catch (e) {
-				this.toast('失败', e.message || '切换失败');
+				this.showToast('失败', e.message || '切换失败', 'error');
 			} finally { this.switchLoading = false; this.loadingVisible = false; }
 		},
-		toast(title, content) {
-			this.modalTitle = title; this.modalContent = content;
-			this.modalHasCancel = false; this.modalShowButtons = false; this.modalVisible = true;
-			setTimeout(() => { this.modalVisible = false; }, 1500);
-		},
-		handleModalConfirm() {
-			this.modalVisible = false;
-			if (this.modalConfirmText === '断开') this.doDisconnect();
-		},
-		handleModalCancel() { this.modalVisible = false; },
 		handleDisconnect() {
-			this.modalTitle = '确认';
-			this.modalContent = '确定要断开设备连接吗？';
-			this.modalHasCancel = true;
-			this.modalShowButtons = true;
-			this.modalConfirmText = '断开';
-			this.modalCancelText = '取消';
-			this.modalVisible = true;
-		},
-		doDisconnect() {
-			this.disconnectDevice();
-			this.modalVisible = false;
-		},
+				this.showConfirm('确认', '确定要断开设备连接吗？', {
+					confirmText: '断开',
+					cancelText: '取消',
+					type: 'warning',
+					onConfirm: () => this.doDisconnect()
+				});
+			},
+			doDisconnect() {
+				this.disconnectDevice();
+			},
 		navigateTo(page) { uni.navigateTo({ url: '/pages/' + page }); }
 	}
 };

@@ -12,7 +12,7 @@
 				<text class="card-title">固件升级</text>
 				<view class="form-item">
 					<text class="label">固件 URL</text>
-					<input v-model="firmwareUrl" class="input" placeholder="http://example.com/firmware.bin" />
+						<input v-model="firmwareUrl" class="input" placeholder="请输入固件下载 URL（可从 Bemfa 等平台获取）" />
 				</view>
 				<view class="form-item">
 					<text class="label">WiFi 名称 (SSID)</text>
@@ -29,8 +29,9 @@
 				<text class="card-title">说明</text>
 				<view class="tips">
 					<text>· 请确保固件 URL 可访问且为 .bin 格式</text>
-					<text>· WiFi 信息用于设备连接互联网下载固件</text>
-					<text>· 升级过程中请勿断电，完成后设备自动重启</text>
+						<text>· WiFi 信息用于设备连接互联网下载固件</text>
+						<text>· 升级过程中请勿断电，完成后设备自动重启</text>
+						<text>· 可从 Bemfa 物联网平台等获取固件下载链接</text>
 				</view>
 			</view>
 
@@ -56,11 +57,9 @@
 		<CustomModal :visible="resultModalVisible" :title="resultModalTitle" :content="resultModalContent"
 			:show-buttons="true" confirm-text="确定" @confirm="handleResultModalConfirm" />
 
-		<!-- 普通提示 -->
-		<CustomModal :visible="modalVisible" :title="modalTitle" :content="modalContent"
-			:close-on-click-overlay="false"
-			:type="modalTitle === '警告' ? 'warning' : (modalTitle === '失败' ? 'error' : 'info')"
-			:show-buttons="false" />
+			<!-- 普通提示 -->
+			<CustomModal :visible="modalVisible" :title="modalTitle" :content="modalContent"
+				:close-on-click-overlay="false" :type="modalType" :show-buttons="false" />
 	</view>
 </template>
 
@@ -75,16 +74,14 @@ import { isValidUrl, isNonEmpty } from '../../utils/validator';
 export default {
 	components: { Loading, CustomModal },
 	mixins: [deviceMixin, modalMixin],
-	data() {
-		return {
-			loadingVisible: false, loadingText: '',
-			currentVersion: '', firmwareUrl: 'http://bin.bemfa.com/b/27002/3BcZGI1OTA5NDczM2FjYjkzMTg2N2Q1YWY5NGE1N2ZjNzg=FRESTEC.bin', wifiSsid: '', wifiPassword: '', showPassword: false,
-			updating: false,
-			confirmModalVisible: false, confirmModalContent: '设备将开始固件升级，升级完成后自动重启。确定继续吗？',
-			validateModalVisible: false, validateModalTitle: '输入验证',
-			validateModalContent: '请输入 "upgrade" 确认升级', validateModalPlaceholder: '请输入 upgrade',
-			resultModalVisible: false, resultModalTitle: '', resultModalContent: '',
-			modalVisible: false, modalTitle: '', modalContent: ''
+		data() {
+			return {
+				currentVersion: '', firmwareUrl: '', wifiSsid: '', wifiPassword: '', showPassword: false,
+				updating: false,
+				confirmModalVisible: false, confirmModalContent: '设备将开始固件升级，升级完成后自动重启。确定继续吗？',
+				validateModalVisible: false, validateModalTitle: '输入验证',
+				validateModalContent: '请输入 "upgrade" 确认升级', validateModalPlaceholder: '请输入 upgrade',
+				resultModalVisible: false, resultModalTitle: '', resultModalContent: ''
 		};
 	},
 	onLoad() { this.checkDevice(); this.loadSaved(); this.getFw(); },
@@ -96,10 +93,10 @@ export default {
 		async getFw() { if (!this.deviceConnected) return; try { this.showLoading('获取中...'); const res = await apiService.getFirmwareVersion(); if (res.status === 'success') this.currentVersion = res.data.firmware_version || '未知'; } catch (e) { /* 静默 */ } finally { this.hideLoading(); } },
 		togglePassword() { this.showPassword = !this.showPassword; },
 		startUpdate() {
-			if (!this.deviceConnected) { this.showModal('警告', '请先连接设备'); return; }
-			if (!isNonEmpty(this.firmwareUrl)) { this.showModal('提示', '请输入固件 URL'); return; }
-			if (!isValidUrl(this.firmwareUrl)) { this.showModal('提示', '固件 URL 格式不正确，请输入有效的 HTTP/HTTPS 地址'); return; }
-			if (!isNonEmpty(this.wifiSsid)) { this.showModal('提示', '请输入 WiFi 名称'); return; }
+			if (!this.deviceConnected) { this.showToast('警告', '请先连接设备', 'warning'); return; }
+				if (!isNonEmpty(this.firmwareUrl)) { this.showToast('提示', '请输入固件 URL', 'warning'); return; }
+				if (!isValidUrl(this.firmwareUrl)) { this.showToast('提示', '固件 URL 格式不正确，请输入有效的 HTTP/HTTPS 地址', 'warning'); return; }
+				if (!isNonEmpty(this.wifiSsid)) { this.showToast('提示', '请输入 WiFi 名称', 'warning'); return; }
 			if (this.updating) return;
 			this.confirmModalVisible = true;
 		},
@@ -123,14 +120,10 @@ export default {
 					else if (res.data.message === 'OTA升级开始') { this.resultModalTitle = '升级开始'; this.resultModalContent = '固件升级已开始，设备将在升级完成后自动重启'; }
 					else { this.resultModalTitle = '升级成功'; this.resultModalContent = '固件升级命令已发送，设备将开始升级'; }
 					this.resultModalVisible = true;
-				} else { this.showModal('失败', (res && res.data && res.data.message) || '升级失败'); }
-			} catch (e) { this.showModal('失败', e.message || '升级失败'); }
-			finally { this.updating = false; this.hideLoading(); }
-		},
-		showModal(title, content) {
-			this.modalTitle = title; this.modalContent = content; this.modalVisible = true;
-			setTimeout(() => { this.modalVisible = false; }, 1500);
-		}
+				} else { this.showToast('失败', (res && res.data && res.data.message) || '升级失败', 'error'); }
+				} catch (e) { this.showToast('失败', e.message || '升级失败', 'error'); }
+				finally { this.updating = false; this.hideLoading(); }
+			}
 	}
 };
 </script>
