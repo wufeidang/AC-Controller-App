@@ -364,30 +364,6 @@
 /* 空状态 */
 .body { padding: 0 32rpx 32rpx; }
 
-/* Hero 品牌区 */
-.hero { display: flex; flex-direction: column; align-items: center; padding: 80rpx 0 56rpx; }
-.hero-icon-wrap {
-	width: 144rpx; height: 144rpx; border-radius: 36rpx;
-	background: linear-gradient(145deg, #E6F4FF 0%, #F0F7FF 100%);
-	display: flex; align-items: center; justify-content: center;
-	margin-bottom: 32rpx;
-	box-shadow: 0 12rpx 32rpx rgba(22, 119, 255, 0.12);
-}
-.hero-icon { width: 80rpx; height: 80rpx; }
-.hero-title { font-size: 44rpx; font-weight: 700; color: #1A1A1A; letter-spacing: 2rpx; margin-bottom: 12rpx; }
-.hero-desc { font-size: 26rpx; color: #999; }
-
-/* 连接大按钮 */
-.btn-connect-lg {
-	width: 480rpx; height: 96rpx; border-radius: 48rpx;
-	background: linear-gradient(135deg, #1677FF 0%, #4096FF 100%);
-	display: flex; align-items: center; justify-content: center;
-	align-self: center; margin-top: 32rpx;
-	box-shadow: 0 12rpx 32rpx rgba(22, 119, 255, 0.3);
-	transition: 200ms;
-}
-.btn-connect-lg:active { transform: scale(0.97); box-shadow: 0 6rpx 16rpx rgba(22, 119, 255, 0.2); }
-.btn-connect-lg text { color: #FFF; font-size: 32rpx; font-weight: 600; letter-spacing: 4rpx; }
 
 /* 温度大卡 */
 .temp-hero { background: #FFF; border-radius: 24rpx; padding: 48rpx 32rpx; text-align: center; margin-bottom: 24rpx; box-shadow: 0 2rpx 12rpx rgba(0,0,0,0.04); }

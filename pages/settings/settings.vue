@@ -38,6 +38,8 @@
 				</view>
 			</view>
 
+			<Loading :visible="loadingVisible" :text="loadingText" />
+
 			<!-- Toast 提示 -->
 			<CustomModal
 				:visible="modalVisible"
@@ -67,11 +69,12 @@
 	import SettingItem from '../../components/SettingItem';
 	import apiService from '../../services/api';
 	import CustomModal from '../../components/CustomModal';
+	import Loading from '../../components/Loading';
 	import modalMixin from '../../mixins/modal-mixin';
 	import constants from '../../config/constants';
 
 	export default {
-		components: { SettingItem, CustomModal },
+		components: { SettingItem, CustomModal, Loading },
 		mixins: [modalMixin],
 		data() {
 			return {

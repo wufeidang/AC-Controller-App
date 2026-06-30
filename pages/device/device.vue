@@ -308,7 +308,7 @@
 .hero-desc { font-size: 26rpx; color: #999; }
 
 /* 卡片 */
-.card { background: #FFF; border-radius: 26rpx; padding: 32rpx; margin-bottom: 24rpx; box-shadow: 0 4rpx 20rpx rgba(0,0,0,0.04); }
+.card { background: #FFF; border-radius: 24rpx; padding: 32rpx; margin-bottom: 24rpx; box-shadow: 0 2rpx 12rpx rgba(0,0,0,0.04); }
 .card-title { font-size: 28rpx; font-weight: 700; color: #1A1A1A; display: block; margin-bottom: 20rpx; }
 
 /* WiFi 行 */

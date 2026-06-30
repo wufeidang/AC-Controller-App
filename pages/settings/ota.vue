@@ -56,7 +56,7 @@
 							<text class="ota-pct">{{ otaProgress }}</text>
 							<text class="ota-pct-sign">%</text>
 						</view>
-						<progress :percent="otaProgress" :stroke-width="6" activeColor="#1677FF" backgroundColor="#E8E8E8" class="ota-bar" />
+						<progress :percent="otaProgress" :stroke-width="6" :activeColor="otaPhase==='done' ? '#00B96B' : '#1677FF'" backgroundColor="#E8E8E8" class="ota-bar" />
 					</view>
 					<!-- 阶段文字 -->
 					<text class="ota-phase">{{ phaseLabel }}</text>
@@ -376,5 +376,4 @@ export default {
 /* 结果高亮 */
 .ota-panel.done .ota-pct { color: #00B96B; }
 .ota-panel.done .ota-pct-sign { color: #00B96B; }
-.ota-panel.done .ota-bar { progress-color: #00B96B; }
 </style>
