@@ -41,25 +41,32 @@
 		</view>
 
 		<!-- OTA 进度遮罩 -->
-		<view class="ota-overlay" v-if="otaPhase !== 'idle'" @click.stop role="alert" aria-live="polite">
-			<view class="ota-panel" :class="otaPhase">
-				<!-- 进度环 -->
-				<view class="ota-ring-wrap" role="progressbar" :aria-valuenow="otaProgress" aria-valuemin="0" aria-valuemax="100" aria-label="OTA升级进度">
-					<view class="ota-ring">
-						<text class="ota-pct">{{ otaProgress }}</text>
-						<text class="ota-pct-sign">%</text>
+			<view class="ota-overlay" v-if="otaPhase !== 'idle'" @click.stop role="alert" aria-live="polite">
+				<view class="ota-panel" :class="otaPhase">
+					<!-- 标题 -->
+					<text class="ota-title">固件升级</text>
+					<!-- 警告说明 -->
+					<view class="ota-warn" v-if="otaPhase === 'connecting' || otaPhase === 'downloading'">
+						<text class="ota-warn-icon">⚠</text>
+						<text class="ota-warn-text">升级期间请勿断电或关闭页面</text>
 					</view>
-					<progress :percent="otaProgress" :stroke-width="6" activeColor="#1677FF" backgroundColor="#E8E8E8" class="ota-bar" />
-				</view>
-				<!-- 阶段文字 -->
-				<text class="ota-phase">{{ phaseLabel }}</text>
-				<text class="ota-hint" v-if="otaPhase === 'verifying'">设备重启后将自动恢复连接</text>
-				<!-- 取消按钮（仅 verifying 阶段可取消） -->
-				<view class="ota-cancel" v-if="otaPhase === 'verifying'" @click="cancelOta">
-					<text>取消等待</text>
+					<!-- 进度区 -->
+					<view class="ota-ring-wrap" role="progressbar" :aria-valuenow="otaProgress" aria-valuemin="0" aria-valuemax="100" aria-label="OTA升级进度">
+						<view class="ota-ring">
+							<text class="ota-pct">{{ otaProgress }}</text>
+							<text class="ota-pct-sign">%</text>
+						</view>
+						<progress :percent="otaProgress" :stroke-width="6" activeColor="#1677FF" backgroundColor="#E8E8E8" class="ota-bar" />
+					</view>
+					<!-- 阶段文字 -->
+					<text class="ota-phase">{{ phaseLabel }}</text>
+					<text class="ota-hint" v-if="otaPhase === 'verifying'">设备重启后将自动恢复连接</text>
+					<!-- 取消按钮（仅 verifying 阶段可取消） -->
+					<view class="ota-cancel" v-if="otaPhase === 'verifying'" @click="cancelOta">
+						<text>取消等待</text>
+					</view>
 				</view>
 			</view>
-		</view>
 
 		<Loading :visible="loadingVisible" :text="loadingText" />
 
@@ -73,10 +80,6 @@
 			:editable="true" :placeholder-text="validateModalPlaceholder"
 			confirm-text="确定" cancel-text="取消"
 			@confirm="handleValidateModalConfirm" @cancel="handleValidateModalCancel" />
-
-		<!-- 结果 -->
-		<CustomModal :visible="resultModalVisible" :title="resultModalTitle" :content="resultModalContent"
-			:show-buttons="true" confirm-text="确定" @confirm="handleResultModalConfirm" />
 
 			<!-- 普通提示 -->
 			<CustomModal :visible="modalVisible" :title="modalTitle" :content="modalContent"
@@ -112,7 +115,6 @@ export default {
 				confirmModalVisible: false, confirmModalContent: '设备将开始固件升级，升级完成后自动重启。确定继续吗？',
 				validateModalVisible: false, validateModalTitle: '输入验证',
 				validateModalContent: '请输入 "upgrade" 确认升级', validateModalPlaceholder: '请输入 upgrade',
-				resultModalVisible: false, resultModalTitle: '', resultModalContent: '',
 				// OTA 进度追踪
 				otaProgress: 0,
 				otaPhase: 'idle', // idle | connecting | downloading | verifying | done | failed
@@ -148,9 +150,8 @@ export default {
 		},
 		handleConfirmModalConfirm() { this.confirmModalVisible = false; this.validateModalVisible = true; },
 		handleConfirmModalCancel() { this.confirmModalVisible = false; },
-		handleValidateModalConfirm(inputValue) { this.validateModalVisible = false; if (inputValue === 'upgrade') this.performOtaUpdate(); },
-		handleValidateModalCancel() { this.validateModalVisible = false; },
-		handleResultModalConfirm() { this.resultModalVisible = false; },
+			handleValidateModalConfirm(inputValue) { this.validateModalVisible = false; if (inputValue === 'upgrade') this.performOtaUpdate(); },
+			handleValidateModalCancel() { this.validateModalVisible = false; },
 
 		// ===== OTA 进度追踪 =====
 		/**
@@ -218,22 +219,29 @@ export default {
 		},
 
 		_onOtaDone(newVersion) {
-			this._stopSimProgress();
-			this._stopVerifyPoll();
-			this.otaPhase = 'done';
-			this.otaProgress = 100;
-			this.updating = false;
-			if (newVersion && newVersion !== this.currentVersion) {
-				this.currentVersion = newVersion;
-			}
-		},
-		_onOtaFailed(msg) {
-			this._stopSimProgress();
-			this._stopVerifyPoll();
-			this.otaPhase = 'failed';
-			this.updating = false;
-			this.showToast('升级异常', msg, 'error');
-		},
+				this._stopSimProgress();
+				this._stopVerifyPoll();
+				this.otaPhase = 'done';
+				this.otaProgress = 100;
+				this.updating = false;
+				if (newVersion && newVersion !== this.currentVersion) {
+					this.currentVersion = newVersion;
+				}
+				// 自动关闭进度面板 + 显示完成提示
+				setTimeout(() => {
+					this.otaPhase = 'idle';
+					this.otaProgress = 0;
+					this.showToast('升级成功', '固件已更新至 ' + (newVersion || this.currentVersion), 'success');
+				}, 1500);
+			},
+			_onOtaFailed(msg) {
+				this._stopSimProgress();
+				this._stopVerifyPoll();
+				this.otaPhase = 'idle';
+				this.otaProgress = 0;
+				this.updating = false;
+				this.showToast('升级异常', msg, 'error');
+			},
 
 		/** 用户取消等待（仅 verifying 阶段） */
 		cancelOta() {
@@ -270,14 +278,10 @@ export default {
 						this._startSimProgress(constants.OTA_PROGRESS_MAX, 40000);
 					}
 				} else {
-					this.otaPhase = 'failed';
-					this.updating = false;
-					this.showToast('失败', (res && res.data && res.data.message) || '升级失败', 'error');
+					this._onOtaFailed((res && res.data && res.data.message) || '升级失败');
 				}
 			} catch (e) {
-				this.otaPhase = 'failed';
-				this.updating = false;
-				this.showToast('失败', e.message || '升级失败', 'error');
+				this._onOtaFailed(e.message || '升级失败');
 			}
 		}
 	}
@@ -327,6 +331,20 @@ export default {
 @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
 @keyframes popIn { from { opacity: 0; transform: scale(0.92) translateY(16rpx); } to { opacity: 1; transform: scale(1) translateY(0); } }
 
+/* 标题 */
+.ota-title {
+	font-size: 34rpx; font-weight: 600; color: #1A1A1A;
+	text-align: center; margin-bottom: 20rpx;
+}
+/* 警告说明 */
+.ota-warn {
+	display: flex; align-items: center; gap: 8rpx;
+	background: #FFF7E6; border: 1rpx solid #FFE58F; border-radius: 12rpx;
+	padding: 12rpx 20rpx; margin-bottom: 28rpx; width: 100%; box-sizing: border-box;
+}
+.ota-warn-icon { font-size: 28rpx; }
+.ota-warn-text { font-size: 22rpx; color: #AD6800; line-height: 1.4; }
+
 /* 进度百分比 */
 .ota-ring-wrap { width: 100%; margin-bottom: 32rpx; }
 .ota-ring {
@@ -358,6 +376,5 @@ export default {
 /* 结果高亮 */
 .ota-panel.done .ota-pct { color: #00B96B; }
 .ota-panel.done .ota-pct-sign { color: #00B96B; }
-.ota-panel.failed .ota-pct { color: #FF4D4F; }
-.ota-panel.failed .ota-pct-sign { color: #FF4D4F; }
+.ota-panel.done .ota-bar { progress-color: #00B96B; }
 </style>
