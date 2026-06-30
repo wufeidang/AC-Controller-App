@@ -403,7 +403,7 @@ import { isValidAddress } from '../../utils/validator';
 @keyframes scanPulse { 0%,100% { opacity: 0.4; transform: scale(0.8); } 50% { opacity: 1; transform: scale(1.2); } }
 
 /* WiFi 列表 */
-.wifi-list { max-height: 320rpx; background: $bg-elevated; border-radius: $radius-lg; padding: 0 16rpx; }
+.wifi-list { max-height: 320rpx; background: $bg-elevated; border-radius: $radius-lg; padding: 0 16rpx;width:95%; }
 .wl-item { display: flex; align-items: center; justify-content: space-between; padding: 22rpx 0; border-bottom: 1rpx solid $border-light; }
 .wl-item:last-child { border-bottom: none; }
 .wl-item:active { background: rgba(0,0,0,0.03); }
@@ -422,7 +422,7 @@ import { isValidAddress } from '../../utils/validator';
 /* mDNS 设备发现 */
 .mdns-scan-row { display: flex; align-items: center; justify-content: space-between; min-height: 56rpx; margin-bottom: 16rpx; }
 .mdns-hint { font-size: $fs-label; color: $text-hint; flex: 1; line-height: 1.4; padding-right: 16rpx; }
-.mdns-list { max-height: 260rpx; background: $bg-elevated; border-radius: $radius-lg; padding: 0 16rpx; }
+.mdns-list { max-height: 260rpx; background: $bg-elevated; border-radius: $radius-lg; padding: 0 16rpx;width:95%; }
 .md-item { display: flex; align-items: center; justify-content: space-between; padding: 22rpx 0; border-bottom: 1rpx solid $border-light; }
 .md-item:last-child { border-bottom: none; }
 .md-item:active { background: rgba(0,0,0,0.03); }
