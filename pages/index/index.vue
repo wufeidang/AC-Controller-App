@@ -355,7 +355,7 @@
 .top-bar { padding: 24rpx 32rpx; display: flex; justify-content: space-between; align-items: center; }
 .top-location { font-size: $fs-heading; font-weight: 700; color: $text-primary; }
 .status-badge { display: flex; align-items: center; padding: 8rpx 20rpx; border-radius: $radius-xl; background: $color-danger-bg; }
-.status-badge.on { background: $color-success-bg-alt; }
+.status-badge.on { background: #F6FFED; }
 .status-dot { width: 14rpx; height: 14rpx; border-radius: 50%; background: $color-danger; margin-right: 10rpx; }
 .status-badge.on .status-dot { background: $color-success; }
 .status-badge text { font-size: $fs-label; color: $color-danger; font-weight: 500; }
@@ -374,7 +374,7 @@
 .temp-unit { font-size: $fs-heading; font-weight: 500; color: $text-hint; margin-left: 4rpx; }
 .temp-sub { display: block; font-size: 26rpx; color: $text-hint; margin-top: 16rpx; }
 .hum-hero { background: linear-gradient(135deg, $color-success-bg 0%, $bg-card 100%); }
-.hum-num { color: $hum-color !important; }
+.hum-num { color: #13C2C2 !important; }
 
 /* 信息行 */
 .info-row { background: $bg-card; border-radius: $radius-xl; padding: 32rpx; display: flex; margin-bottom: 24rpx; box-shadow: $shadow-sm; }

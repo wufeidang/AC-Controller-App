@@ -235,9 +235,9 @@ export default {
 .q-btn text { font-size: $fs-label; color: $text-regular; font-weight: 500; }
 .q-btn.reset text { color: $text-hint; }
 
-.rule-card { display: flex; align-items: flex-start; gap: 16rpx; padding: 24rpx 32rpx; background: #FFFBE6; border: 1rpx solid $color-warning-border; border-radius: $radius-lg; box-shadow: none; }
+.rule-card { display: flex; align-items: flex-start; gap: 16rpx; padding: 24rpx 32rpx; background: #FFFBE6; border: 1rpx solid #FFE58F; border-radius: $radius-lg; box-shadow: none; }
 .rule-icon { width: 36rpx; height: 36rpx; flex-shrink: 0; }
-.rule-text { font-size: $fs-label; color: $color-warning-text; line-height: 1.6; flex: 1; }
+.rule-text { font-size: $fs-label; color: #AD6800; line-height: 1.6; flex: 1; }
 
 .btn { padding: 28rpx 32rpx; border-radius: $radius-xl; text-align: center; margin-top: 8rpx; margin-bottom: 32rpx; transition: 150ms; }
 .btn:active { transform: scale(0.98); }

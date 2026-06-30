@@ -339,11 +339,11 @@ export default {
 /* 警告说明 */
 .ota-warn {
 	display: flex; align-items: center; gap: 8rpx;
-	background: $color-warning-bg; border: 1rpx solid $color-warning-border; border-radius: $radius-md;
+	background: $color-warning-bg; border: 1rpx solid #FFE58F; border-radius: $radius-md;
 	padding: 12rpx 20rpx; margin-bottom: 28rpx; width: 100%; box-sizing: border-box;
 }
 .ota-warn-icon { font-size: $fs-body; }
-.ota-warn-text { font-size: $fs-caption; color: $color-warning-text; line-height: 1.4; }
+.ota-warn-text { font-size: $fs-caption; color: #AD6800; line-height: 1.4; }
 
 /* 进度百分比 */
 .ota-ring-wrap { width: 100%; margin-bottom: 32rpx; }

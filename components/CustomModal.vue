@@ -125,10 +125,10 @@ export default {
 	width: 88rpx; height: 88rpx; border-radius: 50%;
 	display: flex; align-items: center; justify-content: center;
 }
-.modal-icon.success { background: $color-success-bg-alt; }
+.modal-icon.success { background: #F6FFED; }
 .modal-icon.error   { background: $color-danger-bg; }
 .modal-icon.warning { background: $color-warning-bg; }
-.modal-icon.info    { background: $color-info-bg; }
+.modal-icon.info    { background: #F0F5FF; }
 .modal-icon-img { width: 48rpx; height: 48rpx; }
 .modal-icon-text { font-size: 44rpx; font-weight: 700; }
 .modal-icon.success .modal-icon-text { color: $color-success; }
