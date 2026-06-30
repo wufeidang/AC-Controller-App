@@ -105,7 +105,7 @@
 		</view>
 
 		<Loading :visible="loadingVisible" :text="loadingText" />
-		<CustomModal :visible="modalVisible" :title="modalTitle" :content="modalContent" :close-on-click-overlay="false" :type="toastType" :show-buttons="false" />
+			<CustomModal :visible="modalVisible" :title="modalTitle" :content="modalContent" :close-on-click-overlay="false" :type="modalType" :show-buttons="false" />
 	</view>
 </template>
 
@@ -114,6 +114,7 @@ import Loading from '../../components/Loading';
 import CustomModal from '../../components/CustomModal';
 import apiService from '../../services/api';
 import deviceMixin from '../../mixins/device-mixin';
+import modalMixin from '../../mixins/modal-mixin';
 
 // 各 slider 的范围配置
 const RANGES = {
@@ -126,7 +127,7 @@ const RANGES = {
 
 export default {
 	components: { Loading, CustomModal },
-	mixins: [deviceMixin],
+		mixins: [deviceMixin, modalMixin],
 	data() {
 		return {
 			controlType: 'temperature',
@@ -134,31 +135,11 @@ export default {
 			humOnThreshold: 70, humOffThreshold: 60,
 			checkInterval: 5,
 			saving: false,
-			loadingVisible: false,
-			loadingText: '',
-			modalVisible: false,
-			modalTitle: '',
-			modalContent: '',
-			modalHasCancel: false,
-			modalShowButtons: false,
-			toastVisible: false, toastTitle: '', toastContent: '', toastType: 'info'
 		};
 	},
 	onLoad() { this.checkDevice(); this.getSettings(); },
-	methods: {
-		showLoading(text = '加载中...') {
-			this.loadingText = text;
-			this.loadingVisible = true;
-		},
-		hideLoading() {
-			this.loadingVisible = false;
-		},
-		showToast(title, content, type = 'info') {
-			this.modalTitle = title; this.modalContent = content; this.toastType = type;
-			this.modalHasCancel = false; this.modalShowButtons = false; this.modalVisible = true;
-			setTimeout(() => { this.modalVisible = false; }, 1500);
-		},
-		async getSettings() {
+		methods: {
+			async getSettings() {
 			if (!this.deviceConnected) return;
 			try {
 				this.showLoading('获取设置...');

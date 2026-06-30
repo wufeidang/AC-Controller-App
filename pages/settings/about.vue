@@ -47,17 +47,18 @@
 </template>
 
 <script>
-import Loading from '../../components/Loading';
-import api from '../../services/api';
+	import Loading from '../../components/Loading';
+	import api from '../../services/api';
+	import modalMixin from '../../mixins/modal-mixin';
 
-export default {
-	components: { Loading },
-	data() {
-		return {
-			appName: '空调温控系统', appDesc: '广通电梯机房智能温控管理',
-			appVersion: '2.3.0', appVersionCode: '230', firmwareVersion: '',
-			loadingVisible: false, loadingText: '',
-			showHistory: false,
+	export default {
+		components: { Loading },
+		mixins: [modalMixin],
+		data() {
+			return {
+				appName: '空调温控系统', appDesc: '广通电梯机房智能温控管理',
+				appVersion: '2.3.0', appVersionCode: '230', firmwareVersion: '',
+				showHistory: false,
 			changelogRaw: [
 				{ ver: 'v2.3.0', date: '2026-06-29', title: '设备连接优化 + P0 统一状态管理', lines: [
 					'· WiFi 扫描改用动态轮询（每 100ms 检查，最多 2s），告别固定 300ms 等待',
@@ -120,11 +121,17 @@ export default {
 	onLoad() { this.getFw(); },
 	methods: {
 		async getFw() {
-			const d = uni.getStorageSync('connectedDevice');
-			if (!d || !d.connected) { this.firmwareVersion = '未连接'; return; }
-			api.setDeviceAddress(d.address);
-			try { this.loadingVisible = true; this.loadingText = '获取中...'; const res = await api.getFirmwareVersion(); if (res.status === 'success') this.firmwareVersion = res.data.firmware_version || '未知'; } catch (e) { this.firmwareVersion = '获取失败'; } finally { this.loadingVisible = false; }
-		}
+				const d = uni.getStorageSync('connectedDevice');
+				if (!d || !d.connected) { this.firmwareVersion = '未连接'; return; }
+				api.setDeviceAddress(d.address);
+				try {
+					this.showLoading('获取中...');
+					const res = await api.getFirmwareVersion();
+					if (res.status === 'success') this.firmwareVersion = res.data.firmware_version || '未知';
+				} catch (e) {
+					this.firmwareVersion = '获取失败';
+				} finally { this.hideLoading(); }
+			}
 	}
 };
 </script>

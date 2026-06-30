@@ -61,8 +61,8 @@
 		<Loading :visible="loadingVisible" :text="loadingText" />
 		<CustomModal :visible="modalVisible" :title="modalTitle" :content="modalContent"
 			:close-on-click-overlay="false"
-			:type="modalTitle === '失败' ? 'error' : (modalTitle === '成功' ? 'success' : 'info')"
-			:show-buttons="false" />
+			:type="modalType"
+				:show-buttons="false" />
 	</view>
 </template>
 
@@ -71,31 +71,20 @@ import Loading from '../../components/Loading';
 import CustomModal from '../../components/CustomModal';
 import apiService from '../../services/api';
 import deviceMixin from '../../mixins/device-mixin.js';
+import modalMixin from '../../mixins/modal-mixin';
 
 export default {
 	components: { Loading, CustomModal },
-	mixins: [deviceMixin],
+		mixins: [deviceMixin, modalMixin],
 	data() {
 		return {
 			tempOffset: 0.0, humOffset: 0.0,
-			loadingVisible: false, loadingText: '', saving: false,
-			modalVisible: false, modalTitle: '', modalContent: ''
+				saving: false,
 		};
 	},
 	onLoad() { this.checkDevice(); this.getSettings(); },
-	methods: {
-		showLoading(text = '加载中...') {
-			this.loadingText = text;
-			this.loadingVisible = true;
-		},
-		hideLoading() {
-			this.loadingVisible = false;
-		},
-		showModal(title, content) {
-			this.modalTitle = title; this.modalContent = content; this.modalVisible = true;
-			setTimeout(() => { this.modalVisible = false; }, 1500);
-		},
-		async getSettings() {
+		methods: {
+			async getSettings() {
 			if (!this.deviceConnected) return;
 			try {
 				this.showLoading('获取中...');
@@ -114,15 +103,15 @@ export default {
 		resetTemp() { this.tempOffset = 0; },
 		resetHum() { this.humOffset = 0; },
 		async saveCalibration() {
-			if (!this.deviceConnected) { this.showModal('提示', '请先连接设备'); return; }
+			if (!this.deviceConnected) { this.showToast('提示', '请先连接设备'); return; }
 			if (this.saving) return;
 			try {
 				this.saving = true;
 				this.showLoading('保存中...');
 				const res = await apiService.setCalibration({ temp_offset: this.tempOffset, hum_offset: this.humOffset });
-				if (res.status === 'success') { this.showModal('成功', '保存成功'); }
-				else { this.showModal('失败', (res.data && res.data.message) || '保存失败'); }
-			} catch (e) { this.showModal('失败', e.message || '保存失败'); }
+				if (res.status === 'success') { this.showToast('成功', '保存成功'); }
+				else { this.showToast('失败', (res.data && res.data.message) || '保存失败'); }
+			} catch (e) { this.showToast('失败', e.message || '保存失败'); }
 			finally { this.saving = false; this.hideLoading(); }
 		}
 	}

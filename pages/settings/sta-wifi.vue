@@ -53,10 +53,8 @@ export default {
 		mixins: [deviceMixin, modalMixin],
 		data() {
 			return {
-				loadingVisible: false, loadingText: '',
-			staInfo: null, staSsid: '', staPassword: '', showPassword: false, saving: false,
-			modalVisible: false, modalTitle: '', modalContent: '', modalType: 'info'
-		};
+				staInfo: null, staSsid: '', staPassword: '', showPassword: false, saving: false
+			};
 	},
 	onLoad() { this.checkDevice(); this.loadStatus(); },
 	onShow() { this.checkDevice(); },
@@ -64,9 +62,8 @@ export default {
 		async loadStatus() {
 			if (!this.deviceConnected) return;
 			try { this.showLoading('加载中...'); const res = await api.getStaWifi(); if (res.status === 'success') { this.staInfo = res.data; this.staSsid = res.data.ssid || ''; } } catch (e) { /* 静默 */ } finally { this.hideLoading(); }
-		},
-		showToast(title, content, type = 'info') { this.modalTitle = title; this.modalContent = content; this.modalType = type; this.modalVisible = true; setTimeout(() => { this.modalVisible = false; }, 1500); },
-		async saveSettings() {
+			},
+			async saveSettings() {
 			if (!this.deviceConnected) { this.showToast('提示', '请先连接设备', 'warning'); return; }
 			if (!this.staSsid || !this.staPassword) { this.showToast('提示', '请输入 WiFi 名称和密码', 'warning'); return; }
 			if (this.saving) return;

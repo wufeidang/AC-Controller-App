@@ -41,7 +41,7 @@
 
 		<Loading :visible="loadingVisible" :text="loadingText" />
 		<CustomModal :visible="modalVisible" :title="modalTitle" :content="modalContent" :close-on-click-overlay="false"
-			:type="modalTitle === '失败' ? 'error' : (modalTitle === '成功' ? 'success' : 'info')" :show-buttons="false" />
+			:type="modalType" :show-buttons="false" />
 	</view>
 </template>
 
@@ -50,16 +50,15 @@ import apiService from '../../services/api';
 import Loading from '../../components/Loading';
 import CustomModal from '../../components/CustomModal';
 import deviceMixin from '../../mixins/device-mixin';
+import modalMixin from '../../mixins/modal-mixin';
 
 export default {
 	components: { Loading, CustomModal },
-	mixins: [deviceMixin],
+		mixins: [deviceMixin, modalMixin],
 	data() {
 		return {
 			currentScene: '',
-			saving: false,
-			loadingVisible: false, loadingText: '',
-			modalVisible: false, modalTitle: '', modalContent: '',
+				saving: false,
 			scenes: [
 				{ value: 'sleep', label: '睡眠', icon: 'moon', description: '低风速，静音运行', temp: '26', fanSpeed: '低速', swing: '固定' },
 				{ value: 'energy_saving', label: '节能', icon: 'lightning', description: '降低功耗，环保省电', temp: '28', fanSpeed: '自动', swing: '自动' },
@@ -72,19 +71,8 @@ export default {
 		this.checkDevice();
 		this.getCurrentScene();
 	},
-	methods: {
-		showLoading(text = '加载中...') {
-			this.loadingText = text;
-			this.loadingVisible = true;
-		},
-		hideLoading() {
-			this.loadingVisible = false;
-		},
-		showToast(title, content) {
-			this.modalTitle = title; this.modalContent = content; this.modalVisible = true;
-			setTimeout(() => { this.modalVisible = false; }, 1500);
-		},
-		selectScene(scene) { this.currentScene = scene; },
+		methods: {
+			selectScene(scene) { this.currentScene = scene; },
 		async getCurrentScene() {
 			if (!this.deviceConnected) return;
 			try {

@@ -35,8 +35,8 @@
 		<Loading :visible="loadingVisible" :text="loadingText" />
 		<CustomModal :visible="modalVisible" :title="modalTitle" :content="modalContent"
 			:close-on-click-overlay="false"
-			:type="modalTitle === '失败' ? 'error' : (modalTitle === '成功' ? 'success' : 'info')"
-			:show-buttons="false" />
+			:type="modalType"
+				:show-buttons="false" />
 	</view>
 </template>
 
@@ -45,34 +45,22 @@ import apiService from '../../services/api';
 import Loading from '../../components/Loading';
 import CustomModal from '../../components/CustomModal';
 import deviceMixin from '../../mixins/device-mixin';
+import modalMixin from '../../mixins/modal-mixin';
 
 export default {
 	components: { Loading, CustomModal },
-	mixins: [deviceMixin],
+		mixins: [deviceMixin, modalMixin],
 	data() {
 		return {
 			sleepEnabled: false, saving: false,
-			loadingVisible: false, loadingText: '',
-			modalVisible: false, modalTitle: '', modalContent: ''
 		};
 	},
 	onLoad() {
 		this.checkDevice();
 		this.getSleepStatus();
 	},
-	methods: {
-		showLoading(text = '加载中...') {
-			this.loadingText = text;
-			this.loadingVisible = true;
-		},
-		hideLoading() {
-			this.loadingVisible = false;
-		},
-		showToast(title, content) {
-			this.modalTitle = title; this.modalContent = content; this.modalVisible = true;
-			setTimeout(() => { this.modalVisible = false; }, 1500);
-		},
-		toggleSleep() { this.sleepEnabled = !this.sleepEnabled; },
+		methods: {
+			toggleSleep() { this.sleepEnabled = !this.sleepEnabled; },
 		async getSleepStatus() {
 			if (!this.deviceConnected) return;
 			try {

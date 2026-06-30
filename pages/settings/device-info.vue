@@ -39,8 +39,8 @@
 		<Loading :visible="loadingVisible" :text="loadingText" />
 		<CustomModal :visible="modalVisible" :title="modalTitle" :content="modalContent"
 			:close-on-click-overlay="false"
-			:type="modalTitle === '失败' ? 'error' : (modalTitle === '成功' ? 'success' : 'info')"
-			:show-buttons="false" />
+			:type="modalType"
+				:show-buttons="false" />
 	</view>
 </template>
 
@@ -58,18 +58,13 @@ export default {
 	data() {
 		return {
 			deviceInfo: { device_name: '', device_location: '', wifi_name: '' },
-				systemInfo: null,
-			loadingVisible: false, loadingText: '', saving: false,
-			modalVisible: false, modalTitle: '', modalContent: ''
+					systemInfo: null,
+				saving: false,
 		};
 	},
 	onLoad() { this.checkDevice(); this.getInfo(); },
-	methods: {
-		showModal(title, content) {
-			this.modalTitle = title; this.modalContent = content; this.modalVisible = true;
-			setTimeout(() => { this.modalVisible = false; }, 1500);
-		},
-		async getInfo() {
+		methods: {
+			async getInfo() {
 			if (!this.deviceConnected) return;
 			try {
 				this.showLoading('获取中...');
@@ -88,18 +83,18 @@ export default {
 			return d > 0 ? d + '天' + h + 'h' : h > 0 ? h + 'h' + m + 'm' : m + '分钟';
 		},
 		async saveDeviceInfo() {
-			if (!this.deviceConnected) { this.showModal('提示', '请先连接设备'); return; }
+			if (!this.deviceConnected) { this.showToast('提示', '请先连接设备'); return; }
 			if (this.saving) return;
-			if (!isNonEmpty(this.deviceInfo.device_name)) { this.showModal('提示', '请输入设备名称'); return; }
-			if (!isLengthValid(this.deviceInfo.device_name, 1, 32)) { this.showModal('提示', '设备名称不能超过 32 个字符'); return; }
-			if (this.deviceInfo.device_location && !isLengthValid(this.deviceInfo.device_location, 1, 64)) { this.showModal('提示', '设备位置不能超过 64 个字符'); return; }
+			if (!isNonEmpty(this.deviceInfo.device_name)) { this.showToast('提示', '请输入设备名称'); return; }
+			if (!isLengthValid(this.deviceInfo.device_name, 1, 32)) { this.showToast('提示', '设备名称不能超过 32 个字符'); return; }
+			if (this.deviceInfo.device_location && !isLengthValid(this.deviceInfo.device_location, 1, 64)) { this.showToast('提示', '设备位置不能超过 64 个字符'); return; }
 			try {
 				this.saving = true;
 				this.showLoading('保存中...');
 				const r = await apiService.setDeviceInfo(this.deviceInfo);
-				if (r.status === 'success') { this.showModal('成功', '保存成功'); await this.getInfo(); }
-				else { this.showModal('失败', (r.data && r.data.message) || '保存失败'); }
-			} catch (e) { this.showModal('失败', e.message || '保存失败'); }
+				if (r.status === 'success') { this.showToast('成功', '保存成功'); await this.getInfo(); }
+				else { this.showToast('失败', (r.data && r.data.message) || '保存失败'); }
+			} catch (e) { this.showToast('失败', e.message || '保存失败'); }
 			finally { this.saving = false; this.hideLoading(); }
 		}
 	}

@@ -105,10 +105,11 @@ import Loading from '../../components/Loading';
 import CustomModal from '../../components/CustomModal';
 import apiService from '../../services/api';
 import deviceMixin from '../../mixins/device-mixin';
+import modalMixin from '../../mixins/modal-mixin';
 
 export default {
 	components: { Loading, CustomModal },
-	mixins: [deviceMixin],
+		mixins: [deviceMixin, modalMixin],
 	data() {
 		return {
 			temperature: 26,
@@ -118,9 +119,6 @@ export default {
 			currentBrand: 'tcl',
 			brandExpanded: false,
 			saving: false,
-			loadingVisible: false,
-			loadingText: '',
-			modalVisible: false, modalTitle: '', modalContent: '', modalType: 'info', modalShowButtons: false,
 			modes: [
 				{ label: '制冷', value: 'cool', icon: 'air-conditioner', color: '#1677FF', bg: '#E6F4FF', filter: '' },
 				{ label: '制热', value: 'heat', icon: 'sun', color: '#FA541C', bg: '#FFF2E8', filter: '' },
@@ -158,20 +156,8 @@ export default {
 		this.loadSettings();
 		this.getDeviceSettings();
 	},
-	methods: {
-		showLoading(text = '加载中...') {
-			this.loadingText = text;
-			this.loadingVisible = true;
-		},
-		hideLoading() {
-			this.loadingVisible = false;
-		},
-		showToast(title, content, type = 'info') {
-			this.modalTitle = title; this.modalContent = content; this.modalType = type;
-			this.modalShowButtons = false; this.modalVisible = true;
-			setTimeout(() => { this.modalVisible = false; }, 1500);
-		},
-		loadSettings() {
+		methods: {
+			loadSettings() {
 			const s = uni.getStorageSync('acSettings');
 			if (s) {
 				this.temperature = s.temperature || 26;

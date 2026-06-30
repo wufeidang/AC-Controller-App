@@ -48,7 +48,7 @@
 					<text class="label">IP 地址</text>
 					<view class="input-wrap" :class="{ focus: inputFocused }">
 						<input v-model="inputAddress" class="input"
-							placeholder="192.168.4.1" placeholder-class="ph"
+								:placeholder="defaultIp" placeholder-class="ph"
 							:disabled="connecting"
 							@focus="inputFocused = true"
 							@blur="inputFocused = false"
@@ -93,43 +93,43 @@
 		</view>
 
 		<Loading :visible="loadingVisible" :text="loadingText" />
-		<CustomModal :visible="modalVisible" :title="modalTitle" :content="modalContent"
-			:confirm-text="modalConfirmText" :cancel-text="modalHasCancel ? modalCancelText : ''"
-			:close-on-click-overlay="false"
-			:type="modalTitle === '失败' ? 'error' : (modalTitle === '成功' ? 'success' : 'info')"
-			@confirm="handleModalConfirm" @cancel="handleModalCancel" />
-	</view>
-</template>
 
-<script>
-import Loading from '../../components/Loading';
-import CustomModal from '../../components/CustomModal';
-import apiService from '../../services/api';
-import deviceMixin from '../../mixins/device-mixin';
-import errorHandler from '../../services/errorHandler';
+			<!-- Toast 提示 -->
+			<CustomModal :visible="modalVisible" :title="modalTitle" :content="modalContent"
+				:close-on-click-overlay="false" :type="modalType" :show-buttons="false" />
 
-export default {
-	components: { Loading, CustomModal },
-	mixins: [deviceMixin],
-	data() {
-		return {
-			connecting: false,
-			inputAddress: '192.168.4.1', inputFocused: false,
-			wifiSSID: '', wifiScanning: false, wifiList: [],
-			staIp: '',
-			loadingVisible: false,
-			loadingText: '',
-			modalVisible: false,
-			modalTitle: '',
-			modalContent: '',
-			modalConfirmText: '确定',
-			modalCancelText: '',
-			modalHasCancel: false,
-			modalShowButtons: true,
-			_modalCallback: null
+			<!-- 确认弹窗 -->
+			<CustomModal :visible="confirmVisible" :title="confirmTitle" :content="confirmContent"
+				:confirm-text="confirmText" :cancel-text="cancelText"
+				:close-on-click-overlay="false" :type="confirmType"
+				@confirm="handleConfirmOk" @cancel="handleConfirmCancel" />
+		</view>
+	</template>
+
+	<script>
+	import Loading from '../../components/Loading';
+	import CustomModal from '../../components/CustomModal';
+	import apiService from '../../services/api';
+	import deviceMixin from '../../mixins/device-mixin';
+	import modalMixin from '../../mixins/modal-mixin';
+	import errorHandler from '../../services/errorHandler';
+	import constants from '../../config/constants';
+
+	export default {
+		components: { Loading, CustomModal },
+		mixins: [deviceMixin, modalMixin],
+		data() {
+			return {
+				connecting: false,
+				inputAddress: constants.DEFAULT_IP, inputFocused: false,
+				wifiSSID: '', wifiScanning: false, wifiList: [],
+				staIp: ''
 		};
-	},
-		onLoad() {
+		},
+		computed: {
+			defaultIp() { return constants.DEFAULT_IP; }
+		},
+			onLoad() {
 			this.checkDevice();
 			if (this.deviceConnected) return;  // 已连接则跳过
 			this.getWifiStatus().then(() => this.autoFillIp());
@@ -253,7 +253,7 @@ export default {
 					this.staIp = '';
 					this.fetchStaStatus();
 				} else {
-					this.showConfirm('失败', (res.data && res.data.message) || '获取设备 ID 失败');
+			this.showToast('失败', (res.data && res.data.message) || '获取设备 ID 失败', 'error');
 				}
 			} catch (e) {
 				errorHandler.handleError(e);
@@ -272,32 +272,19 @@ export default {
 					// 设备未连上家庭 WiFi（可能是 AP 模式），清空 STA IP
 					this.staIp = '';
 				}
-			} catch (e) { this.staIp = ''; }
-		},
-		showToast(title, content, type = 'info') {
-			this.modalTitle = title; this.modalContent = content;
-			this.modalHasCancel = false; this.modalShowButtons = false; this.modalVisible = true;
-			setTimeout(() => { this.modalVisible = false; }, 1500);
-		},
-		showConfirm(title, content) {
-			this.modalTitle = title; this.modalContent = content;
-			this.modalHasCancel = false; this.modalShowButtons = true; this.modalConfirmText = '确定';
-			this.modalVisible = true;
-		},
-		handleModalConfirm() {
-			this.modalVisible = false;
-			if (this._modalCallback) { this._modalCallback(); this._modalCallback = null; }
-		},
-		handleModalCancel() { this.modalVisible = false; this._modalCallback = null; },
-		handleDisconnect() {
-			this.modalTitle = '确认'; this.modalContent = '确定要断开设备连接吗？';
-			this.modalHasCancel = true; this.modalConfirmText = '断开';
-			this.modalCancelText = '取消'; this.modalVisible = true;
-			this._modalCallback = () => { this.doDisconnect(); };
-		},
-		doDisconnect() {
-			this.disconnectDevice();
-		},
+		} catch (e) { this.staIp = ''; }
+			},
+			handleDisconnect() {
+				this.showConfirm('确认', '确定要断开设备连接吗？', {
+					confirmText: '断开',
+					cancelText: '取消',
+					type: 'warning',
+					onConfirm: () => this.doDisconnect()
+				});
+			},
+			doDisconnect() {
+				this.disconnectDevice();
+			},
 		navigateBack() { uni.redirectTo({ url: '/pages/index/index' }); },
 		}
 	};

@@ -75,21 +75,18 @@ import { isValidAddress, isValidPort, isNonEmpty } from '../../utils/validator';
 export default {
 	components: { Loading, CustomModal },
 	mixins: [deviceMixin, modalMixin],
-	data() {
-		return {
-			loadingVisible: false, loadingText: '',
-			mqttServer: '', mqttPort: '1883', mqttUser: '', mqttPass: '', mqttTopic: '',
-			showPassword: false, saving: false,
-			modalVisible: false, modalTitle: '', modalContent: '', modalType: 'info'
-		};
+		data() {
+			return {
+				mqttServer: '', mqttPort: '1883', mqttUser: '', mqttPass: '', mqttTopic: '',
+				showPassword: false, saving: false,
+			};
 	},
 	computed: { hasConfig() { return !!(this.mqttServer || this.mqttTopic); } },
 	onLoad() { this.checkDevice(); this.loadConfig(); },
 	onShow() { this.checkDevice(); },
 	methods: {
 		async loadConfig() { if (!this.deviceConnected) return; try { this.showLoading('加载中...'); const res = await api.getMqttConfig(); if (res.status === 'success') { const d = res.data; this.mqttServer = d.server || ''; this.mqttPort = d.port ? String(d.port) : '1883'; this.mqttUser = d.user || ''; this.mqttPass = d.pass || ''; this.mqttTopic = d.topic || ''; } } catch (e) { /* 静默 */ } finally { this.hideLoading(); } },
-		showToast(title, content, type = 'info') { this.modalTitle = title; this.modalContent = content; this.modalType = type; this.modalVisible = true; setTimeout(() => { this.modalVisible = false; }, 1500); },
-		async saveSettings() {
+			async saveSettings() {
 			if (!this.deviceConnected) { this.showToast('提示', '请先连接设备', 'warning'); return; }
 			if (this.saving) return;
 			if (!isNonEmpty(this.mqttServer)) { this.showToast('提示', '请输入服务器地址', 'warning'); return; }
