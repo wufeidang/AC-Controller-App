@@ -14,8 +14,13 @@ export default {
 	// 默认设备 IP
 	DEFAULT_IP: '192.168.4.1',
 
-	// OTA 超时 (ms)
-	OTA_TIMEOUT: 60000,
+		// OTA 超时 (ms)
+		OTA_TIMEOUT: 60000,
+
+		// OTA 进度追踪
+		OTA_PROGRESS_MAX: 80,       // 模拟进度最高到 80%，余下靠轮询确认
+		OTA_POLL_INTERVAL: 5000,     // 轮询检测设备重启间隔 (ms)
+		OTA_VERIFY_TIMEOUT: 120000, // 轮询超时 (ms)
 
 	// 品牌映射表
 	BRAND_MAP: {

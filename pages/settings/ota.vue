@@ -40,6 +40,27 @@
 			</view>
 		</view>
 
+		<!-- OTA 进度遮罩 -->
+		<view class="ota-overlay" v-if="otaPhase !== 'idle'" @click.stop>
+			<view class="ota-panel">
+				<!-- 进度环 -->
+				<view class="ota-ring-wrap">
+					<view class="ota-ring">
+						<text class="ota-pct">{{ otaProgress }}</text>
+						<text class="ota-pct-sign">%</text>
+					</view>
+					<progress :percent="otaProgress" :stroke-width="6" activeColor="#1677FF" backgroundColor="#E8E8E8" class="ota-bar" />
+				</view>
+				<!-- 阶段文字 -->
+				<text class="ota-phase">{{ phaseLabel }}</text>
+				<text class="ota-hint" v-if="otaPhase === 'verifying'">设备重启后将自动恢复连接</text>
+				<!-- 取消按钮（仅 verifying 阶段可取消） -->
+				<view class="ota-cancel" v-if="otaPhase === 'verifying'" @click="cancelOta">
+					<text>取消等待</text>
+				</view>
+			</view>
+		</view>
+
 		<Loading :visible="loadingVisible" :text="loadingText" />
 
 		<!-- 确认 -->
@@ -67,9 +88,19 @@
 import Loading from '../../components/Loading';
 import CustomModal from '../../components/CustomModal';
 import apiService from '../../services/api';
+import constants from '../../config/constants';
 import deviceMixin from '../../mixins/device-mixin.js';
 import modalMixin from '../../mixins/modal-mixin.js';
 import { isValidUrl, isNonEmpty } from '../../utils/validator';
+
+// OTA 阶段文案
+const PHASE_LABELS = {
+	connecting: '正在连接 WiFi...',
+	downloading: '正在下载固件...',
+	verifying: '等待设备重启...',
+	done: '升级完成',
+	failed: '升级异常'
+};
 
 export default {
 	components: { Loading, CustomModal },
@@ -81,10 +112,25 @@ export default {
 				confirmModalVisible: false, confirmModalContent: '设备将开始固件升级，升级完成后自动重启。确定继续吗？',
 				validateModalVisible: false, validateModalTitle: '输入验证',
 				validateModalContent: '请输入 "upgrade" 确认升级', validateModalPlaceholder: '请输入 upgrade',
-				resultModalVisible: false, resultModalTitle: '', resultModalContent: ''
+				resultModalVisible: false, resultModalTitle: '', resultModalContent: '',
+				// OTA 进度追踪
+				otaProgress: 0,
+				otaPhase: 'idle', // idle | connecting | downloading | verifying | done | failed
+				_progressTimer: null,
+				_pollTimer: null,
+				_verifyStart: 0
 		};
 	},
+	computed: {
+		phaseLabel() {
+			return PHASE_LABELS[this.otaPhase] || '';
+		},
+		defaultIp() {
+			return constants.DEFAULT_IP;
+		}
+	},
 	onLoad() { this.checkDevice(); this.loadSaved(); this.getFw(); },
+	onUnload() { this.cancelOta(); },
 	methods: {
 		loadSaved() {
 			const u = uni.getStorageSync('otaUrl'); if (u) this.firmwareUrl = u;
@@ -105,10 +151,104 @@ export default {
 		handleValidateModalConfirm(inputValue) { this.validateModalVisible = false; if (inputValue === 'upgrade') this.performOtaUpdate(); },
 		handleValidateModalCancel() { this.validateModalVisible = false; },
 		handleResultModalConfirm() { this.resultModalVisible = false; },
+
+		// ===== OTA 进度追踪 =====
+		/**
+		 * 启动模拟进度：从当前进度匀速推进至 targetPct
+		 * @param {number} targetPct - 目标百分比
+		 * @param {number} durationMs - 匀速推进持续时长 (ms)
+		 */
+		_startSimProgress(targetPct, durationMs) {
+			this._stopSimProgress();
+			const startPct = this.otaProgress;
+			const delta = targetPct - startPct;
+			const tickMs = 200; // 每 200ms 更新一次
+			const totalTicks = Math.max(1, Math.floor(durationMs / tickMs));
+			const step = delta / totalTicks;
+			let ticks = 0;
+			this._progressTimer = setInterval(() => {
+				ticks++;
+				if (ticks >= totalTicks) {
+					this.otaProgress = targetPct;
+					this._stopSimProgress();
+					this._onProgressTargetReached();
+				} else {
+					this.otaProgress = Math.round(startPct + step * ticks);
+				}
+			}, tickMs);
+		},
+		_stopSimProgress() {
+			if (this._progressTimer) { clearInterval(this._progressTimer); this._progressTimer = null; }
+		},
+		/** 模拟进度到达目标后的回调 */
+		_onProgressTargetReached() {
+			if (this.otaPhase === 'connecting') {
+				// WiFi 连接阶段完成 → 进入下载阶段
+				this.otaPhase = 'downloading';
+				this._startSimProgress(constants.OTA_PROGRESS_MAX, 35000);
+			} else if (this.otaPhase === 'downloading') {
+				// 下载模拟完成 → 进入验证阶段，开始轮询
+				this.otaPhase = 'verifying';
+				this._verifyStart = Date.now();
+				this._startVerifyPoll();
+			}
+		},
+
+		/** 轮询 getFirmwareVersion 检测设备重启 */
+		_startVerifyPoll() {
+			this._stopVerifyPoll();
+			this._pollTimer = setInterval(() => {
+				// 超时检查
+				if (Date.now() - this._verifyStart > constants.OTA_VERIFY_TIMEOUT) {
+					this._onOtaFailed('验证超时，设备可能仍在重启中，请稍后手动确认');
+					return;
+				}
+				apiService.getFirmwareVersion().then(res => {
+					if (res && res.status === 'success' && res.data && res.data.firmware_version) {
+						// 设备恢复响应 → 升级完成
+						this._onOtaDone(res.data.firmware_version);
+					}
+				}).catch(() => {
+					// 设备离线（正在重启）→ 继续等待
+				});
+			}, constants.OTA_POLL_INTERVAL);
+		},
+		_stopVerifyPoll() {
+			if (this._pollTimer) { clearInterval(this._pollTimer); this._pollTimer = null; }
+		},
+
+		_onOtaDone(newVersion) {
+			this._stopSimProgress();
+			this._stopVerifyPoll();
+			this.otaPhase = 'done';
+			this.otaProgress = 100;
+			this.updating = false;
+			if (newVersion && newVersion !== this.currentVersion) {
+				this.currentVersion = newVersion;
+			}
+		},
+		_onOtaFailed(msg) {
+			this._stopSimProgress();
+			this._stopVerifyPoll();
+			this.otaPhase = 'failed';
+			this.updating = false;
+			this.showToast('升级异常', msg, 'error');
+		},
+
+		/** 用户取消等待（仅 verifying 阶段） */
+		cancelOta() {
+			this._stopSimProgress();
+			this._stopVerifyPoll();
+			this.otaPhase = 'idle';
+			this.otaProgress = 0;
+			this.updating = false;
+		},
+
 		async performOtaUpdate() {
 			try {
 				this.updating = true;
-				this.showLoading('正在升级...');
+				this.otaProgress = 0;
+				this.otaPhase = 'connecting';
 				const data = { firmware_url: this.firmwareUrl };
 				if (this.wifiSsid) { data.wifi_ssid = this.wifiSsid; if (this.wifiPassword) data.wifi_password = this.wifiPassword; }
 				const res = await apiService.otaUpdate(data);
@@ -116,14 +256,30 @@ export default {
 					uni.setStorageSync('otaUrl', this.firmwareUrl);
 					if (this.wifiSsid) { uni.setStorageSync('wifiSsid', this.wifiSsid); if (this.wifiPassword) uni.setStorageSync('wifiPassword', this.wifiPassword); }
 					else { uni.removeStorageSync('wifiSsid'); uni.removeStorageSync('wifiPassword'); }
-					if (res.data.message === '正在连接WiFi') { this.resultModalTitle = '连接 WiFi'; this.resultModalContent = '正在连接 WiFi：' + res.data.wifi_ssid; }
-					else if (res.data.message === 'OTA升级开始') { this.resultModalTitle = '升级开始'; this.resultModalContent = '固件升级已开始，设备将在升级完成后自动重启'; }
-					else { this.resultModalTitle = '升级成功'; this.resultModalContent = '固件升级命令已发送，设备将开始升级'; }
-					this.resultModalVisible = true;
-				} else { this.showToast('失败', (res && res.data && res.data.message) || '升级失败', 'error'); }
-				} catch (e) { this.showToast('失败', e.message || '升级失败', 'error'); }
-				finally { this.updating = false; this.hideLoading(); }
+					if (res.data.message === '正在连接WiFi') {
+						// WiFi 连接阶段 → 0→15% 模拟 (5s)
+						this.otaPhase = 'connecting';
+						this._startSimProgress(15, 5000);
+					} else if (res.data.message === 'OTA升级开始') {
+						// 跳过 WiFi 连接，直接下载 → 0→80% 模拟 (40s)
+						this.otaPhase = 'downloading';
+						this._startSimProgress(constants.OTA_PROGRESS_MAX, 40000);
+					} else {
+						// 其他响应 → 按 downloading 处理
+						this.otaPhase = 'downloading';
+						this._startSimProgress(constants.OTA_PROGRESS_MAX, 40000);
+					}
+				} else {
+					this.otaPhase = 'failed';
+					this.updating = false;
+					this.showToast('失败', (res && res.data && res.data.message) || '升级失败', 'error');
+				}
+			} catch (e) {
+				this.otaPhase = 'failed';
+				this.updating = false;
+				this.showToast('失败', e.message || '升级失败', 'error');
 			}
+		}
 	}
 };
 </script>
@@ -151,4 +307,57 @@ export default {
 .btn-primary { background: #1677FF; }
 .btn-primary text { color: #FFF; font-size: 30rpx; font-weight: 500; }
 .btn.off { opacity: 0.5; }
+
+/* ===== OTA 进度遮罩 ===== */
+.ota-overlay {
+	position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+	background: rgba(0,0,0,0.5);
+	display: flex; align-items: center; justify-content: center;
+	z-index: 9999;
+	animation: fadeIn 200ms ease-out;
+}
+.ota-panel {
+	width: 80%; max-width: 500rpx;
+	background: #FFF; border-radius: 32rpx;
+	padding: 56rpx 40rpx 40rpx;
+	display: flex; flex-direction: column; align-items: center;
+	box-shadow: 0 16rpx 48rpx rgba(0,0,0,0.12);
+	animation: popIn 250ms cubic-bezier(0.34,1.56,0.64,1);
+}
+@keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+@keyframes popIn { from { opacity: 0; transform: scale(0.92) translateY(16rpx); } to { opacity: 1; transform: scale(1) translateY(0); } }
+
+/* 进度百分比 */
+.ota-ring-wrap { width: 100%; margin-bottom: 32rpx; }
+.ota-ring {
+	display: flex; align-items: baseline; justify-content: center;
+	margin-bottom: 20rpx;
+}
+.ota-pct { font-size: 72rpx; font-weight: 700; color: #1677FF; line-height: 1; }
+.ota-pct-sign { font-size: 28rpx; color: #1677FF; margin-left: 4rpx; }
+.ota-bar { width: 100%; border-radius: 8rpx; }
+
+/* 阶段文字 */
+.ota-phase {
+	font-size: 30rpx; font-weight: 600; color: #1A1A1A;
+	text-align: center; margin-bottom: 12rpx;
+}
+.ota-hint {
+	font-size: 24rpx; color: #999; text-align: center;
+	margin-bottom: 24rpx;
+}
+
+/* 取消按钮 */
+.ota-cancel {
+	padding: 16rpx 32rpx; border-radius: 20rpx;
+	background: #F5F5F5; transition: 150ms;
+}
+.ota-cancel:active { background: #EBEBEB; }
+.ota-cancel text { font-size: 26rpx; color: #666; font-weight: 500; }
+
+/* 结果高亮 */
+.ota-panel.done .ota-pct { color: #00B96B; }
+.ota-panel.done .ota-pct-sign { color: #00B96B; }
+.ota-panel.failed .ota-pct { color: #FF4D4F; }
+.ota-panel.failed .ota-pct-sign { color: #FF4D4F; }
 </style>
