@@ -110,10 +110,10 @@
 				</view>
 			</view>
 
-			<view class="btn btn-primary" @click="navigateBack">
+			<view class="btn btn-primary" @click="navigateBack" role="button" aria-label="进入控制面板">
 				<text>进入控制面板</text>
 			</view>
-			<view class="btn btn-danger" @click="handleDisconnect">
+			<view class="btn-danger-outline" @click="handleDisconnect" role="button" aria-label="断开当前设备连接">
 				<text>断开连接</text>
 			</view>
 		</view>
