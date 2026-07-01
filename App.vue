@@ -62,6 +62,15 @@
 		padding: 8rpx 0 16rpx 4rpx;
 	}
 
+	/* 表单 label */
+	.label {
+		display: block;
+		font-size: 26rpx;
+		color: $text-regular;
+		font-weight: 500;
+		margin-bottom: 12rpx;
+	}
+
 	/* 按钮（标准主按钮）*/
 	.btn {
 		padding: 28rpx 32rpx;

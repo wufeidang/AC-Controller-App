@@ -109,7 +109,6 @@ export default {
 
 .form-item { margin-bottom: 28rpx; }
 .form-item:last-child { margin-bottom: 0; }
-.label { display: block; font-size: 26rpx; color: $text-regular; font-weight: 500; margin-bottom: 12rpx; }
 .hint { display: block; font-size: $fs-caption; color: $text-hint; margin-top: 8rpx; }
 
 .info-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16rpx; }

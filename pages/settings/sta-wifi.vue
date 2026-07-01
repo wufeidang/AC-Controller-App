@@ -112,7 +112,6 @@ export default {
 .badge.on text { color: $color-success; }
 .form-item { margin-bottom: 24rpx; position: relative; }
 .form-item:last-child { margin-bottom: 0; }
-.label { display: block; font-size: 26rpx; color: $text-regular; font-weight: 500; margin-bottom: 12rpx; }
 .pw-toggle { position: absolute; right: 16rpx; top: 44rpx; padding: 8rpx 12rpx; }
 .pw-toggle text { font-size: $fs-label; color: $brand-primary; }
 .tips { display: flex; flex-direction: column; gap: 12rpx; }

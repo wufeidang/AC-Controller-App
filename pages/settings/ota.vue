@@ -317,10 +317,6 @@ export default {
 
 	.form-item { margin-bottom: 24rpx; }
 	.form-item:last-child { margin-bottom: 0; }
-	.label {
-		display: block; font-size: 26rpx; color: $text-regular;
-		font-weight: 500; margin-bottom: 12rpx;
-	}
 
 	/* 密码框眼睛按钮（叠加在焦点发光输入框右侧） */
 	.input-wrap .pw-eye {

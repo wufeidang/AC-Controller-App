@@ -368,9 +368,9 @@ import { isValidAddress } from '../../utils/validator';
 	};
 </script>
 
-<style scoped lang="scss">
-.page { min-height: 100vh; background: $bg-page; }
-.body { padding: 32rpx; }
+<style lang="scss">
+/* .page / .body / .card / .btn-danger-outline 由 App.vue 全局提供
+   本页 .btn 更宽（96rpx 高 + 阴影），局部覆盖；.input-wrap 加宽到 96rpx 容纳大字号 */
 
 /* Hero */
 .hero { display: flex; flex-direction: column; align-items: center; padding: 48rpx 0 32rpx; }
@@ -385,9 +385,8 @@ import { isValidAddress } from '../../utils/validator';
 .hero-title { font-size: 38rpx; font-weight: 700; color: $text-primary; margin-bottom: 6rpx; }
 .hero-desc { font-size: 26rpx; color: $text-hint; }
 
-/* 卡片 */
-.card { background: $bg-card; border-radius: $radius-xl; padding: 32rpx; margin-bottom: 24rpx; box-shadow: $shadow-sm; overflow: hidden; }
-.card-title { font-size: $fs-body; font-weight: 700; color: $text-primary; display: block; margin-bottom: 20rpx; }
+/* card-title 本页略小于全局（$fs-body vs $fs-title）*/
+.card-title { font-size: $fs-body; }
 
 /* WiFi 行 */
 .wifi-row { display: flex; align-items: center; justify-content: space-between; margin-bottom: 16rpx; }
@@ -433,29 +432,19 @@ import { isValidAddress } from '../../utils/validator';
 .md-id { font-size: $fs-label; color: $text-hint; }
 .md-arr { font-size: $fs-body; color: $text-disabled; font-weight: 300; }
 
-/* 输入 */
+/* 输入（device 页需要 96rpx 高配大字号，覆盖全局 80rpx 版本） */
 .field { margin-bottom: 24rpx; }
-.label { display: block; font-size: 26rpx; color: $text-regular; font-weight: 500; margin-bottom: 12rpx; }
-.input-wrap {
-	height: 96rpx; padding: 0 24rpx; background: $bg-elevated; border-radius: 18rpx;
-	border: 2rpx solid transparent; transition: all 200ms;
-}
-.input-wrap.focus { background: $bg-card; border-color: $brand-primary; box-shadow: 0 0 0 6rpx rgba(22, 119, 255, 0.07); }
-.input { width: 100%; height: 96rpx; font-size: $fs-title; color: $text-primary; font-weight: 500; }
-.ph { color: $text-disabled; }
+.input-wrap { height: 96rpx; padding: 0 24rpx; border-radius: 18rpx; }
+.input { height: 96rpx; font-size: $fs-title; color: $text-primary; font-weight: 500; }
 
-/* 按钮 */
+/* 页内主按钮更宽（96rpx）+ 阴影 */
 .btn {
 	height: 96rpx; border-radius: $radius-lg;
 	display: flex; align-items: center; justify-content: center;
-	transition: 150ms; background: $brand-primary;
 	box-shadow: 0 8rpx 20rpx rgba(22, 119, 255, 0.25);
 }
 .btn:active { transform: scale(0.99); }
-.btn text { font-size: $fs-title; font-weight: 600; color: $bg-card; }
-.btn.off { opacity: 0.5; box-shadow: none; }
-.btn-danger { background: $color-danger-bg; box-shadow: none; margin-top: 0; }
-.btn-danger text { color: $color-danger; }
+.btn text { font-size: $fs-title; font-weight: 600; }
 .btn-primary { margin-bottom: 16rpx; }
 
 /* 已连接 */
