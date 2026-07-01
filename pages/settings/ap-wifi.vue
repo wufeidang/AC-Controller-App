@@ -80,26 +80,18 @@
 };
 </script>
 
-<style scoped lang="scss">
-.page { min-height: 100vh; background: $bg-page; }
-.body { padding: 32rpx; }
+<style lang="scss">
+/* .page / .body / .card / .card-title / .btn / .input-wrap 均已全局化（App.vue） */
 
-.card { background: $bg-card; border-radius: $radius-xl; padding: 32rpx; margin-bottom: 24rpx; box-shadow: $shadow-sm; }
-.card-title { font-size: $fs-title; font-weight: 600; color: $text-primary; margin-bottom: 24rpx; display: block; }
+/* .card-title 在本页面需要额外 24rpx 间距 */
+.card-title { margin-bottom: 24rpx; }
 
 .form-item { margin-bottom: 24rpx; position: relative; }
 .form-item:last-child { margin-bottom: 0; }
 .label { display: block; font-size: 26rpx; color: $text-regular; font-weight: 500; margin-bottom: 12rpx; }
-.input { width: 100%; height: 80rpx; padding: 0 20rpx; border: 1rpx solid $border-normal; border-radius: $radius-md; font-size: $fs-body; color: $text-regular; background: $bg-card; box-sizing: border-box; }
 .pw-toggle { position: absolute; right: 16rpx; top: 44rpx; padding: 8rpx 12rpx; }
 .pw-toggle text { font-size: $fs-label; color: $brand-primary; }
 
 .tips { display: flex; flex-direction: column; gap: 12rpx; }
 .tips text { font-size: $fs-label; color: $text-secondary; line-height: 1.6; }
-
-.btn { padding: 28rpx 32rpx; border-radius: $radius-xl; text-align: center; margin-bottom: 32rpx; transition: 150ms; }
-.btn:active { transform: scale(0.98); }
-.btn-primary { background: $brand-primary; }
-.btn-primary text { color: $bg-card; font-size: $fs-title; font-weight: 500; }
-.btn.off { opacity: 0.5; }
 </style>

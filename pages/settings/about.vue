@@ -136,18 +136,29 @@
 };
 </script>
 
-<style scoped lang="scss">
-.page { min-height: 100vh; background: $bg-page; }
-.body { padding: 32rpx; padding-bottom: 60rpx; }
+<style lang="scss">
+/* .page / .card / .card-title / .btn 均已全局化（App.vue） */
 
-.hero { background: $bg-card; border-radius: $radius-xl; padding: 48rpx 32rpx; margin-bottom: 24rpx; display: flex; flex-direction: column; align-items: center; box-shadow: $shadow-sm; }
-.hero-icon { width: 120rpx; height: 120rpx; background: linear-gradient(135deg, $brand-primary, #69B1FF); border-radius: 28rpx; display: flex; align-items: center; justify-content: center; margin-bottom: 24rpx; box-shadow: 0 8rpx 24rpx rgba(22,119,255,0.25); }
+/* about 页底部需要更多 padding 适应底部安全区 */
+.body { padding-bottom: 60rpx; }
+
+.hero {
+	background: $bg-card; border-radius: $radius-xl;
+	padding: 48rpx 32rpx; margin-bottom: 24rpx;
+	display: flex; flex-direction: column; align-items: center;
+	box-shadow: $shadow-sm;
+}
+.hero-icon {
+	width: 120rpx; height: 120rpx;
+	background: linear-gradient(135deg, $brand-primary, #69B1FF);
+	border-radius: 28rpx;
+	display: flex; align-items: center; justify-content: center;
+	margin-bottom: 24rpx;
+	box-shadow: 0 8rpx 24rpx rgba(22, 119, 255, 0.25);
+}
 .hero-img { width: 64rpx; height: 64rpx; filter: brightness(0) invert(1); }
 .hero-name { font-size: $fs-heading; font-weight: 700; color: $text-primary; margin-bottom: 8rpx; }
 .hero-desc { font-size: 26rpx; color: $text-hint; }
-
-.card { background: $bg-card; border-radius: $radius-xl; padding: 32rpx; margin-bottom: 24rpx; box-shadow: $shadow-sm; }
-.card-title { font-size: $fs-title; font-weight: 600; color: $text-primary; margin-bottom: 20rpx; display: block; }
 
 .row { display: flex; justify-content: space-between; align-items: center; padding: 16rpx 0; border-bottom: 1rpx solid $bg-page; }
 .row:last-child { border-bottom: none; }

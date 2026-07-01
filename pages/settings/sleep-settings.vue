@@ -89,13 +89,13 @@ export default {
 };
 </script>
 
-<style scoped lang="scss">
-.page { min-height: 100vh; background: $bg-page; }
-.body { padding: 32rpx; }
-.desc { font-size: 26rpx; color: $text-hint; margin-bottom: 24rpx; }
+<style lang="scss">
+/* .page / .body / .card / .card-title / .btn / .input-wrap 均已全局化（App.vue） */
 
-.card { background: $bg-card; border-radius: $radius-xl; padding: 32rpx; margin-bottom: 24rpx; box-shadow: $shadow-sm; }
-.card-title { font-size: $fs-title; font-weight: 600; color: $text-primary; margin-bottom: 16rpx; display: block; }
+/* 本页 card-title 需要 16rpx 紧凑间距 */
+.card-title { margin-bottom: 16rpx; }
+
+.desc { font-size: 26rpx; color: $text-hint; margin-bottom: 24rpx; }
 
 .switch-row { display: flex; justify-content: space-between; align-items: center; }
 .switch-info { display: flex; align-items: center; gap: 16rpx; flex: 1; }
@@ -106,10 +106,3 @@ export default {
 
 .tips { display: flex; flex-direction: column; gap: 12rpx; }
 .tips text { font-size: $fs-label; color: $text-secondary; line-height: 1.6; }
-
-.btn { padding: 28rpx 32rpx; border-radius: $radius-xl; text-align: center; margin-bottom: 32rpx; transition: 150ms; }
-.btn:active { transform: scale(0.98); }
-.btn-primary { background: $brand-primary; }
-.btn-primary text { color: $bg-card; font-size: $fs-title; font-weight: 500; }
-.btn.off { opacity: 0.5; }
-</style>

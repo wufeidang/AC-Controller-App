@@ -34,12 +34,12 @@
 };
 </script>
 
-<style scoped lang="scss">
-.page { min-height: 100vh; background: $bg-page; }
-.body { padding: 32rpx; }
-.desc { font-size: 26rpx; color: $text-hint; margin-bottom: 24rpx; }
-.card { background: $bg-card; border-radius: $radius-xl; box-shadow: $shadow-sm; overflow: hidden; margin-bottom: 24rpx; }
-.card-title { font-size: $fs-title; font-weight: 600; color: $text-primary; padding: 32rpx 32rpx 0; display: block; }
+<style lang="scss">
+/* .page / .body / .btn / .input-wrap 均已全局化（App.vue） */
+
+/* 本页 .card 使用无 padding 形式（padding 在子元素里控制） */
+.card { padding: 0; }
+.card-title { padding: 32rpx 32rpx 0; margin-bottom: 0; }
+
 .tips { padding: 20rpx 32rpx 32rpx; display: flex; flex-direction: column; gap: 12rpx; }
 .tips text { font-size: $fs-label; color: $text-secondary; line-height: 1.6; }
-</style>

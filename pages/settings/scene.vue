@@ -111,34 +111,51 @@ export default {
 };
 </script>
 
-<style scoped lang="scss">
-.page { min-height: 100vh; background: $bg-page; }
-.body { padding: 32rpx; }
-.desc { font-size: 26rpx; color: $text-hint; margin-bottom: 24rpx; }
+	<style lang="scss">
+	/* .page / .body / .card / .card-title / .btn 均已全局化（App.vue） */
 
-.notice { display: flex; align-items: flex-start; gap: 10rpx; padding: 20rpx 24rpx; background: $brand-primary-bg; border-radius: $radius-lg; margin-bottom: 24rpx; }
-.notice-icon { width: 28rpx; height: 28rpx; flex-shrink: 0; }
-.notice-text { font-size: $fs-label; color: $brand-primary-hover; line-height: 1.5; }
+	.desc {
+		font-size: 26rpx; color: $text-hint;
+		margin-bottom: 24rpx;
+	}
 
-.scene-list { display: flex; flex-direction: column; gap: 16rpx; margin-bottom: 32rpx; }
-.scene-card { background: $bg-card; border-radius: $radius-xl; padding: 28rpx 32rpx; border: 2rpx solid transparent; transition: 150ms; box-shadow: $shadow-sm; }
-.scene-card:active { transform: scale(0.98); }
-.scene-card.active { border-color: $brand-primary; }
-.scene-top { display: flex; align-items: center; gap: 16rpx; }
-.scene-icon { width: 48rpx; height: 48rpx; }
-.scene-info { flex: 1; }
-.scene-name { font-size: $fs-title; font-weight: 600; color: $text-primary; display: block; }
-.scene-desc { font-size: $fs-label; color: $text-hint; margin-top: 4rpx; display: block; }
-.scene-check { width: 44rpx; height: 44rpx; border-radius: 50%; background: $brand-primary; display: flex; align-items: center; justify-content: center; }
-.check-mark { color: $bg-card; font-size: $fs-label; font-weight: 700; }
-.scene-params { display: flex; gap: 24rpx; margin-top: 20rpx; padding-top: 20rpx; border-top: 1rpx solid $bg-subtle; }
-.param { display: flex; align-items: center; gap: 6rpx; }
-.param-icon { width: 24rpx; height: 24rpx; }
-.param text { font-size: $fs-label; color: $text-secondary; }
+	.notice {
+		display: flex; align-items: flex-start; gap: 10rpx;
+		padding: 20rpx 24rpx; background: $brand-primary-bg;
+		border-radius: $radius-lg; margin-bottom: 24rpx;
+	}
+	.notice-icon { width: 28rpx; height: 28rpx; flex-shrink: 0; }
+	.notice-text { font-size: $fs-label; color: $brand-primary-hover; line-height: 1.5; }
 
-.btn { padding: 28rpx 32rpx; border-radius: $radius-xl; text-align: center; margin-bottom: 32rpx; transition: 150ms; }
-.btn:active { transform: scale(0.98); }
-.btn-primary { background: $brand-primary; }
-.btn-primary text { color: $bg-card; font-size: $fs-title; font-weight: 500; }
-.btn.off { opacity: 0.5; }
-</style>
+	.scene-list {
+		display: flex; flex-direction: column; gap: 16rpx;
+		margin-bottom: 32rpx;
+	}
+	.scene-card {
+		background: $bg-card; border-radius: $radius-xl;
+		padding: 28rpx 32rpx;
+		border: 2rpx solid transparent;
+		transition: 150ms; box-shadow: $shadow-sm;
+	}
+	.scene-card:active { transform: scale(0.98); }
+	.scene-card.active { border-color: $brand-primary; }
+	.scene-top { display: flex; align-items: center; gap: 16rpx; }
+	.scene-icon { width: 48rpx; height: 48rpx; }
+	.scene-info { flex: 1; }
+	.scene-name { font-size: $fs-title; font-weight: 600; color: $text-primary; display: block; }
+	.scene-desc { font-size: $fs-label; color: $text-hint; margin-top: 4rpx; display: block; }
+	.scene-check {
+		width: 44rpx; height: 44rpx; border-radius: 50%;
+		background: $brand-primary;
+		display: flex; align-items: center; justify-content: center;
+	}
+	.check-mark { color: $bg-card; font-size: $fs-label; font-weight: 700; }
+	.scene-params {
+		display: flex; gap: 24rpx;
+		margin-top: 20rpx; padding-top: 20rpx;
+		border-top: 1rpx solid $bg-subtle;
+	}
+	.param { display: flex; align-items: center; gap: 6rpx; }
+	.param-icon { width: 24rpx; height: 24rpx; }
+	.param text { font-size: $fs-label; color: $text-secondary; }
+	</style>

@@ -4,40 +4,47 @@
 			<!-- 温度校准 -->
 			<view class="card">
 				<text class="card-title">温度校准</text>
-				<view class="val-row">
-					<text class="val-label">偏移值</text>
-					<text class="val-num" :class="{ plus: tempOffset > 0, minus: tempOffset < 0 }">{{ tempOffset > 0 ? '+' : '' }}{{ tempOffset.toFixed(1) }}°C</text>
-				</view>
-				<slider :value="tempOffset" @changing="onTempChanging" :min="-5.0" :max="5.0" :step="0.1"
-					activeColor="#1677FF" backgroundColor="#F0F0F0" block-size="22" />
-				<view class="range"><text>-5.0</text><text>+5.0</text></view>
-					<view class="quick">
-						<view class="q-btn" @click="adjustTemp(-1.0)"><text>-1.0</text></view>
-						<view class="q-btn" @click="adjustTemp(-0.5)" @touchstart="startHold(() => adjustTemp(-0.5))" @touchend="stopHold" @touchcancel="stopHold"><text>-0.5</text></view>
-						<view class="q-btn reset" @click="resetTemp"><text>重置</text></view>
-						<view class="q-btn" @click="adjustTemp(0.5)" @touchstart="startHold(() => adjustTemp(0.5))" @touchend="stopHold" @touchcancel="stopHold"><text>+0.5</text></view>
-						<view class="q-btn" @click="adjustTemp(1.0)"><text>+1.0</text></view>
-					</view>
+				<SliderControl
+					label="偏移值"
+					:min="-5.0" :max="5.0" :step="0.1"
+					activeColor="#1677FF"
+					unit="°C"
+					:value-decimals="1"
+					:value="tempOffset"
+					:range-min-label="'-5.0'"
+					:range-max-label="'+5.0'"
+					:quick-buttons="[
+						{ label: '-1.0', delta: -1.0 },
+						{ label: '-0.5', delta: -0.5 },
+						{ label: '重置', reset: true, resetVal: 0 },
+						{ label: '+0.5', delta: 0.5 },
+						{ label: '+1.0', delta: 1.0 }
+					]"
+					@changing="(v) => tempOffset = v"
+				/>
 				<text class="hint">正值表示增加显示温度，用于校准传感器读数</text>
 			</view>
 
 			<!-- 湿度校准 -->
 			<view class="card">
 				<text class="card-title">湿度校准</text>
-				<view class="val-row">
-					<text class="val-label">偏移值</text>
-					<text class="val-num" :class="{ plus: humOffset > 0, minus: humOffset < 0 }">{{ humOffset > 0 ? '+' : '' }}{{ humOffset.toFixed(0) }}%</text>
-				</view>
-				<slider :value="humOffset" @changing="onHumChanging" :min="-10" :max="10" :step="1"
-					activeColor="#13C2C2" backgroundColor="#F0F0F0" block-size="22" />
-				<view class="range"><text>-10</text><text>+10</text></view>
-					<view class="quick">
-						<view class="q-btn" @click="adjustHum(-5)"><text>-5</text></view>
-						<view class="q-btn" @click="adjustHum(-1)" @touchstart="startHold(() => adjustHum(-1))" @touchend="stopHold" @touchcancel="stopHold"><text>-1</text></view>
-						<view class="q-btn reset" @click="resetHum"><text>重置</text></view>
-						<view class="q-btn" @click="adjustHum(1)" @touchstart="startHold(() => adjustHum(1))" @touchend="stopHold" @touchcancel="stopHold"><text>+1</text></view>
-						<view class="q-btn" @click="adjustHum(5)"><text>+5</text></view>
-					</view>
+				<SliderControl
+					label="偏移值"
+					:min="-10" :max="10" :step="1"
+					activeColor="#13C2C2"
+					unit="%"
+					:value="humOffset"
+					:range-min-label="'-10'"
+					:range-max-label="'+10'"
+					:quick-buttons="[
+						{ label: '-5', delta: -5 },
+						{ label: '-1', delta: -1 },
+						{ label: '重置', reset: true, resetVal: 0 },
+						{ label: '+1', delta: 1 },
+						{ label: '+5', delta: 5 }
+					]"
+					@changing="(v) => humOffset = v"
+				/>
 				<text class="hint">正值表示增加显示湿度，用于校准传感器读数</text>
 			</view>
 
@@ -53,7 +60,7 @@
 				</view>
 			</view>
 
-			<view class="btn btn-primary" @click="saveCalibration" :class="{ off: !deviceConnected || saving }">
+			<view class="btn btn-primary" @click="saveCalibration" :class="{ off: !deviceConnected || saving }" role="button" aria-label="保存校准">
 				<text>{{ saving ? '保存中...' : '保存校准' }}</text>
 			</view>
 		</view>
@@ -69,12 +76,13 @@
 <script>
 import Loading from '../../components/Loading';
 import CustomModal from '../../components/CustomModal';
+import SliderControl from '../../components/SliderControl';
 import apiService from '../../services/api';
 import deviceMixin from '../../mixins/device-mixin.js';
 import modalMixin from '../../mixins/modal-mixin';
 
 export default {
-	components: { Loading, CustomModal },
+	components: { Loading, CustomModal, SliderControl },
 		mixins: [deviceMixin, modalMixin],
 	data() {
 		return {
@@ -96,20 +104,6 @@ export default {
 			} catch (e) { /* 静默 */ }
 			finally { this.hideLoading(); }
 		},
-		onTempChanging(e) { this.tempOffset = parseFloat(e.detail.value); },
-		onHumChanging(e) { this.humOffset = parseInt(e.detail.value); },
-			adjustTemp(d) {
-				const v = Math.max(-5, Math.min(5, +(this.tempOffset + d).toFixed(1)));
-				if (v === this.tempOffset) { this.stopHold(); return; }
-				this.tempOffset = v;
-			},
-			adjustHum(d) {
-				const v = Math.max(-10, Math.min(10, this.humOffset + d));
-				if (v === this.humOffset) { this.stopHold(); return; }
-				this.humOffset = v;
-			},
-		resetTemp() { this.tempOffset = 0; },
-		resetHum() { this.humOffset = 0; },
 		async saveCalibration() {
 			if (!this.deviceConnected) { this.showToast('提示', '请先连接设备'); return; }
 			if (this.saving) return;
@@ -119,43 +113,25 @@ export default {
 				const res = await apiService.setCalibration({ temp_offset: this.tempOffset, hum_offset: this.humOffset });
 				if (res.status === 'success') { this.showToast('成功', '保存成功'); }
 				else { this.showToast('失败', (res.data && res.data.message) || '保存失败'); }
-			} catch (e) { this.showToast('失败', e.message || '保存失败'); }
-			finally { this.saving = false; this.hideLoading(); }
+			} catch (e) {
+				this.showToast('失败', e.message || '保存失败');
+			} finally {
+				this.saving = false;
+				this.hideLoading();
+			}
 		}
 	}
 };
 </script>
 
-<style scoped lang="scss">
-.page { min-height: 100vh; background: $bg-page; }
-.body { padding: 32rpx; }
+<style lang="scss">
+/* .page / .body / .card / .card-title / .btn 均已全局化（App.vue） */
 
-.card { background: $bg-card; border-radius: $radius-xl; padding: 32rpx; margin-bottom: 24rpx; box-shadow: $shadow-sm; }
-.card-title { font-size: $fs-title; font-weight: 600; color: $text-primary; margin-bottom: 24rpx; display: block; }
-
-.val-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16rpx; }
-.val-label { font-size: 26rpx; color: $text-secondary; }
-.val-num { font-size: 32rpx; font-weight: 700; color: $text-regular; }
-.val-num.plus { color: $color-danger; }
-.val-num.minus { color: $brand-primary; }
-
-.range { display: flex; justify-content: space-between; margin-bottom: 20rpx; }
-.range text { font-size: $fs-caption; color: $text-disabled; }
-
-.quick { display: flex; gap: 16rpx; margin-bottom: 16rpx; }
-.q-btn { flex: 1; padding: 14rpx 8rpx; border-radius: $radius-md; background: $bg-page; text-align: center; transition: 150ms; }
-.q-btn:active { transform: scale(0.96); background: $bg-subtle; }
-.q-btn text { font-size: $fs-label; color: $text-regular; font-weight: 500; }
-.q-btn.reset text { color: $text-hint; }
-
-.hint { font-size: $fs-caption; color: $text-hint; line-height: 1.5; display: block; }
-
+.hint {
+	font-size: $fs-caption; color: $text-hint;
+	line-height: 1.5; display: block;
+	margin-top: 12rpx;
+}
 .tips { display: flex; flex-direction: column; gap: 12rpx; }
 .tips text { font-size: $fs-label; color: $text-secondary; line-height: 1.6; }
-
-.btn { padding: 28rpx 32rpx; border-radius: $radius-xl; text-align: center; margin-bottom: 32rpx; transition: 150ms; }
-.btn:active { transform: scale(0.98); }
-.btn-primary { background: $brand-primary; }
-.btn-primary text { color: $bg-card; font-size: $fs-title; font-weight: 500; }
-.btn.off { opacity: 0.5; }
 </style>

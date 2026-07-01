@@ -101,17 +101,15 @@ export default {
 };
 </script>
 
-<style scoped lang="scss">
-.page { min-height: 100vh; background: $bg-page; }
-.body { padding: 32rpx; }
+<style lang="scss">
+/* .page / .body / .card / .card-title / .btn / .input-wrap 均已全局化（App.vue） */
 
-.card { background: $bg-card; border-radius: $radius-xl; padding: 32rpx; margin-bottom: 24rpx; box-shadow: $shadow-sm; }
-.card-title { font-size: $fs-title; font-weight: 600; color: $text-primary; margin-bottom: 24rpx; display: block; }
+/* 本页 card-title 需要 24rpx 间距 */
+.card-title { margin-bottom: 24rpx; }
 
 .form-item { margin-bottom: 28rpx; }
 .form-item:last-child { margin-bottom: 0; }
 .label { display: block; font-size: 26rpx; color: $text-regular; font-weight: 500; margin-bottom: 12rpx; }
-.input { width: 100%; height: 80rpx; padding: 0 20rpx; border: 1rpx solid $border-normal; border-radius: $radius-md; font-size: $fs-body; color: $text-regular; background: $bg-card; box-sizing: border-box; }
 .hint { display: block; font-size: $fs-caption; color: $text-hint; margin-top: 8rpx; }
 
 .info-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16rpx; }
@@ -119,10 +117,3 @@ export default {
 .info-label { font-size: $fs-caption; color: $text-hint; }
 .info-value { font-size: 26rpx; color: $text-regular; font-weight: 500; }
 .info-value.version { color: $brand-primary; }
-
-.btn { padding: 28rpx 32rpx; border-radius: $radius-xl; text-align: center; margin-bottom: 32rpx; transition: 150ms; }
-.btn:active { transform: scale(0.98); }
-.btn-primary { background: $brand-primary; }
-.btn-primary text { color: $bg-card; font-size: $fs-title; font-weight: 500; }
-.btn.off { opacity: 0.5; }
-</style>

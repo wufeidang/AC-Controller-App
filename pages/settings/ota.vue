@@ -12,16 +12,30 @@
 				<text class="card-title">固件升级</text>
 				<view class="form-item">
 					<text class="label">固件 URL</text>
-						<input v-model="firmwareUrl" class="input" placeholder="请输入固件下载 URL（可从 Bemfa 等平台获取）" />
+					<view class="input-wrap" :class="{ focus: focusUrl }">
+						<input v-model="firmwareUrl" class="input"
+							placeholder="请输入固件下载 URL（可从 Bemfa 等平台获取）"
+							@focus="focusUrl = true" @blur="focusUrl = false" />
+					</view>
 				</view>
 				<view class="form-item">
 					<text class="label">WiFi 名称 (SSID)</text>
-					<input v-model="wifiSsid" class="input" placeholder="用于下载固件的 WiFi" maxlength="32" />
+					<view class="input-wrap" :class="{ focus: focusSsid }">
+						<input v-model="wifiSsid" class="input" placeholder="用于下载固件的 WiFi" maxlength="32"
+							@focus="focusSsid = true" @blur="focusSsid = false" />
+					</view>
 				</view>
 				<view class="form-item">
 					<text class="label">WiFi 密码</text>
-					<input v-model="wifiPassword" :password="!showPassword" class="input" placeholder="WiFi 密码" maxlength="64" />
-					<view class="pw-toggle" @click="togglePassword"><text>{{ showPassword ? '隐藏' : '显示' }}</text></view>
+					<view class="input-wrap" :class="{ focus: focusPwd }">
+						<input v-model="wifiPassword" class="input"
+							:type="showPassword ? 'text' : 'password'"
+							placeholder="WiFi 密码" maxlength="64"
+							@focus="focusPwd = true" @blur="focusPwd = false" />
+						<view class="pw-eye" @click="togglePassword">
+							<text>{{ showPassword ? '隐藏' : '显示' }}</text>
+						</view>
+					</view>
 				</view>
 			</view>
 
@@ -111,6 +125,7 @@ export default {
 			data() {
 				return {
 					currentVersion: '', firmwareUrl: constants.OTA_DEFAULT_FIRMWARE_URL, wifiSsid: '', wifiPassword: '', showPassword: false,
+				focusUrl: false, focusSsid: false, focusPwd: false,
 				updating: false,
 				confirmModalVisible: false, confirmModalContent: '设备将开始固件升级，升级完成后自动重启。确定继续吗？',
 				validateModalVisible: false, validateModalTitle: '输入验证',
@@ -288,92 +303,90 @@ export default {
 };
 </script>
 
-<style scoped lang="scss">
-.page { min-height: 100vh; background: $bg-page; }
-.body { padding: 32rpx; }
-.card { background: $bg-card; border-radius: $radius-xl; padding: 32rpx; margin-bottom: 24rpx; box-shadow: $shadow-sm; }
-.card-title { font-size: $fs-title; font-weight: 600; color: $text-primary; margin-bottom: 20rpx; display: block; }
-.row { display: flex; justify-content: space-between; align-items: center; padding: 16rpx 0; border-bottom: 1rpx solid $bg-page; }
-.row:last-child { border-bottom: none; }
-.row-label { font-size: 26rpx; color: $text-secondary; }
-.row-val { font-size: 26rpx; color: $text-regular; font-weight: 500; }
-.row-val.version { color: $brand-primary; font-weight: 600; }
-.form-item { margin-bottom: 24rpx; position: relative; }
-.form-item:last-child { margin-bottom: 0; }
-.label { display: block; font-size: 26rpx; color: $text-regular; font-weight: 500; margin-bottom: 12rpx; }
-.input { width: 100%; height: 80rpx; padding: 0 20rpx; border: 1rpx solid $border-normal; border-radius: $radius-md; font-size: $fs-body; color: $text-regular; background: $bg-card; box-sizing: border-box; }
-.pw-toggle { position: absolute; right: 16rpx; top: 44rpx; padding: 8rpx 12rpx; }
-.pw-toggle text { font-size: $fs-label; color: $brand-primary; }
-.tips { display: flex; flex-direction: column; gap: 12rpx; }
-.tips text { font-size: $fs-label; color: $text-secondary; line-height: 1.6; }
-.btn { padding: 28rpx 32rpx; border-radius: $radius-xl; text-align: center; margin-bottom: 32rpx; transition: 150ms; }
-.btn:active { transform: scale(0.98); }
-.btn-primary { background: $brand-primary; }
-.btn-primary text { color: $bg-card; font-size: $fs-title; font-weight: 500; }
-.btn.off { opacity: 0.5; }
+	<style lang="scss">
+	/* .page / .body / .card / .card-title / .btn / .input-wrap 均已全局化（App.vue） */
 
-/* ===== OTA 进度遮罩 ===== */
-.ota-overlay {
-	position: fixed; top: 0; left: 0; right: 0; bottom: 0;
-	background: rgba(0,0,0,0.5);
-	display: flex; align-items: center; justify-content: center;
-	z-index: 9999;
-	animation: fadeIn 200ms ease-out;
-}
-.ota-panel {
-	width: 80%; max-width: 500rpx;
-	background: $bg-card; border-radius: 32rpx;
-	padding: 56rpx 40rpx 40rpx;
-	display: flex; flex-direction: column; align-items: center;
-	box-shadow: 0 16rpx 48rpx rgba(0,0,0,0.12);
-	animation: popIn 250ms cubic-bezier(0.34,1.56,0.64,1);
-}
-@keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
-@keyframes popIn { from { opacity: 0; transform: scale(0.92) translateY(16rpx); } to { opacity: 1; transform: scale(1) translateY(0); } }
+	.row {
+		display: flex; justify-content: space-between; align-items: center;
+		padding: 16rpx 0; border-bottom: 1rpx solid $bg-page;
+	}
+	.row:last-child { border-bottom: none; }
+	.row-label { font-size: 26rpx; color: $text-secondary; }
+	.row-val { font-size: 26rpx; color: $text-regular; font-weight: 500; }
+	.row-val.version { color: $brand-primary; font-weight: 600; }
 
-/* 标题 */
-.ota-title {
-	font-size: 34rpx; font-weight: 600; color: $text-primary;
-	text-align: center; margin-bottom: 20rpx;
-}
-/* 警告说明 */
-.ota-warn {
-	display: flex; align-items: center; gap: 8rpx;
-	background: $color-warning-bg; border: 1rpx solid #FFE58F; border-radius: $radius-md;
-	padding: 12rpx 20rpx; margin-bottom: 28rpx; width: 100%; box-sizing: border-box;
-}
-.ota-warn-icon { font-size: $fs-body; }
-.ota-warn-text { font-size: $fs-caption; color: #AD6800; line-height: 1.4; }
+	.form-item { margin-bottom: 24rpx; }
+	.form-item:last-child { margin-bottom: 0; }
+	.label {
+		display: block; font-size: 26rpx; color: $text-regular;
+		font-weight: 500; margin-bottom: 12rpx;
+	}
 
-/* 进度百分比 */
-.ota-ring-wrap { width: 100%; margin-bottom: 32rpx; }
-.ota-ring {
-	display: flex; align-items: baseline; justify-content: center;
-	margin-bottom: 20rpx;
-}
-.ota-pct { font-size: 72rpx; font-weight: 700; color: $brand-primary; line-height: 1; }
-.ota-pct-sign { font-size: $fs-body; color: $brand-primary; margin-left: 4rpx; }
-.ota-bar { width: 100%; border-radius: $radius-sm; }
+	/* 密码框眼睛按钮（叠加在焦点发光输入框右侧） */
+	.input-wrap .pw-eye {
+		position: absolute; right: 20rpx; padding: 8rpx 12rpx;
+	}
+	.pw-eye text { font-size: $fs-label; color: $brand-primary; position: static; }
 
-/* 阶段文字 */
-.ota-phase {
-	font-size: $fs-title; font-weight: 600; color: $text-primary;
-	text-align: center; margin-bottom: 12rpx;
-}
-.ota-hint {
-	font-size: $fs-label; color: $text-hint; text-align: center;
-	margin-bottom: 24rpx;
-}
+	.tips { display: flex; flex-direction: column; gap: 12rpx; }
+	.tips text { font-size: $fs-label; color: $text-secondary; line-height: 1.6; }
 
-/* 取消按钮 */
-.ota-cancel {
-	padding: 16rpx 32rpx; border-radius: 20rpx;
-	background: $bg-page; transition: 150ms;
-}
-.ota-cancel:active { background: $border-light; }
-.ota-cancel text { font-size: 26rpx; color: $text-secondary; font-weight: 500; }
+	/* OTA 进度遮罩 */
+	.ota-overlay {
+		position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+		background: rgba(0,0,0,0.5);
+		display: flex; align-items: center; justify-content: center;
+		z-index: 9999;
+		animation: fadeIn 200ms ease-out;
+	}
+	.ota-panel {
+		width: 80%; max-width: 500rpx;
+		background: $bg-card; border-radius: 32rpx;
+		padding: 56rpx 40rpx 40rpx;
+		display: flex; flex-direction: column; align-items: center;
+		box-shadow: 0 16rpx 48rpx rgba(0,0,0,0.12);
+		animation: popIn 250ms cubic-bezier(0.34,1.56,0.64,1);
+	}
+	@keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+	@keyframes popIn { from { opacity: 0; transform: scale(0.92) translateY(16rpx); } to { opacity: 1; transform: scale(1) translateY(0); } }
 
-/* 结果高亮 */
-.ota-panel.done .ota-pct { color: $color-success; }
-.ota-panel.done .ota-pct-sign { color: $color-success; }
-</style>
+	.ota-title {
+		font-size: 34rpx; font-weight: 600; color: $text-primary;
+		text-align: center; margin-bottom: 20rpx;
+	}
+	.ota-warn {
+		display: flex; align-items: center; gap: 8rpx;
+		background: $color-warning-bg; border: 1rpx solid #FFE58F; border-radius: $radius-md;
+		padding: 12rpx 20rpx; margin-bottom: 28rpx; width: 100%; box-sizing: border-box;
+	}
+	.ota-warn-icon { font-size: $fs-body; }
+	.ota-warn-text { font-size: $fs-caption; color: $color-warning-text; line-height: 1.4; }
+
+	.ota-ring-wrap { width: 100%; margin-bottom: 32rpx; }
+	.ota-ring {
+		display: flex; align-items: baseline; justify-content: center;
+		margin-bottom: 20rpx;
+	}
+	.ota-pct { font-size: 72rpx; font-weight: 700; color: $brand-primary; line-height: 1; }
+	.ota-pct-sign { font-size: $fs-body; color: $brand-primary; margin-left: 4rpx; }
+	.ota-bar { width: 100%; border-radius: $radius-sm; }
+
+	.ota-phase {
+		font-size: $fs-title; font-weight: 600; color: $text-primary;
+		text-align: center; margin-bottom: 12rpx;
+	}
+	.ota-hint {
+		font-size: $fs-label; color: $text-hint; text-align: center;
+		margin-bottom: 24rpx;
+	}
+
+	.ota-cancel {
+		padding: 16rpx 32rpx; border-radius: 20rpx;
+		background: $bg-page; transition: 150ms;
+	}
+	.ota-cancel:active { background: $border-light; }
+	.ota-cancel text { font-size: 26rpx; color: $text-secondary; font-weight: 500; }
+
+	.ota-panel.done .ota-pct { color: $color-success; }
+	.ota-panel.done .ota-pct-sign { color: $color-success; }
+	</style>
