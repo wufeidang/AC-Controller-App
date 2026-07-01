@@ -43,3 +43,4 @@
 
 .tips { padding: 20rpx 32rpx 32rpx; display: flex; flex-direction: column; gap: 12rpx; }
 .tips text { font-size: $fs-label; color: $text-secondary; line-height: 1.6; }
+</style>

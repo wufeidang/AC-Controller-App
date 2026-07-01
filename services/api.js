@@ -83,14 +83,9 @@ class ApiService {
           error.message = '网络连接失败，请检查设备是否在线';
         }
         console.error('API请求错误:', error.message, `(${this._failCount}/${this._maxFailCount})`);
-        // 连续失败超过阈值才判定设备离线
-        if (this._failCount >= this._maxFailCount) {
-          const device = uni.getStorageSync('connectedDevice');
-          if (device) {
-            device.connected = false;
-            uni.setStorageSync('connectedDevice', device);
-          }
-        }
+        // 注意：不会自动擦 storage 里的 connectedDevice.connected
+        // ——网络抖动不等于用户主动断开。
+        // 如需让 UI 感知设备不可达，由调用方在连续失败时显式标记。
       }
       throw error;
     }

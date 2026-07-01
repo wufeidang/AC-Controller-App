@@ -125,3 +125,4 @@ export default {
 .pw-toggle text { font-size: $fs-label; color: $brand-primary; }
 .tips { display: flex; flex-direction: column; gap: 12rpx; }
 .tips text { font-size: $fs-label; color: $text-secondary; line-height: 1.6; }
+</style>

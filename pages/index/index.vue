@@ -219,21 +219,22 @@
 			return this.humOnThreshold + '%';
 		}
 	},
-		onLoad() {
+		async onLoad() {
 			try {
 				const sys = uni.getSystemInfoSync();
-				// iOS 用 statusBarHeight，沉浸式下需要额外加 padding 保证可见性
 				this.statusBarHeight = sys.statusBarHeight || 0;
 			} catch (e) { this.statusBarHeight = 0; }
+			// 自愈：storage 中若残留 connected=false 但有地址，先 ping 恢复
+			await this._trySelfHeal();
 			this.checkDevice();
 			if (!this.deviceConnected) {
 				uni.redirectTo({ url: '/pages/device/device' });
 				return;
 			}
 			this.fetchStatus();
-				this.startPoll();
-				this._deviceHandler = (e) => this.onDeviceEvent(e);
-				uni.$on('deviceConnected', this._deviceHandler);
+			this.startPoll();
+			this._deviceHandler = (e) => this.onDeviceEvent(e);
+			uni.$on('deviceConnected', this._deviceHandler);
 		},
 		onShow() {
 			this.checkDevice();
@@ -257,6 +258,28 @@
 			if (this[key] !== value) {
 				this[key] = value;
 			}
+		},
+		/**
+		 * 自愈：storage 内有连接信息（地址/deviceId），但被误标记为未连接
+		 * ——多半源于历史版本中 api 请求连续 3 次失败直接擦 connected 的 bug。
+		 * 这里主动 ping 一次设备，成功即恢复 connected=true，不打扰用户。
+		 */
+		async _trySelfHeal() {
+			const d = uni.getStorageSync('connectedDevice');
+			if (!d || d.connected !== false || !d.address) return;
+			apiService.setDeviceAddress(d.address);
+			try {
+				const res = await apiService.getDeviceId();
+				if (res && res.status === 'success') {
+					const restored = {
+						...d,
+						connected: true,
+						deviceId: res.data.device_id || d.deviceId
+					};
+					uni.setStorageSync('connectedDevice', restored);
+					apiService.resetFailCount();
+				}
+			} catch (e) { /* 不自愈，跳转 device 页让用户处理 */ }
 		},
 		onDeviceEvent(e) {
 				if (e.connected) {

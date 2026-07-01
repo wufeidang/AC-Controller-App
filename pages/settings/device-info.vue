@@ -116,3 +116,4 @@ export default {
 .info-label { font-size: $fs-caption; color: $text-hint; }
 .info-value { font-size: 26rpx; color: $text-regular; font-weight: 500; }
 .info-value.version { color: $brand-primary; }
+</style>
