@@ -136,15 +136,15 @@ export default {
 </script>
 
 <style scoped lang="scss">
-.slider-control { margin-bottom: 32rpx; }
+.slider-control { margin-bottom: 24rpx; }
 .slider-control:last-child { margin-bottom: 0; }
-.slider-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12rpx; }
+.slider-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8rpx; }
 .slider-label { font-size: 26rpx; color: $text-regular; font-weight: 500; }
 .slider-val { font-size: $fs-title; font-weight: 700; }
-.range { display: flex; justify-content: space-between; margin-bottom: 16rpx; }
+.range { display: flex; justify-content: space-between; margin-bottom: 12rpx; }
 .range text { font-size: $fs-caption; color: $text-disabled; }
-.quick { display: flex; gap: 12rpx; }
-.q-btn { flex: 1; padding: 14rpx 4rpx; border-radius: $radius-md; background: $bg-page; text-align: center; transition: 150ms; }
+.quick { display: flex; gap: 10rpx; }
+.q-btn { flex: 1; padding: 12rpx 4rpx; border-radius: $radius-md; background: $bg-page; text-align: center; transition: 150ms; }
 .q-btn:active { transform: scale(0.96); background: $border-light; }
 .q-btn text { font-size: $fs-label; color: $text-regular; font-weight: 500; }
 .q-btn.reset text { color: $text-hint; }

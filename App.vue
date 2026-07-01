@@ -71,28 +71,30 @@
 		margin-bottom: 12rpx;
 	}
 
-	/* 按钮（标准主按钮）*/
+	/* 按钮（紧凑标准主按钮——避免在大屏手机上像 CTA 大 banner 一样）
+	   高度由 padding+内文字决定：4 处主页面（temp-hum/calibration/ac-params/scene）
+	   都有底部提交按钮，原 28rpx 上下 padding 在小屏看上去过厚。 */
 	.btn {
-		padding: 28rpx 32rpx;
+		padding: 22rpx 28rpx;
 		border-radius: $radius-xl;
 		text-align: center;
-		margin-bottom: 32rpx;
+		margin-bottom: 20rpx;
 		transition: transform 150ms, opacity 150ms;
 	}
 	.btn:active { transform: scale(0.98); }
 	.btn-primary {
 		background: $brand-primary;
-		box-shadow: 0 8rpx 20rpx rgba(22, 119, 255, 0.18);
+		box-shadow: 0 6rpx 14rpx rgba(22, 119, 255, 0.18);
 	}
 	.btn-primary text {
 		color: $bg-card;
-		font-size: $fs-title;
+		font-size: $fs-body;
 		font-weight: 500;
 	}
 	.btn-danger-outline {
 		background: $bg-card;
 		border: 1rpx solid $color-danger;
-		padding: 24rpx 32rpx;
+		padding: 18rpx 28rpx;
 		border-radius: $radius-xl;
 		text-align: center;
 	}
