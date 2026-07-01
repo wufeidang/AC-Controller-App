@@ -111,46 +111,47 @@
 			},
 			clearCache() {
 				this.confirmAction = 'clearCache';
-				this.showConfirm('清除缓存', '确定要清除所有缓存数据吗？', {
-					confirmText: '确定',
+				this.showConfirm('清除缓存', '将删除本地缓存的阈值/场景等设置。\n设备连接信息将保留，不会断开当前设备。\n是否继续？', {
+					confirmText: '确定清除',
 					cancelText: '取消',
 					type: 'warning',
 					onConfirm: () => this.executeAction('clearCache')
 				});
 			},
-			async executeAction(action) {
-				const d = uni.getStorageSync('connectedDevice');
-				const connected = d && d.connected;
-				if (!connected && action !== 'clearCache') {
-					this.showToast('提示', '请先连接设备', 'warning'); return;
+		async executeAction(action) {
+			const d = uni.getStorageSync('connectedDevice');
+			const connected = d && d.connected;
+			if (!connected && action !== 'clearCache') {
+				this.showToast('提示', '请先连接设备', 'warning'); return;
+			}
+			if (this.loading) return;
+			try {
+				this.loading = true;
+				this.showLoading('执行中...');
+				switch (action) {
+					case 'restart': await apiService.restartDevice(); this.showToast('成功', '重启命令已发送'); break;
+					case 'deepSleep': await apiService.enterDeepSleep(); this.showToast('成功', '已进入深度睡眠'); break;
+					case 'factoryReset': await apiService.factoryReset(); this.showToast('成功', '恢复出厂设置成功'); break;
+					case 'clearCache': this.clearNonCriticalStorage(); this.showToast('成功', '缓存已清除', 'success'); break;
 				}
-				if (this.loading) return;
-				try {
-					this.loading = true;
-					this.showLoading('执行中...');
-					switch (action) {
-						case 'restart': await apiService.restartDevice(); this.showToast('成功', '重启命令已发送'); break;
-						case 'deepSleep': await apiService.enterDeepSleep(); this.showToast('成功', '已进入深度睡眠'); break;
-						case 'factoryReset': await apiService.factoryReset(); this.showToast('成功', '恢复出厂设置成功'); break;
-						case 'clearCache': uni.clearStorageSync(); this.showToast('成功', '缓存已清除'); break;
-					}
-				} catch (e) {
-					this.showToast('失败', e.message || '操作失败', 'error');
-				} finally { this.loading = false; this.hideLoading(); }
-			},
+			} catch (e) {
+				this.showToast('失败', e.message || '操作失败', 'error');
+			} finally { this.loading = false; this.hideLoading(); }
+		},
+		/** 清除缓存时保留关键 storage：连接信息 / 网络记忆 / 已连过设备的会话 */
+		clearNonCriticalStorage() {
+			const KEEP = ['connectedDevice', 'staNetwork'];
+			const info = uni.getStorageInfoSync();
+			info.keys.forEach(k => {
+				if (!KEEP.includes(k)) {
+					try { uni.removeStorageSync(k); } catch (e) {}
+				}
+			});
+		},
 		}
 	};
 	</script>
 
-	<style scoped lang="scss">
-	.page { min-height: 100vh; background: $bg-page; }
-	.body { padding: 32rpx; }
-	.section-label { font-size: 26rpx; color: $text-hint; padding: 8rpx 0 16rpx 4rpx; }
-	.card {
-		background: $bg-card;
-		border-radius: $radius-xl;
-		box-shadow: $shadow-sm;
-		overflow: hidden;
-		margin-bottom: 24rpx;
-	}
+	<style lang="scss">
+	/* .page / .body / .card / .card-title / .section-label / .btn 均已全局化（App.vue） */
 	</style>
