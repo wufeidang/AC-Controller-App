@@ -78,8 +78,12 @@ export default {
 	data() {
 		return {
 			inputValue: '',
-			titleId: 'modal-title-' + Math.random().toString(36).slice(2, 10)
+			titleId: ''
 		};
+	},
+	created() {
+		// 用实例 _uid 生成稳定的 aria-labelledby，便于追踪
+		this.titleId = 'modal-title-' + (this._uid || Math.random().toString(36).slice(2, 10));
 	},
 	methods: {
 		handleConfirm()   { this.$emit('confirm', this.inputValue); this.inputValue = ''; },
