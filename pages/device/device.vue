@@ -165,12 +165,17 @@
 				</view>
 			</view>
 
-			<!-- 帮助提示 -->
+			<!-- 帮助提示（默认折叠，点击展开） -->
 			<view class="help" v-if="showHelp">
-				<text class="help-title">连接不上？</text>
-				<text class="help-row">1. 先在系统 WiFi 设置里连上设备的热点（名称通常含 ESP 或 8266）</text>
-				<text class="help-row">2. 设备和手机连到同一 WiFi 后，回到本页会自动发现</text>
-				<text class="help-row">3. 还不行就用「手动输入 IP」连接 AP 默认地址 192.168.4.1</text>
+				<view class="help-head" @click="helpOpen = !helpOpen" role="button" :aria-label="helpOpen ? '收起帮助' : '展开帮助'">
+					<text class="help-title">连接不上？</text>
+					<text class="help-arrow">{{ helpOpen ? '▴' : '▾' }}</text>
+				</view>
+				<view class="help-body" v-if="helpOpen">
+					<text class="help-row">1. 先在系统 WiFi 设置里连上设备的热点（名称通常含 ESP 或 8266）</text>
+					<text class="help-row">2. 设备和手机连到同一 WiFi 后，回到本页会自动发现</text>
+					<text class="help-row">3. 还不行就用「手动输入 IP」连接 AP 默认地址 192.168.4.1</text>
+				</view>
 			</view>
 		</view>
 
@@ -255,9 +260,10 @@ export default {
 					mdnsScanning: false, mdnsDevices: [],
 					advancedOpen: false,
 					lastDevice: null,
-					showStaHint: true,
-					showHelp: true,
-					_scanStarted: false   // 仅首次进入触发扫描，避免 onShow 反复刷
+				showStaHint: true,
+				showHelp: true,
+				helpOpen: false,   // 帮助卡默认折叠，省纵向空间
+				_scanStarted: false   // 仅首次进入触发扫描，避免 onShow 反复刷
 		};
 		},
 		computed: {
@@ -566,20 +572,20 @@ export default {
    本页 .btn 调整为更宽版（96rpx 高 + 阴影），.input-wrap 同样加大到 96rpx 容大字号
    .scan-btn/scanning/empty/skeleton/hotspot 等设计模式专属 */
 
-/* ===================== Hero ===================== */
-.hero { display: flex; flex-direction: column; align-items: center; padding: 48rpx 0 32rpx; }
+/* ===================== Hero（压缩：去掉冗余留白，保留视觉锚点） ===================== */
+.hero { display: flex; flex-direction: column; align-items: center; padding: 16rpx 0 12rpx; }
 .hero-icon-wrap {
-	width: 112rpx; height: 112rpx; border-radius: 28rpx;
+	width: 80rpx; height: 80rpx; border-radius: 20rpx;
 	background: linear-gradient(145deg, $brand-primary-bg 0%, #F0F7FF 100%);
 	display: flex; align-items: center; justify-content: center;
-	margin-bottom: 20rpx;
-	box-shadow: 0 10rpx 28rpx rgba(22, 119, 255, 0.1);
+	margin-bottom: 12rpx;
+	box-shadow: 0 6rpx 16rpx rgba(22, 119, 255, 0.1);
 }
-.hero-icon { width: 60rpx; height: 60rpx; }
-.hero-title { font-size: 38rpx; font-weight: 700; color: $text-primary; margin-bottom: 6rpx; }
+.hero-icon { width: 44rpx; height: 44rpx; }
+.hero-title { font-size: 32rpx; font-weight: 700; color: $text-primary; margin-bottom: 4rpx; }
 .hero-desc {
-	font-size: 26rpx; color: $text-hint; text-align: center;
-	padding: 0 32rpx; line-height: 1.6;
+	font-size: 24rpx; color: $text-hint; text-align: center;
+	padding: 0 32rpx; line-height: 1.5;
 }
 
 /* card-title 本页略小于全局 */
@@ -686,9 +692,9 @@ export default {
 }
 .wl-item {
 	display: flex; align-items: center;
-	padding: 22rpx 0;
+	padding: 16rpx 0;
 	border-bottom: 1rpx solid $border-light;
-	min-height: 96rpx;
+	min-height: 80rpx;
 	transition: background 150ms;
 }
 .wl-item:last-child { border-bottom: none; }
@@ -764,14 +770,14 @@ export default {
 
 /* ===================== Empty / Error 态 ===================== */
 .wifi-empty {
-	padding: 56rpx 32rpx;
+	padding: 32rpx 24rpx;
 	background: $bg-elevated;
 	border-radius: $radius-lg;
 	display: flex; flex-direction: column;
-	align-items: center; gap: 12rpx;
+	align-items: center; gap: 10rpx;
 	text-align: center;
 }
-.we-icon { font-size: 56rpx; margin-bottom: 4rpx; }
+.we-icon { font-size: 44rpx; margin-bottom: 2rpx; }
 .we-title {
 	font-size: $fs-body; color: $text-primary;
 	font-weight: 600;
@@ -815,7 +821,7 @@ export default {
 }
 .md-item {
 	display: flex; align-items: center; justify-content: space-between;
-	padding: 22rpx 0;
+	padding: 16rpx 0;
 	border-bottom: 1rpx solid $border-light;
 	transition: background 150ms;
 }
@@ -848,40 +854,47 @@ export default {
 .field-hint text { font-size: $fs-caption; color: $text-secondary; line-height: 1.6; }
 .field-hint .hint-strong { color: $color-warning-text; font-weight: 500; }
 
-.field { margin-bottom: 20rpx; }
-.input-wrap { height: 96rpx; padding: 0 24rpx; border-radius: 18rpx; }
-.input { height: 96rpx; font-size: $fs-title; color: $text-primary; font-weight: 500; }
+.field { margin-bottom: 14rpx; }
+.input-wrap { height: 76rpx; padding: 0 24rpx; border-radius: 16rpx; }
+.input { height: 76rpx; font-size: $fs-body; color: $text-primary; font-weight: 500; }
 
-/* ===================== 按钮（device 更宽版） ===================== */
+/* ===================== 按钮（紧凑：76rpx 与输入框等高） ===================== */
 .btn {
-	height: 96rpx; border-radius: $radius-lg;
+	height: 76rpx; border-radius: $radius-lg;
 	display: flex; align-items: center; justify-content: center;
-	margin-top: 8rpx;
-	background: $brand-primary; /* 兜底：避免漏写 btn-primary / hotspot 上下文导致透明背景文字不可见 */
-	box-shadow: 0 8rpx 20rpx rgba(22, 119, 255, 0.25);
+	margin-top: 4rpx;
+	background: $brand-primary;
+	box-shadow: 0 4rpx 12rpx rgba(22, 119, 255, 0.22);
 }
 .btn:active { transform: scale(0.99); }
-.btn text { font-size: $fs-title; font-weight: 600; color: $bg-card; }
+.btn text { font-size: $fs-body; font-weight: 600; color: $bg-card; }
 
 /* hotspot-card 等内部的高级按钮不带阴影，更轻量化 */
 .hotspot-card .btn { box-shadow: none; background: $color-success; }
 .hotspot-card .btn text { color: $bg-card; }
 .hotspot-card .btn:active { background: #00A85F; }
 
-/* ===================== 帮助提示 ===================== */
+/* ===================== 帮助提示（可折叠） ===================== */
 .help {
-	margin-top: 24rpx; padding: 24rpx;
+	margin-top: 16rpx; padding: 16rpx 20rpx;
 	background: $bg-card;
 	border-radius: $radius-xl;
 	box-shadow: $shadow-sm;
-	display: flex; flex-direction: column; gap: 8rpx;
+}
+.help-head {
+	display: flex; justify-content: space-between; align-items: center;
 }
 .help-title {
 	font-size: $fs-body; font-weight: 600; color: $text-primary;
-	display: block; margin-bottom: 8rpx;
+}
+.help-arrow { font-size: $fs-label; color: $text-hint; }
+.help-body {
+	display: flex; flex-direction: column; gap: 6rpx;
+	margin-top: 12rpx; padding-top: 12rpx;
+	border-top: 1rpx solid $border-light;
 }
 .help-row {
-	font-size: $fs-label; color: $text-secondary;
+	font-size: 24rpx; color: $text-secondary;
 	line-height: 1.7;
 	display: block;
 }
@@ -889,13 +902,13 @@ export default {
 /* ===================== 已连接态 ===================== */
 .success-hero {
 	display: flex; flex-direction: column; align-items: center;
-	padding: 64rpx 0 40rpx;
+	padding: 32rpx 0 20rpx;
 }
 .sh-icon {
-	width: 112rpx; height: 112rpx; border-radius: 50%;
+	width: 88rpx; height: 88rpx; border-radius: 50%;
 	background: #F6FFED; color: $color-success;
 	display: flex; align-items: center; justify-content: center;
-	font-size: 56rpx; font-weight: 700; margin-bottom: 24rpx;
+	font-size: 44rpx; font-weight: 700; margin-bottom: 16rpx;
 }
 .sh-title { font-size: $fs-heading; font-weight: 700; color: $text-primary; }
 .sh-desc {
