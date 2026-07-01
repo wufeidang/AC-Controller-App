@@ -1,54 +1,58 @@
 <template>
 	<view class="page">
 		<!-- 顶部 -->
-		<view class="top-bar">
+		<view class="top-bar" :style="{ paddingTop: (statusBarHeight + 24) + 'px' }">
 			<view class="top-left">
 				<text class="top-location">{{ deviceConnected ? deviceLocation  : '空调温控' }}</text>
 			</view>
 			<view class="top-right" v-if="deviceConnected">
-				<view class="status-badge on">
+				<view class="status-badge" :class="connectionState">
 					<view class="status-dot"></view>
-					<text>已连接</text>
+					<text>{{ connectionLabel }}</text>
 				</view>
 			</view>
 		</view>
 
-		
+
 		<!-- 已连接：看板 -->
 		<view class="body">
 			<!-- 主数据大卡：温度 / 湿度 根据控制类型切换 C 位 -->
 			<view class="temp-hero" v-if="controlType !== 'humidity'">
-				<text class="temp-num" :class="tempColor">{{ currentTemp }}</text>
+				<text class="temp-num" :class="tempColor" v-if="hasTemp">{{ currentTemp }}</text>
+				<text class="temp-num placeholder" v-else>--</text>
 				<text class="temp-unit">°C</text>
 				<text class="temp-sub">室内温度</text>
 			</view>
 			<view class="temp-hero hum-hero" v-else>
-				<text class="temp-num hum-num">{{ currentHum }}</text>
+				<text class="temp-num hum-num" v-if="hasHum">{{ currentHum }}</text>
+				<text class="temp-num hum-num placeholder" v-else>--</text>
 				<text class="temp-unit">%</text>
 				<text class="temp-sub">室内湿度</text>
 			</view>
 
 			<!-- 次要数据 + 模式 -->
 			<view class="info-row">
-				<view class="info-item" v-if="controlType !== 'humidity'">
+				<view class="info-item clickable" v-if="controlType !== 'humidity'" @click="navigateTo('settings/temp-hum')">
 					<image src="/static/icons/humidity.svg" class="info-icon" mode="aspectFit" />
-					<text class="info-val">{{ currentHum }}%</text>
+					<text class="info-val" v-if="hasHum">{{ currentHum }}%</text>
+					<text class="info-val placeholder" v-else>--%</text>
 					<text class="info-lbl">湿度</text>
 				</view>
-				<view class="info-item" v-else>
+				<view class="info-item clickable" v-else @click="navigateTo('settings/temp-hum')">
 					<image src="/static/icons/temperature.svg" class="info-icon" mode="aspectFit" />
-					<text class="info-val" :class="tempColor">{{ currentTemp }}°C</text>
+					<text class="info-val" :class="tempColor" v-if="hasTemp">{{ currentTemp }}°C</text>
+					<text class="info-val placeholder" v-else>--°C</text>
 					<text class="info-lbl">温度</text>
 				</view>
 				<view class="info-div"></view>
-				<view class="info-item">
+				<view class="info-item clickable" @click="navigateTo('settings/scene')">
 					<image src="/static/icons/air-conditioner.svg" class="info-icon" mode="aspectFit" />
 					<text class="info-val ac-on" v-if="acStatus">{{ modeLabel }}</text>
 					<text class="info-val ac-off" v-else>待机</text>
 					<text class="info-lbl">空调</text>
 				</view>
 				<view class="info-div"></view>
-				<view class="info-item" @click="navigateTo('settings/temp-hum')">
+				<view class="info-item clickable" @click="navigateTo('settings/temp-hum')">
 					<image src="/static/icons/target.svg" class="info-icon" mode="aspectFit" />
 					<text class="info-val">{{ ruleBrief }}</text>
 					<text class="info-lbl">规则</text>
@@ -76,7 +80,8 @@
 			</view>
 
 			<!-- 场景快捷 -->
-				<view class="scene-strip" role="group" aria-label="场景切换">
+				<view class="section-label">快捷场景</view>
+				<view class="scene-grid" role="group" aria-label="场景切换">
 					<view
 						v-for="s in scenes"
 						:key="s.value"
@@ -87,12 +92,15 @@
 						:aria-label="s.label + '场景'"
 						:aria-pressed="currentScene === s.value"
 					>
-					<image :src="'/static/icons/' + s.icon + '.svg'" class="chip-icon" mode="aspectFit" />
+					<view class="chip-icon-wrap">
+						<image :src="'/static/icons/' + s.icon + '.svg'" class="chip-icon" mode="aspectFit" />
+					</view>
 					<text class="chip-label">{{ s.label }}</text>
 				</view>
-			</view>
+				</view>
 
 			<!-- 入口 -->
+				<view class="section-label">控制与设置</view>
 				<view class="nav-list">
 					<view class="nav-row" @click="navigateTo('settings/ac-params')" role="link" aria-label="空调控制">
 						<view class="nav-left">
@@ -117,9 +125,9 @@
 					</view>
 				</view>
 
-				<view class="disconnect-btn" @click="handleDisconnect" role="button" aria-label="断开连接">
-				<text>断开连接</text>
-			</view>
+				<view class="disconnect-btn row-action danger" @click="handleDisconnect" role="button" aria-label="断开连接">
+					<text>断开连接</text>
+				</view>
 		</view>
 
 		<Loading :visible="loadingVisible" :text="loadingText" />
@@ -162,8 +170,8 @@
 		mixins: [deviceMixin, modalMixin],
 		data() {
 			return {
-				currentTemp: 0,
-				currentHum: 0,
+				currentTemp: null,
+				currentHum: null,
 				acStatus: false,
 				acTemp: 26,
 				acMode: 'cool',
@@ -179,12 +187,25 @@
 				pollTimer: null,
 				currentScene: '',
 				scenes: constants.SCENES,
-				statusPending: false  // 防止 fetchStatus 竞态
+				statusPending: false,  // 防止 fetchStatus 竟态
+				failCount: 0,         // 连续失败次数
+				failThreshold: 3,     // 超过此次数标记为连接异常
+				statusBarHeight: 0
 			};
 		},
 	computed: {
+		hasTemp() { return this.currentTemp != null && this.currentTemp > 0; },
+		hasHum() { return this.currentHum != null && this.currentHum > 0; },
+		connectionState() {
+			if (!this.deviceConnected) return '';
+			return this.failCount >= this.failThreshold ? 'warn' : 'on';
+		},
+		connectionLabel() {
+			if (!this.deviceConnected) return '未连接';
+			return this.failCount >= this.failThreshold ? '连接异常' : '已连接';
+		},
 		tempColor() {
-			if (this.currentTemp <= 0) return '';
+			if (!this.hasTemp) return '';
 			if (this.currentTemp < 20) return 'cold';
 			if (this.currentTemp > 28) return 'hot';
 			return 'warm';
@@ -199,6 +220,11 @@
 		}
 	},
 		onLoad() {
+			try {
+				const sys = uni.getSystemInfoSync();
+				// iOS 用 statusBarHeight，沉浸式下需要额外加 padding 保证可见性
+				this.statusBarHeight = sys.statusBarHeight || 0;
+			} catch (e) { this.statusBarHeight = 0; }
 			this.checkDevice();
 			if (!this.deviceConnected) {
 				uni.redirectTo({ url: '/pages/device/device' });
@@ -215,12 +241,17 @@
 				uni.redirectTo({ url: '/pages/device/device' });
 				return;
 			}
-			// onShow 时不再立即 fetchStatus，依赖轮询即可（避免竞态）
+			// onShow 时不再立即 fetchStatus，依赖轮询即可（避免竟态）
 		},
 		onUnload() {
 				this.stopPoll();
 				uni.$off('deviceConnected', this._deviceHandler);
 			},
+		onPullDownRefresh() {
+			this.fetchStatus().finally(() => {
+				uni.stopPullDownRefresh();
+			});
+		},
 	methods: {
 		setIfChanged(key, value) {
 			if (this[key] !== value) {
@@ -230,6 +261,7 @@
 		onDeviceEvent(e) {
 				if (e.connected) {
 					this.setDevice(e.device);
+					this.failCount = 0;
 					this.fetchStatus();
 				} else {
 					this.deviceConnected = false;
@@ -244,10 +276,14 @@
 			this.statusPending = true;
 			try {
 				const res = await apiService.getStatus();
-				if (res.status !== 'success') return;
+				if (res.status !== 'success') {
+					this.failCount++;
+					return;
+				}
+				this.failCount = 0;
 				const d = res.data;
-				this.setIfChanged('currentTemp', d.temperature);
-				this.setIfChanged('currentHum', d.humidity);
+				this.setIfChanged('currentTemp', d.temperature != null ? d.temperature : null);
+				this.setIfChanged('currentHum', d.humidity != null ? d.humidity : null);
 				this.setIfChanged('acStatus', d.ac_status === 'on');
 				this.setIfChanged('controlType', d.control_type || 'temperature');
 				this.setIfChanged('tempOnThreshold', d.temp_on_threshold ?? this.tempOnThreshold);
@@ -280,8 +316,10 @@
 					uni.setStorageSync('connectedDevice', dev);
 					}
 				}
-			} catch (e) { /* 静默失败，轮询会重试 */ }
-			finally { this.statusPending = false; }
+			} catch (e) { this.failCount++; }
+			finally {
+				this.statusPending = false;
+			}
 		},
 		startPoll() {
 			this.stopPoll();
@@ -350,79 +388,148 @@
 };
 </script>
 
-<style scoped lang="scss">
-.page    { min-height: 100vh; background: $bg-page; }
-.top-bar { padding: 24rpx 32rpx; display: flex; justify-content: space-between; align-items: center; }
+<style lang="scss">
+/* .page / .body / 按钮等骨架类被全局化（App.vue） */
+
+/* 顶部状态栏安全区 */
+.top-bar {
+	padding: 24rpx 32rpx;
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+}
 .top-location { font-size: $fs-heading; font-weight: 700; color: $text-primary; }
-.status-badge { display: flex; align-items: center; padding: 8rpx 20rpx; border-radius: $radius-xl; background: $color-danger-bg; }
+.status-badge {
+	display: flex; align-items: center;
+	padding: 8rpx 20rpx; border-radius: $radius-xl;
+	background: $bg-subtle;
+	transition: background 200ms;
+}
 .status-badge.on { background: #F6FFED; }
-.status-dot { width: 14rpx; height: 14rpx; border-radius: 50%; background: $color-danger; margin-right: 10rpx; }
+.status-badge.warn { background: $color-warning-bg; }
+.status-dot {
+	width: 14rpx; height: 14rpx; border-radius: 50%;
+	background: $text-disabled; margin-right: 10rpx;
+	transition: background 200ms;
+}
 .status-badge.on .status-dot { background: $color-success; }
-.status-badge text { font-size: $fs-label; color: $color-danger; font-weight: 500; }
+.status-badge.warn .status-dot { background: $color-warning; }
+.status-badge text { font-size: $fs-label; color: $text-disabled; font-weight: 500; }
 .status-badge.on text { color: $color-success; }
-
-/* 空状态 */
-.body { padding: 0 32rpx 32rpx; }
-
+.status-badge.warn text { color: $color-warning-text; }
 
 /* 温度大卡 */
-.temp-hero { background: $bg-card; border-radius: $radius-xl; padding: 48rpx 32rpx; text-align: center; margin-bottom: 24rpx; box-shadow: $shadow-sm; }
+.temp-hero {
+	background: $bg-card; border-radius: $radius-xl;
+	padding: 48rpx 32rpx; text-align: center;
+	margin-bottom: 24rpx; box-shadow: $shadow-sm;
+}
 .temp-num { font-size: 120rpx; font-weight: 700; line-height: 1; color: $text-regular; }
-.temp-num.cold { color: $brand-primary; }
-.temp-num.warm { color: #FA8C16; }
-.temp-num.hot  { color: $color-danger; }
+.temp-num.cold { color: $temp-cold; }
+.temp-num.warm { color: $temp-warm; }
+.temp-num.hot  { color: $temp-hot; }
+.temp-num.hum-num { color: $hum-color; }
+.temp-num.placeholder {
+	font-size: 96rpx; color: $text-disabled; font-weight: 500;
+}
 .temp-unit { font-size: $fs-heading; font-weight: 500; color: $text-hint; margin-left: 4rpx; }
 .temp-sub { display: block; font-size: 26rpx; color: $text-hint; margin-top: 16rpx; }
 .hum-hero { background: linear-gradient(135deg, $color-success-bg 0%, $bg-card 100%); }
-.hum-num { color: #13C2C2 !important; }
 
 /* 信息行 */
-.info-row { background: $bg-card; border-radius: $radius-xl; padding: 32rpx; display: flex; margin-bottom: 24rpx; box-shadow: $shadow-sm; }
-.info-item { flex: 1; display: flex; flex-direction: column; align-items: center; }
-.info-icon { width: 40rpx; height: 40rpx; margin-bottom: 12rpx; }
+.info-row {
+	background: $bg-card; border-radius: $radius-xl;
+	padding: 32rpx; display: flex; margin-bottom: 24rpx;
+	box-shadow: $shadow-sm;
+}
+.info-item {
+	flex: 1; display: flex; flex-direction: column; align-items: center;
+	padding: 8rpx 4rpx; border-radius: $radius-md;
+	transition: background 150ms;
+}
+.info-item.clickable:active { background: $bg-elevated; }
+.info-icon { width: 40rpx; height: 40rpx; margin-bottom: 12rpx; opacity: 0.7; }
+.info-item.clickable .info-icon { opacity: 1; }
 .info-val { font-size: $fs-title; font-weight: 600; color: $text-regular; }
 .info-val.ac-on { color: $color-success; }
 .info-val.ac-off { color: $text-disabled; }
+.info-val.placeholder { color: $text-disabled; font-weight: 400; }
 .info-lbl { font-size: $fs-caption; color: $text-hint; margin-top: 6rpx; }
 .info-div { width: 1rpx; background: $border-light; align-self: stretch; }
 
 /* 开关卡 */
-.switch-card { background: $bg-card; border-radius: $radius-xl; padding: 28rpx 32rpx; display: flex; justify-content: space-between; align-items: center; margin-bottom: 24rpx; box-shadow: $shadow-sm; }
-.switch-card.on { border: 1rpx solid $color-success-bg; background: #FAFFFE; }
+.switch-card {
+	background: $bg-card; border-radius: $radius-xl;
+	padding: 28rpx 32rpx; display: flex;
+	justify-content: space-between; align-items: center;
+	margin-bottom: 24rpx; box-shadow: $shadow-sm;
+}
+.switch-card.on { background: #FAFFFE; }
 .switch-title { font-size: $fs-title; font-weight: 600; color: $text-regular; display: block; }
 .switch-meta { font-size: $fs-label; color: $text-hint; margin-top: 6rpx; display: block; }
 
-/* 场景 */
-.scene-strip { display: flex; gap: 16rpx; margin-bottom: 24rpx; }
-.scene-chip { flex: 1; background: $bg-card; border-radius: $radius-lg; padding: 20rpx 12rpx; display: flex; flex-direction: column; align-items: center; box-shadow: 0 2rpx 8rpx rgba(0,0,0,0.03); transition: transform $duration-fast; }
+/* 场景快捷：4 列网格单卡，激活态用反色填充 + 顶部标记，避免边框切换 */
+.scene-grid {
+	display: grid;
+	grid-template-columns: repeat(4, 1fr);
+	gap: 16rpx;
+	margin-bottom: 24rpx;
+}
+.scene-chip {
+	position: relative;
+	background: $bg-card;
+	border-radius: $radius-lg;
+	padding: 24rpx 8rpx 20rpx;
+	display: flex; flex-direction: column; align-items: center; gap: 10rpx;
+	box-shadow: 0 2rpx 8rpx rgba(0, 0, 0, 0.04);
+	transition: transform 150ms, background 200ms, box-shadow 200ms;
+	overflow: hidden;
+}
 .scene-chip:active { transform: scale(0.96); }
-.scene-chip.active { background: $brand-primary-bg; border: 1rpx solid $brand-primary; }
-.chip-icon { width: 40rpx; height: 40rpx; margin-bottom: 8rpx; }
-.chip-label { font-size: $fs-caption; color: $text-secondary; }
-.scene-chip.active .chip-label { color: $brand-primary; font-weight: 600; }
+.scene-chip.active {
+	background: $brand-primary;
+	box-shadow: 0 6rpx 16rpx rgba(22, 119, 255, 0.25);
+}
+.chip-icon-wrap {
+	width: 72rpx; height: 72rpx;
+	border-radius: 50%;
+	background: $bg-elevated;
+	display: flex; align-items: center; justify-content: center;
+	transition: background 200ms;
+}
+.scene-chip.active .chip-icon-wrap { background: rgba(255, 255, 255, 0.22); }
+.chip-icon { width: 40rpx; height: 40rpx; opacity: 0.85; }
+.scene-chip.active .chip-icon { opacity: 1; }
+.chip-label {
+	font-size: $fs-caption; color: $text-secondary;
+	font-weight: 500;
+	max-width: 100%;
+	white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.scene-chip.active .chip-label { color: $bg-card; font-weight: 600; }
 
-/* 导航列表 */
-.nav-list { background: $bg-card; border-radius: $radius-xl; overflow: hidden; box-shadow: $shadow-sm; }
-.nav-row { padding: 28rpx 32rpx; display: flex; justify-content: space-between; align-items: center; border-bottom: 1rpx solid $bg-page; }
+/* 导航列表（控制与设置） */
+.nav-list {
+	background: $bg-card; border-radius: $radius-xl;
+	overflow: hidden; box-shadow: $shadow-sm;
+}
+.nav-row {
+	padding: 28rpx 32rpx; display: flex;
+	justify-content: space-between; align-items: center;
+	border-bottom: 1rpx solid $bg-page;
+	transition: background 150ms;
+}
 .nav-row:last-child { border-bottom: none; }
 .nav-row:active { background: $bg-elevated; }
 .nav-left { display: flex; align-items: center; gap: 16rpx; }
-.nav-icon { width: 44rpx; height: 44rpx; }
+.nav-icon { width: 44rpx; height: 44rpx; opacity: 0.75; }
 .nav-label { font-size: $fs-body; color: $text-regular; }
-	.nav-arr { font-size: 32rpx; color: $text-disabled; font-weight: 300; }
+.nav-arr { font-size: 32rpx; color: $text-disabled; font-weight: 300; }
 
-/* 断开连接 */
+/* 断开连接：使用全局 .row-action.danger 样式 */
 .disconnect-btn {
-	margin-top: 32rpx; padding: 24rpx; border-radius: $radius-xl;
-		background: $bg-card; text-align: center;
-		box-shadow: $shadow-sm;
+	margin-top: 32rpx; padding: 24rpx;
+	background: $bg-card; border-radius: $radius-xl;
+	box-shadow: $shadow-sm;
 }
-.disconnect-btn:active { background: $color-danger-bg; }
-.disconnect-btn text { font-size: $fs-body; color: $color-danger; font-weight: 500; }
-
-/* 按钮 */
-.btn { padding: 22rpx 60rpx; border-radius: $radius-full; display: inline-flex; align-items: center; justify-content: center; }
-.btn-primary { background: $brand-primary; }
-.btn-primary text { color: $bg-card; font-size: $fs-body; font-weight: 500; }
-.btn-primary:active { background: $brand-primary-hover; transform: scale(0.98); }
 </style>
