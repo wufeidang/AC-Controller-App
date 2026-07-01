@@ -159,7 +159,7 @@
 								@confirm="doConnect" />
 						</view>
 					</view>
-					<view class="btn" @click="doConnect" :class="{ off: connecting }" role="button" aria-label="连接到指定 IP">
+					<view class="btn btn-primary" @click="doConnect" :class="{ off: connecting }" role="button" aria-label="连接到指定 IP">
 						<text>{{ connecting ? '连接中...' : '连接到此 IP' }}</text>
 					</view>
 				</view>
@@ -460,6 +460,10 @@ export default {
 				return;
 			}
 			try {
+				// 先把目标地址写入 apiService，再发起请求
+				// ——从 mDNS 选中或手动输入时 baseUrl 可能还是上一次的值；
+				//  不更新会导致请求落到旧地址或 baseUrl='' 抛出「设备未连接」。
+				apiService.setDeviceAddress(addr);
 				this.connecting = true; this.loadingVisible = true;
 				const res = await apiService.getDeviceId();
 				if (res.status === 'success') {
@@ -853,6 +857,7 @@ export default {
 	height: 96rpx; border-radius: $radius-lg;
 	display: flex; align-items: center; justify-content: center;
 	margin-top: 8rpx;
+	background: $brand-primary; /* 兜底：避免漏写 btn-primary / hotspot 上下文导致透明背景文字不可见 */
 	box-shadow: 0 8rpx 20rpx rgba(22, 119, 255, 0.25);
 }
 .btn:active { transform: scale(0.99); }
