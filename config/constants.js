@@ -7,6 +7,7 @@ export default {
 
 	// 轮询间隔 (ms)
 	POLL_INTERVAL: 10000,
+	TEMP_POLL_INTERVAL: 5000,  // 温湿度轻量级轮询间隔（getTempHum）
 
 	// Toast 自动关闭时长 (ms)
 	TOAST_DURATION: 1500,

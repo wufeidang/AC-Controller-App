@@ -185,6 +185,7 @@
 				humOffThreshold: 60,
 				switchLoading: false,
 				pollTimer: null,
+				tempPollTimer: null,
 				currentScene: '',
 				scenes: constants.SCENES,
 				statusPending: false,  // 防止 fetchStatus 竟态
@@ -305,8 +306,7 @@
 				}
 				this.failCount = 0;
 				const d = res.data;
-				this.setIfChanged('currentTemp', d.temperature != null ? d.temperature : null);
-				this.setIfChanged('currentHum', d.humidity != null ? d.humidity : null);
+				// 温湿度由 fetchTempHum() 轻量级轮询独立刷新，此处不再覆盖
 				this.setIfChanged('acStatus', d.ac_status === 'on');
 				this.setIfChanged('controlType', d.control_type || 'temperature');
 				this.setIfChanged('tempOnThreshold', d.temp_on_threshold ?? this.tempOnThreshold);
@@ -350,9 +350,24 @@
 				this.checkDevice();
 				if (this.deviceConnected) this.fetchStatus();
 			}, constants.POLL_INTERVAL);
+			// 温湿度轻量级轮询：响应更小，刷新更快
+			this.tempPollTimer = setInterval(() => {
+				if (this.deviceConnected) this.fetchTempHum();
+			}, constants.TEMP_POLL_INTERVAL);
 		},
 		stopPoll() {
 			if (this.pollTimer) { clearInterval(this.pollTimer); this.pollTimer = null; }
+			if (this.tempPollTimer) { clearInterval(this.tempPollTimer); this.tempPollTimer = null; }
+		},
+		async fetchTempHum() {
+			if (!this.deviceConnected) return;
+			try {
+				const res = await apiService.getTempHum();
+				if (res.status === 'success' && res.data) {
+					this.setIfChanged('currentTemp', res.data.temperature != null ? res.data.temperature : null);
+					this.setIfChanged('currentHum', res.data.humidity != null ? res.data.humidity : null);
+				}
+			} catch (e) { /* 静默，不干扰主轮询 */ }
 		},
 		async toggleACStatus(e) {
 			const on = e.detail.value;

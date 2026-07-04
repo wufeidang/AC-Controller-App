@@ -197,6 +197,7 @@ class ApiService {
   /**
    * 获取温湿度校准参数
    * @returns {Promise} - 返回温湿度校准参数
+   * @note 当前由 getStatus() 统一返回，保留此方法供独立查询场景使用
    */
   async getCalibration() {
     return this.request({ cmd: 'get_calibration', data: {} });
@@ -205,6 +206,7 @@ class ApiService {
   /**
    * 获取设备信息
    * @returns {Promise} - 返回设备信息
+   * @note 当前由 getStatus() 统一返回，保留此方法供独立查询场景使用
    */
   async getDeviceInfo() {
     return this.request({ cmd: 'get_device_info', data: {} });
@@ -278,6 +280,7 @@ class ApiService {
    * @param {Array<boolean>} timer.repeat - 重复天数数组 (7个元素，对应周日到周六)
    * @param {string} timer.action - 动作 (on/off)
    * @returns {Promise} - 返回设置结果
+   * @deprecated 定时器功能已丢弃，设备端未实现此接口，请勿调用
    */
   async setTimer(timer) {
     // 确保repeat数组长度为7，并且只包含布尔值
@@ -302,6 +305,7 @@ class ApiService {
   /**
    * 获取定时任务
    * @returns {Promise} - 返回定时任务列表
+   * @deprecated 定时器功能已丢弃，设备端未实现此接口，请勿调用
    */
   async getTimer() {
     return this.request({ cmd: 'get_timer', data: {} });
@@ -311,6 +315,7 @@ class ApiService {
    * 删除定时任务
    * @param {string} id - 定时任务ID
    * @returns {Promise} - 返回删除结果
+   * @deprecated 定时器功能已丢弃，设备端未实现此接口，请勿调用
    */
   async deleteTimer(id) {
     return this.request({
