@@ -60,7 +60,7 @@
 		methods: {
 			async loadSettings() {
 				if (!this.deviceConnected) return;
-				try { this.showLoading('加载中...'); const res = await api.getStatus(); if (res.status === 'success' && res.data.device_info) this.apSsid = res.data.device_info.wifi_name || ''; } catch (e) { /* 静默 */ } finally { this.hideLoading(); }
+				try { this.showLoading('加载中...'); const res = await api.getStatus(); if (res.status === 'success' && res.data.device_info) this.apSsid = res.data.device_info.wifi_name || ''; } catch (e) { console.warn('[ap-wifi] loadSettings:', e.message); } finally { this.hideLoading(); }
 			},
 				async saveSettings() {
 				if (!this.deviceConnected) { this.showToast('提示', '请先连接设备', 'warning'); return; }

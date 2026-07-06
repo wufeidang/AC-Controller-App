@@ -25,7 +25,7 @@ ESP8266 空调温控系统的移动端应用（uni-app + Vue2），通过 HTTP P
 
 ## 开发规范
 
-- **语言**: JavaScript (Vue2) — 不加 TypeScript
+- **语言**: JavaScript (Vue3) — 不加 TypeScript
 - **状态管理**: 优先抽取 mixin，不引入 Vuex/Pinia
 - **UI 风格**: Ant Design 蓝 #1677FF + 圆角卡片
 - **兼容性**: uni-app HBuilderX 构建，支持 Android/iOS/H5

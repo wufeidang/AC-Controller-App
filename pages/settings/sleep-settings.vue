@@ -67,7 +67,7 @@ export default {
 				this.showLoading('获取中...');
 				const res = await apiService.getSleepEnabled();
 				if (res.status === 'success') this.sleepEnabled = !!res.data.sleep_enabled;
-			} catch (e) { /* 静默 */ }
+			} catch (e) { console.warn('[sleep] getSleepStatus:', e.message); }
 			finally { this.hideLoading(); }
 		},
 		async saveSettings() {

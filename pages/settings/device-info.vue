@@ -74,7 +74,7 @@ export default {
 				}
 				const sys = await apiService.getSystemInfo();
 				if (sys.status === 'success') this.systemInfo = sys.data;
-			} catch (e) { /* 静默 */ }
+			} catch (e) { console.warn('[device-info] getInfo:', e.message); }
 			finally { this.hideLoading(); }
 		},
 		formatUptime(s) {

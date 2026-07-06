@@ -179,6 +179,18 @@ class ApiService {
   }
 
   /**
+   * 启动OTA配网模式（新版API v1.2.0 新增步骤）
+   * 设备将准备进入配网/升级状态
+   * @returns {Promise} - 返回启动结果
+   */
+  async otaStartMode() {
+    return this.request({
+      cmd: 'ota_update',
+      data: { action: 'start_ota_mode' }
+    }, constants.OTA_TIMEOUT);
+  }
+
+  /**
    * 获取温湿度阈值
    * @returns {Promise} - 返回温湿度阈值设置
    */

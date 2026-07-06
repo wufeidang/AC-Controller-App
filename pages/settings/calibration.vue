@@ -78,6 +78,7 @@ import Loading from '../../components/Loading';
 import CustomModal from '../../components/CustomModal';
 import SliderControl from '../../components/SliderControl';
 import apiService from '../../services/api';
+import constants from '../../config/constants';
 import deviceMixin from '../../mixins/device-mixin.js';
 import modalMixin from '../../mixins/modal-mixin';
 
@@ -101,7 +102,7 @@ export default {
 					this.tempOffset = res.data.calibration.temp_offset || 0;
 					this.humOffset = res.data.calibration.hum_offset || 0;
 				}
-			} catch (e) { /* 静默 */ }
+			} catch (e) { console.warn('[calibration] getSettings:', e.message); }
 			finally { this.hideLoading(); }
 		},
 		async saveCalibration() {
@@ -111,7 +112,7 @@ export default {
 				this.saving = true;
 				this.showLoading('保存中...');
 				const res = await apiService.setCalibration({ temp_offset: this.tempOffset, hum_offset: this.humOffset });
-				if (res.status === 'success') { this.showToast('成功', '保存成功'); }
+				if (res.status === 'success') { this.showToast('成功', '保存成功'); uni.$emit(constants.EVENTS.SETTINGS_CHANGED, { type: 'calibration' }); }
 				else { this.showToast('失败', (res.data && res.data.message) || '保存失败'); }
 			} catch (e) {
 				this.showToast('失败', e.message || '保存失败');

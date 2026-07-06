@@ -144,7 +144,7 @@
 			const info = uni.getStorageInfoSync();
 			info.keys.forEach(k => {
 				if (!KEEP.includes(k)) {
-					try { uni.removeStorageSync(k); } catch (e) {}
+					try { uni.removeStorageSync(k); } catch (e) { console.warn('[settings] removeStorage:', e.message); }
 				}
 			});
 		},

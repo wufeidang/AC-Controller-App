@@ -109,6 +109,7 @@ import Loading from '../../components/Loading';
 import CustomModal from '../../components/CustomModal';
 import SliderControl from '../../components/SliderControl';
 import apiService from '../../services/api';
+import constants from '../../config/constants';
 import deviceMixin from '../../mixins/device-mixin';
 import modalMixin from '../../mixins/modal-mixin';
 
@@ -174,7 +175,7 @@ export default {
 					this.humOffThreshold = d.hum_off_threshold ?? 60;
 					this.checkInterval = d.check_interval ?? 5;
 				}
-			} catch (e) { /* 静默 */ }
+			} catch (e) { this.showToast('提示', '获取设置失败', 'warning'); console.warn('[temp-hum] getSettings:', e.message); }
 			finally { this.hideLoading(); }
 		},
 		async saveSettings() {
@@ -191,12 +192,8 @@ export default {
 					humOffThreshold: this.humOffThreshold, checkInterval: this.checkInterval
 				});
 				if (res.status === 'success') {
-					uni.setStorageSync('tempHumSettings', {
-						controlType: this.controlType, tempOnThreshold: this.tempOnThreshold,
-						tempOffThreshold: this.tempOffThreshold, humOnThreshold: this.humOnThreshold,
-						humOffThreshold: this.humOffThreshold, checkInterval: this.checkInterval
-					});
 					this.showToast('成功', '保存成功', 'success');
+					uni.$emit(constants.EVENTS.SETTINGS_CHANGED, { type: 'temp_hum' });
 				} else { this.showToast('失败', (res.data && res.data.message) || '保存失败', 'error'); }
 			} catch (e) {
 				this.showToast('失败', e.message || '保存失败', 'error');

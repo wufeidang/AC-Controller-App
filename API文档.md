@@ -33,6 +33,9 @@
   - [27. 获取STA（客户端）WiFi状态](#27-获取sta客户端wifi状态)
   - [28. 设置MQTT配置](#28-设置mqtt配置)
   - [29. 获取MQTT配置](#29-获取mqtt配置)
+- [错误处理](#错误处理)
+- [品牌差异说明](#品牌差异说明)
+- [版本历史](#版本历史)
 - [MQTT集成说明](#mqtt集成说明)
   - [MQTT主题格式](#mqtt主题格式)
   - [MQTT状态推送格式](#mqtt状态推送格式)
@@ -97,7 +100,7 @@
       "mode": "cool",
       "fan_speed": "medium",
       "swing": "auto",
-      "brand": "tcl"  // 见下方"设置空调品牌"章节，共支持15个品牌
+      "brand": "tcl"  // 见下方"设置空调品牌"章节，共支持4个品牌
     }
   }
 }
@@ -132,9 +135,9 @@
 **命令**: `set_ac_params`
 
 **参数**:
-- `temperature`: 温度（整数）
+- `temperature`: 温度（整数），范围视品牌而定：TCL 16-30°C，Midea/Philips 17-30°C
 - `mode`: 模式，可选值：`auto`（自动）、`cool`（制冷）、`heat`（制热）、`fan`（送风）、`dry`（除湿）
-- `fan_speed`: 风速，可选值：`auto`（自动）、`low`（低速）、`medium`（中速）、`high`（高速）、`quiet`（静音）
+- `fan_speed`: 风速，可选值：`auto`（自动）、`low`（低速）、`medium`（中速）、`high`（高速）、`quiet`（静音）。注意：`quiet` 在 TCL 和 Midea 48-bit 品牌下有效；Midea Coolix 和 Philips 自动回退为 `auto`
 - `swing`: 摆风，可选值：`auto`（自动）、`fixed`（固定）
 
 **返回值**:
@@ -285,7 +288,7 @@
 }
 ```
 
-> **注意**: `brand` 字段共支持 15 个空调品牌，详见 [16. 设置空调品牌](#16-设置空调品牌)。
+> **注意**: `brand` 字段支持 4 个空调品牌（`tcl`、`midea`、`midea-coolix`、`philips`），详见 [16. 设置空调品牌](#16-设置空调品牌)。
 
 ### 10. 获取设备信息
 
@@ -394,20 +397,7 @@
 **命令**: `set_ac_brand`
 
 **参数**:
-- `brand`: 空调品牌，可选值：
-
-| 值 | 品牌 | 值 | 品牌 |
-|---|---|---|---|
-| `tcl` | TCL | `lg` | LG 乐金 |
-| `midea` | 美的 Midea | `mitsubishi` | 三菱电机 |
-| `haier` | 海尔 Haier | `panasonic` | 松下 Panasonic |
-| `gree` | 格力 Gree | `samsung` | 三星 Samsung |
-| `carrier` | 开利 Carrier | `sharp` | 夏普 Sharp |
-| `daikin` | 大金 Daikin | `toshiba` | 东芝 Toshiba |
-| `fujitsu` | 富士通 Fujitsu | `whirlpool` | 惠而浦 Whirlpool |
-| `hitachi` | 日立 Hitachi | | |
-
-> **注意**：如果飞利浦/其他贴牌空调不响应，请依次尝试 `midea` → `gree` → `tcl`（飞利浦空调多为美的代工）
+- `brand`: 空调品牌，可选值：`tcl`、`midea`（Midea 48-bit 协议）、`midea-coolix`（Midea Coolix 协议，覆盖部分国产美的）、`philips`
 
 **返回值**:
 ```json
@@ -415,7 +405,7 @@
   "status": "success",
   "data": {
     "message": "空调品牌设置成功",
-    "brand": "tcl"
+    "brand": "midea"
   }
 }
 ```
@@ -842,6 +832,76 @@ mqtt:
 5. 连接成功后可通过 STA IP 继续管理
 ```
 
+### mDNS 局域网发现（设备域名）
+
+设备支持 **mDNS（Multicast DNS）**，启动后自动注册为 `<device_name>.local` 域名（默认 `esp8266-ac.local`），局域网内的客户端无需知道 IP 地址即可直接访问。
+
+#### 优势
+
+- **无需记 IP**：设备 IP 可能随 DHCP 变化，但 `.local` 域名始终不变
+- **双模式可用**：mDNS 同时在 AP 和 STA 网口广播，无论客户端连在哪个网络都能解析
+- **设备名联动**：通过 `set_device_info` 修改 `device_name` 后，mDNS 域名自动同步更新（例如改为 `living-room-ac.local`）
+
+#### 各平台访问方式
+
+| 平台 | 方法 | 说明 |
+|------|------|------|
+| **iOS / macOS** | `http://esp8266-ac.local` | 原生 Bonjour 支持，Safari/Chrome 直接可用 |
+| **Android** | `http://esp8266-ac.local` | Chrome 85+ 原生支持；Android 12+ 系统级支持 |
+| **Windows** | `http://esp8266-ac.local` | 需安装 Bonjour（iTunes 附带），或 Win10 1803+ 内置支持 |
+| **Linux** | `http://esp8266-ac.local` | 大多数发行版预装 Avahi，直接可用 |
+
+#### 使用示例
+
+连接 STA WiFi 后，可以直接用域名调用 API：
+
+```bash
+# 获取设备状态
+curl -X POST http://esp8266-ac.local \
+  -H "Content-Type: application/json" \
+  -d '{"cmd":"get_status"}'
+
+# 控制空调开机
+curl -X POST http://esp8266-ac.local \
+  -H "Content-Type: application/json" \
+  -d '{"cmd":"control_ac","data":{"action":"on"}}'
+```
+
+#### 在 App 中发现设备
+
+Android 使用 `NsdManager`，iOS 使用 `Bonjour`/`NWBrowser` 可以主动发现局域网内所有 AC 控制器：
+
+**Android (Kotlin)**:
+```kotlin
+val nsdManager = context.getSystemService(Context.NSD_SERVICE) as NsdManager
+nsdManager.discoverServices("_http._tcp", NsdManager.PROTOCOL_DNS_SD,
+    object : NsdManager.DiscoveryListener {
+        override fun onServiceFound(info: NsdServiceInfo) {
+            // info.serviceName 如 "esp8266-ac"
+            // 通过 serviceName 构造 URL: http://esp8266-ac.local
+        }
+        // ...
+    })
+```
+
+**iOS (Swift)**:
+```swift
+let browser = NWBrowser(
+    for: .bonjour(type: "_http._tcp", domain: "local"),
+    using: .tcp
+)
+browser.browseResultsChangedHandler = { results, _ in
+    for result in results {
+        if case .bonjour(let name, _, _) = result.endpoint {
+            print("发现设备: \(name)") // → "esp8266-ac"
+        }
+    }
+}
+browser.start(queue: .main)
+```
+
+> **注意**：`device_name` 中的中文和特殊字符会被自动清理为合法 mDNS 主机名。建议使用英文+数字+连字符的设备名以获得最佳兼容性。
+
 ## EEPROM写入策略
 
 ### 延迟写入（Dirty Flag）
@@ -895,7 +955,7 @@ API调用 → 修改内存数据 → 设置脏标记(dirty flag)
 - `"No action specified"`: 未指定动作
 - `"Invalid firmware URL"`: 无效的固件URL
 - `"Missing required parameters"`: 缺少必要参数
-- `"无效的空调品牌，支持的品牌：tcl, midea, haier, gree, carrier, daikin, fujitsu, hitachi, lg, mitsubishi, panasonic, samsung, sharp, toshiba, whirlpool"`: 空调品牌无效
+- `"无效的空调品牌，支持的品牌：tcl/midea/midea-48/midea-coolix/philips"`: 空调品牌无效
 - `"No SSID specified"`: 未指定SSID
 - `"No password specified"`: 未指定密码
 - `"No brand specified"`: 未指定品牌
@@ -904,11 +964,25 @@ API调用 → 修改内存数据 → 设置脏标记(dirty flag)
 
 ## 错误处理
 
+## 品牌差异说明
+
+| 品牌 | brand值 | 红外协议 | 温度范围 | 风速支持 | quiet回退 |
+|------|---------|---------|---------|---------|----------|
+| TCL | `tcl` | TCL 112AC | 16-30°C | auto/low/medium/high/**quiet** | - |
+| 美的 | `midea` | Midea | 17-30°C | auto/low/medium/high/**quiet** | - |
+| 美的-Coolix | `midea-coolix` | Coolix | 17-30°C | auto/low/medium/high | quiet→auto |
+| 飞利浦 | `philips` | Coolix | 17-30°C | auto/low/medium/high | quiet→auto |
+
+- `quiet` 风速在 TCL 和 Midea 48-bit 品牌下有效；Midea Coolix 和 Philips 会自动回退为 `auto`
+- 摆风模式：所有品牌均支持 `auto`（自动摆风）和 `fixed`（固定风向）切换
+- 美的-Coolix 协议覆盖部分国产美的挂机/柜机（如 RG52D/BGE 遥控器、MS12FU-10HRDN1 等）；若美的空调不响应 `midea` 品牌，请尝试切换为 `midea-coolix`
+
 ## 版本历史
 
 | 版本 | 日期 | 变更内容 |
 |------|------|----------|
 | v1.0.0 | 初始 | 基础功能：温湿度监测、TCL/美的/海尔/格力红外控制、Web API、场景模式、OTA升级、电源管理 |
 | v1.1.0 | 2025-03 | 新增 MQTT 集成（Home Assistant）、STA模式（AP+STA双模共存）、休眠开关、EEPROM结构体化管理 |
-| v1.2.0 | 2025-06 | **品牌扩展 4→15**：新增大金/三菱/松下/三星/LG/东芝/日立/富士通/夏普/开利/惠而浦；EEPROM初始化乱码修复；命令分发表重构；场景模式结构体化；OTA版本解析去重；MQTT写入策略统一
+| v1.2.0 | 2025-06 | **品牌体系重构**：支持 TCL/Midea/Midea-Coolix/Philips 4品牌；温湿度由 getStatus 统一返回；OTA 分两步（start_ota_mode + firmware_url）；EEPROM初始化乱码修复；场景模式结构体化 |
+| v1.2.1 | 2025-07 | 品牌能力差异配置：TCL 16-30°C 支持 quiet；Midea 17-30°C 支持 quiet；Midea-Coolix/Philips 17-30°C quiet→auto；App 精简设备连接页（上次连接+手动IP+mDNS发现）；断连3次自动跳转设备页 |
 

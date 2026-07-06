@@ -130,9 +130,9 @@ export default {
 			if (this._toastTimer) { clearTimeout(this._toastTimer); this._toastTimer = null; }
 			this.stopHold();
 		// 清理全局事件监听
-		if (this._errorHandler) { uni.$off('app-error', this._errorHandler); this._errorHandler = null; }
-		if (this._appToastHandler) { uni.$off('app-toast', this._appToastHandler); this._appToastHandler = null; }
-		if (this._appLoadingHandler) { uni.$off('app-loading', this._appLoadingHandler); this._appLoadingHandler = null; }
+		if (this._errorHandler) { uni.$off(constants.EVENTS.APP_ERROR, this._errorHandler); this._errorHandler = null; }
+		if (this._appToastHandler) { uni.$off(constants.EVENTS.APP_TOAST, this._appToastHandler); this._appToastHandler = null; }
+		if (this._appLoadingHandler) { uni.$off(constants.EVENTS.APP_LOADING, this._appLoadingHandler); this._appLoadingHandler = null; }
 	},
 
 	// 全局事件监听：errorHandler / 其他模块通过 uni.$emit 分发提示，由当前页面 CustomModal 展示
@@ -143,13 +143,13 @@ export default {
 			if (e.visible) this.showLoading(e.text);
 			else this.hideLoading();
 		};
-		uni.$on('app-error', this._errorHandler);
-		uni.$on('app-toast', this._appToastHandler);
-		uni.$on('app-loading', this._appLoadingHandler);
+		uni.$on(constants.EVENTS.APP_ERROR, this._errorHandler);
+		uni.$on(constants.EVENTS.APP_TOAST, this._appToastHandler);
+		uni.$on(constants.EVENTS.APP_LOADING, this._appLoadingHandler);
 	},
 	onUnload() {
-		if (this._errorHandler) { uni.$off('app-error', this._errorHandler); }
-		if (this._appToastHandler) { uni.$off('app-toast', this._appToastHandler); }
-		if (this._appLoadingHandler) { uni.$off('app-loading', this._appLoadingHandler); }
+		if (this._errorHandler) { uni.$off(constants.EVENTS.APP_ERROR, this._errorHandler); }
+		if (this._appToastHandler) { uni.$off(constants.EVENTS.APP_TOAST, this._appToastHandler); }
+		if (this._appLoadingHandler) { uni.$off(constants.EVENTS.APP_LOADING, this._appLoadingHandler); }
 	}
 };

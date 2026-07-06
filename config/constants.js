@@ -7,7 +7,7 @@ export default {
 
 	// 轮询间隔 (ms)
 	POLL_INTERVAL: 10000,
-	TEMP_POLL_INTERVAL: 5000,  // 温湿度轻量级轮询间隔（getTempHum）
+	TEMP_POLL_INTERVAL: 5000,  // @deprecated v2.3.0 温湿度由 getStatus 承载，不再单独轮询
 
 	// Toast 自动关闭时长 (ms)
 	TOAST_DURATION: 1500,
@@ -21,33 +21,52 @@ export default {
 	MDNS_SCAN_TIMEOUT: 3000,  // 单次扫描超时 (ms)
 
 		// OTA 超时 (ms)
-		OTA_TIMEOUT: 60000,
+	OTA_TIMEOUT: 60000,
 
-		// OTA 默认固件 URL
-		OTA_DEFAULT_FIRMWARE_URL: 'http://bin.bemfa.com/b/27002/3BcZGI1OTA5NDczM2FjYjkzMTg2N2Q1YWY5NGE1N2ZjNzg=FRESTEC.bin',
+	// OTA 默认固件 URL — 空字符串，用户需自行从文档获取最新地址
+	// 原默认地址含第三方令牌，已移除（宪法 VII：凭据零持久化）
+	OTA_DEFAULT_FIRMWARE_URL: '',
 
-		// OTA 进度追踪
-		OTA_PROGRESS_MAX: 80,       // 模拟进度最高到 80%，余下靠轮询确认
-		OTA_POLL_INTERVAL: 5000,     // 轮询检测设备重启间隔 (ms)
-		OTA_VERIFY_TIMEOUT: 120000, // 轮询超时 (ms)
+	// OTA 进度追踪
+	OTA_PROGRESS_MAX: 80,       // 模拟进度最高到 80%，余下靠轮询确认
+	OTA_POLL_INTERVAL: 5000,     // 轮询检测设备重启间隔 (ms)
+	OTA_VERIFY_TIMEOUT: 120000, // 轮询超时 (ms)
 
-	// 品牌映射表
+	// 品牌映射表 — 支持 4 个品牌值（固件 v1.2.0）
 	BRAND_MAP: {
 		tcl: 'TCL',
 		midea: '美的',
-		haier: '海尔',
-		gree: '格力',
-		daikin: '大金',
-		mitsubishi: '三菱',
-		panasonic: '松下',
-		samsung: '三星',
-		lg: 'LG',
-		toshiba: '东芝',
-		hitachi: '日立',
-		fujitsu: '富士通',
-		sharp: '夏普',
-		carrier: '开利',
-		whirlpool: '惠而浦'
+		'midea-coolix': '美的-Coolix',
+		philips: '飞利浦'
+	},
+
+	// 品牌能力差异配置（红外协议、温度范围、支持的风速）
+	// quiet 风速在不支持的品牌上会被自动回退为 auto
+	BRAND_CAPABILITIES: {
+		tcl: {
+			protocol: 'TCL 112AC',
+			minTemp: 16,
+			maxTemp: 30,
+			fanSpeeds: ['auto', 'low', 'medium', 'high', 'quiet']
+		},
+		midea: {
+			protocol: 'Midea',
+			minTemp: 17,
+			maxTemp: 30,
+			fanSpeeds: ['auto', 'low', 'medium', 'high', 'quiet']
+		},
+		'midea-coolix': {
+			protocol: 'Coolix',
+			minTemp: 17,
+			maxTemp: 30,
+			fanSpeeds: ['auto', 'low', 'medium', 'high']  // quiet → auto
+		},
+		philips: {
+			protocol: 'Coolix',
+			minTemp: 17,
+			maxTemp: 30,
+			fanSpeeds: ['auto', 'low', 'medium', 'high']  // quiet → auto
+		}
 	},
 
 	// 模式标签映射
@@ -90,5 +109,25 @@ export default {
 		{ value: 'comfort', label: '舒适', icon: 'smile' },
 		{ value: 'energy_saving', label: '节能', icon: 'lightning' },
 		{ value: 'quick',  label: '快速', icon: 'light' }
-	]
+	],
+
+	// 事件总线常量 — 统一跨页面/组件通信
+	EVENTS: {
+		SETTINGS_CHANGED: 'settings:changed',
+		DEVICE_CONNECTED: 'deviceConnected',
+		APP_ERROR: 'app-error',
+		APP_TOAST: 'app-toast',
+		APP_LOADING: 'app-loading'
+	},
+
+	// Storage Key 定义 — 单一职责（宪法 VI）
+	// connectedDevice: { address, deviceId, connected, location }
+	// staWifiHistory: [{ ssid, timestamp }] — 仅 SSID，不含密码（宪法 VII）
+	STORAGE_KEYS: {
+		CONNECTED_DEVICE: 'connectedDevice',
+		STA_WIFI_HISTORY: 'staWifiHistory'
+	},
+
+	// 轮询退避间隔 — 设备连续失败 ≥ 3 次后降频
+	POLL_BACKOFF_INTERVAL: 30000
 };

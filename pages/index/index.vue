@@ -185,12 +185,15 @@
 				humOffThreshold: 60,
 				switchLoading: false,
 				pollTimer: null,
-				tempPollTimer: null,
 				currentScene: '',
 				scenes: constants.SCENES,
 				statusPending: false,  // 防止 fetchStatus 竟态
+				_retryPending: false, // 设置变更后若遇竟态，排队重试
+				_settingsChangedTimer: null,
 				failCount: 0,         // 连续失败次数
 				failThreshold: 3,     // 超过此次数标记为连接异常
+				hasShownBackoffToast: false,
+				_currentInterval: 0,
 				statusBarHeight: 0
 			};
 		},
@@ -236,6 +239,15 @@
 			this.startPoll();
 			this._deviceHandler = (e) => this.onDeviceEvent(e);
 			uni.$on('deviceConnected', this._deviceHandler);
+			this._onSettingsChanged = () => {
+				if (!this.deviceConnected) return;
+				// 延迟短期内让设备端处理完设置变更，防止后端时序竞态
+				clearTimeout(this._settingsChangedTimer);
+				this._settingsChangedTimer = setTimeout(() => {
+					if (this.deviceConnected) this.fetchStatus();
+				}, 400);
+			};
+			uni.$on(constants.EVENTS.SETTINGS_CHANGED, this._onSettingsChanged);
 		},
 		onShow() {
 			this.checkDevice();
@@ -243,11 +255,17 @@
 				uni.redirectTo({ url: '/pages/device/device' });
 				return;
 			}
-			// onShow 时不再立即 fetchStatus，依赖轮询即可（避免竟态）
+			this.fetchStatus();
+			this.startPoll(this._currentInterval);
+		},
+		onHide() {
+			this.stopPoll();
 		},
 		onUnload() {
 				this.stopPoll();
+				clearTimeout(this._settingsChangedTimer);
 				uni.$off('deviceConnected', this._deviceHandler);
+				if (this._onSettingsChanged) { uni.$off(constants.EVENTS.SETTINGS_CHANGED, this._onSettingsChanged); this._onSettingsChanged = null; }
 			},
 		onPullDownRefresh() {
 			this.fetchStatus().finally(() => {
@@ -296,17 +314,42 @@
 				}
 			},
 		async fetchStatus() {
-			if (!this.deviceConnected || this.statusPending) return;
+			if (!this.deviceConnected) return;
+			if (this.statusPending) {
+				this._retryPending = true;  // 标记重试，当前请求完成后立即再执行一次
+				return;
+			}
 			this.statusPending = true;
 			try {
 				const res = await apiService.getStatus();
 				if (res.status !== 'success') {
 					this.failCount++;
+					if (this.failCount >= this.failThreshold && this._currentInterval !== constants.POLL_BACKOFF_INTERVAL) {
+						this.stopPoll();
+						this.startPoll(constants.POLL_BACKOFF_INTERVAL);
+					}
+					// 连续 3 次失败后自动断开，跳转设备页
+					if (this.failCount >= this.failThreshold) {
+						this.stopPoll();
+						this.deviceConnected = false;
+						const dev = uni.getStorageSync('connectedDevice');
+						if (dev) {
+							dev.connected = false;
+							uni.setStorageSync('connectedDevice', dev);
+						}
+						uni.redirectTo({ url: '/pages/device/device' });
+					}
 					return;
 				}
 				this.failCount = 0;
+				this.hasShownBackoffToast = false;
+				if (this._currentInterval !== constants.POLL_INTERVAL) {
+					this.stopPoll();
+					this.startPoll(constants.POLL_INTERVAL);
+				}
 				const d = res.data;
-				// 温湿度由 fetchTempHum() 轻量级轮询独立刷新，此处不再覆盖
+				this.setIfChanged('currentTemp', d.temperature != null ? d.temperature : null);
+				this.setIfChanged('currentHum', d.humidity != null ? d.humidity : null);
 				this.setIfChanged('acStatus', d.ac_status === 'on');
 				this.setIfChanged('controlType', d.control_type || 'temperature');
 				this.setIfChanged('tempOnThreshold', d.temp_on_threshold ?? this.tempOnThreshold);
@@ -327,10 +370,6 @@
 				const dev = uni.getStorageSync('connectedDevice');
 				if (dev) {
 					let changed = false;
-					if (dev.acStatus !== this.acStatus) {
-						dev.acStatus = this.acStatus;
-						changed = true;
-					}
 					if (d.device_info && d.device_info.device_location && dev.location !== d.device_info.device_location) {
 						dev.location = d.device_info.device_location;
 						changed = true;
@@ -339,35 +378,46 @@
 					uni.setStorageSync('connectedDevice', dev);
 					}
 				}
-			} catch (e) { this.failCount++; }
+			} catch (e) {
+				this.failCount++;
+				if (this.failCount >= this.failThreshold && this._currentInterval !== constants.POLL_BACKOFF_INTERVAL) {
+					this.stopPoll();
+					this.startPoll(constants.POLL_BACKOFF_INTERVAL);
+					if (!this.hasShownBackoffToast) {
+						this.hasShownBackoffToast = true;
+						this.showToast('提示', '设备连接异常，已降低心跳频率', 'warning');
+					}
+				}
+				// 连续 3 次失败后自动断开，跳转设备页
+				if (this.failCount >= this.failThreshold) {
+					this.stopPoll();
+					this.deviceConnected = false;
+					const dev = uni.getStorageSync('connectedDevice');
+					if (dev) {
+						dev.connected = false;
+						uni.setStorageSync('connectedDevice', dev);
+					}
+					uni.redirectTo({ url: '/pages/device/device' });
+				}
+			}
 			finally {
 				this.statusPending = false;
+				if (this._retryPending) {
+					this._retryPending = false;
+					this.fetchStatus();
+				}
 			}
 		},
-		startPoll() {
+		startPoll(interval) {
 			this.stopPoll();
+			this._currentInterval = interval || constants.POLL_INTERVAL;
 			this.pollTimer = setInterval(() => {
 				this.checkDevice();
 				if (this.deviceConnected) this.fetchStatus();
-			}, constants.POLL_INTERVAL);
-			// 温湿度轻量级轮询：响应更小，刷新更快
-			this.tempPollTimer = setInterval(() => {
-				if (this.deviceConnected) this.fetchTempHum();
-			}, constants.TEMP_POLL_INTERVAL);
+			}, this._currentInterval);
 		},
 		stopPoll() {
 			if (this.pollTimer) { clearInterval(this.pollTimer); this.pollTimer = null; }
-			if (this.tempPollTimer) { clearInterval(this.tempPollTimer); this.tempPollTimer = null; }
-		},
-		async fetchTempHum() {
-			if (!this.deviceConnected) return;
-			try {
-				const res = await apiService.getTempHum();
-				if (res.status === 'success' && res.data) {
-					this.setIfChanged('currentTemp', res.data.temperature != null ? res.data.temperature : null);
-					this.setIfChanged('currentHum', res.data.humidity != null ? res.data.humidity : null);
-				}
-			} catch (e) { /* 静默，不干扰主轮询 */ }
 		},
 		async toggleACStatus(e) {
 			const on = e.detail.value;
@@ -380,8 +430,6 @@
 				const res = await apiService.controlAc(on ? 'on' : 'off');
 				if (res.status === 'success') {
 					this.acStatus = on;
-					const d = uni.getStorageSync('connectedDevice');
-					if (d) { d.acStatus = on; uni.setStorageSync('connectedDevice', d); }
 					await this.fetchStatus();
 					this.showToast('成功', on ? '空调已开启' : '空调已关闭');
 				} else {

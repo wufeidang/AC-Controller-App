@@ -46,6 +46,7 @@
 						<text>· WiFi 信息用于设备连接互联网下载固件</text>
 						<text>· 升级过程中请勿断电，完成后设备自动重启</text>
 						<text>· 可从 Bemfa 物联网平台等获取固件下载链接</text>
+						<text class="tip-warn">· 固件将下载自第三方服务器，请确认来源可靠</text>
 				</view>
 			</view>
 
@@ -153,7 +154,7 @@ export default {
 			const u = uni.getStorageSync('otaUrl'); if (u) this.firmwareUrl = u;
 			const s = uni.getStorageSync('wifiSsid'); if (s) { this.wifiSsid = s; const p = uni.getStorageSync('wifiPassword'); if (p) this.wifiPassword = p; }
 		},
-		async getFw() { if (!this.deviceConnected) return; try { this.showLoading('获取中...'); const res = await apiService.getFirmwareVersion(); if (res.status === 'success') this.currentVersion = res.data.firmware_version || '未知'; } catch (e) { /* 静默 */ } finally { this.hideLoading(); } },
+		async getFw() { if (!this.deviceConnected) return; try { this.showLoading('获取中...'); const res = await apiService.getFirmwareVersion(); if (res.status === 'success') this.currentVersion = res.data.firmware_version || '未知'; } catch (e) { console.warn('[ota] getFw:', e.message); } finally { this.hideLoading(); } },
 		togglePassword() { this.showPassword = !this.showPassword; },
 		startUpdate() {
 			if (!this.deviceConnected) { this.showToast('警告', '请先连接设备', 'warning'); return; }
@@ -161,6 +162,9 @@ export default {
 				if (!isValidUrl(this.firmwareUrl)) { this.showToast('提示', '固件 URL 格式不正确，请输入有效的 HTTP/HTTPS 地址', 'warning'); return; }
 				if (!isNonEmpty(this.wifiSsid)) { this.showToast('提示', '请输入 WiFi 名称', 'warning'); return; }
 			if (this.updating) return;
+			let domain = '';
+			try { domain = new URL(this.firmwareUrl).hostname; } catch (e) { domain = this.firmwareUrl; }
+			this.confirmModalContent = `将向 ${domain} 请求固件文件。设备将连接 WiFi 下载并重启。确定继续吗？`;
 			this.confirmModalVisible = true;
 		},
 		handleConfirmModalConfirm() { this.confirmModalVisible = false; this.validateModalVisible = true; },
@@ -272,12 +276,21 @@ export default {
 				this.updating = true;
 				this.otaProgress = 0;
 				this.otaPhase = 'connecting';
+
+				// 步骤1：启动OTA配网模式（v1.2.0 新增）
+				const modeRes = await apiService.otaStartMode();
+				if (!modeRes || modeRes.status !== 'success') {
+					this._onOtaFailed((modeRes && modeRes.data && modeRes.data.message) || '进入OTA模式失败');
+					return;
+				}
+
+				// 步骤2：发送固件URL及WiFi信息，开始升级
 				const data = { firmware_url: this.firmwareUrl };
 				if (this.wifiSsid) { data.wifi_ssid = this.wifiSsid; if (this.wifiPassword) data.wifi_password = this.wifiPassword; }
 				const res = await apiService.otaUpdate(data);
 				if (res && res.status === 'success') {
 					uni.setStorageSync('otaUrl', this.firmwareUrl);
-					if (this.wifiSsid) { uni.setStorageSync('wifiSsid', this.wifiSsid); if (this.wifiPassword) uni.setStorageSync('wifiPassword', this.wifiPassword); }
+					if (this.wifiSsid) { uni.setStorageSync('wifiSsid', this.wifiSsid); uni.removeStorageSync('wifiPassword'); }
 					else { uni.removeStorageSync('wifiSsid'); uni.removeStorageSync('wifiPassword'); }
 					if (res.data.message === '正在连接WiFi') {
 						// WiFi 连接阶段 → 0→15% 模拟 (5s)

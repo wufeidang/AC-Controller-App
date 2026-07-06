@@ -1,4 +1,4 @@
-# 空调温控 App 宪法 — v2.2.0 改进
+# 空调温控 App 宪法 — v2.3.0 深度优化
 
 ## 核心原则
 
@@ -31,7 +31,22 @@
 - 每个 HTTP/WebSocket 请求的 `catch` 分支必须向用户展示可读的错误信息
 - 设备离线必须**及时检测**（心跳或轮询），而不是等到用户操作后才报错
 - 错误信息必须中文友好，不暴露技术细节
+- **禁止静默 catch**：`catch (e) { }` 空白块必须替换为 `ErrorHandler.handleError(e, { silent: true })` 或带注释声明的降级逻辑
 **理由**：当前错误处理不统一，有些静默丢失，有些抛技术细节，用户无法判断是网络问题还是设备问题。
+
+### VI. Storage Key 单一职责 (NON-NEGOTIABLE)
+每个 storage key 仅承载单一职责的数据结构。
+- `connectedDevice` 只允许保存连接信息：`{ address, deviceId, connected, location }`
+- **禁止**将业务状态快照（`acStatus`、阈值等）写入 `connectedDevice`
+- 业务态必须从权威源（设备）实时获取，不缓存到 storage
+**理由**：缓存混入让数据变更来源无法追踪，多写路径产生竞态风险。
+
+### VII. 凭据零持久化 (NON-NEGOTIABLE)
+任何密码、令牌、私钥禁止写入 localStorage / sessionStorage / 持久 cookie。
+- WiFi 密码、MQTT 密码仅瞬态 in-memory 使用，发送后不再保留
+- 如需"记住密码"，仅存标志位或 SSID，密码本身不持久化
+- 禁止将第三方服务令牌硬编码进源代码 / `constants.js`
+**理由**：APK 反编译与 storage dump 是平凡攻击，明文凭据立即暴露。
 
 ## 技术约束
 
@@ -41,7 +56,8 @@
 | 状态管理 | 优先抽取 mixin 而非引入 Vuex/Pinia（减少改动量） |
 | UI 风格 | Ant Design 蓝 #1677FF + 圆角卡片，保持现有设计体系 |
 | 兼容性 | uni-app HBuilderX 构建，支持 Android/iOS/H5 |
-| Git | 每次改动提交一个独立 commit，message 格式 `fix:` / `refactor:` / `chore:` |
+| Git | 每次改动提交一个独立 commit，message 格式 `fix:` / `refactor:` / `chore:` / `feat:` / `test:` / `docs:` |
+| 测试 | Vitest + @vue/test-utils@1（仅测纯 JS 模块与组件逻辑，不测 uni 运行时） |
 
 ## 开发工作流
 
@@ -56,4 +72,4 @@
 对宪法原则的修改需要记录在案并提交独立 commit。
 违反原则的代码将被 marked 为技术债务。
 
-**Version**: 1.0.0 | **Ratified**: 2026-06-26 | **Last Amended**: 2026-06-26
+**Version**: 1.1.0 | **Ratified**: 2026-06-26 | **Last Amended**: 2026-07-06

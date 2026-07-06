@@ -61,7 +61,7 @@ export default {
 	methods: {
 		async loadStatus() {
 			if (!this.deviceConnected) return;
-			try { this.showLoading('加载中...'); const res = await api.getStaWifi(); if (res.status === 'success') { this.staInfo = res.data; this.staSsid = res.data.ssid || ''; } } catch (e) { /* 静默 */ } finally { this.hideLoading(); }
+			try { this.showLoading('加载中...'); const res = await api.getStaWifi(); if (res.status === 'success') { this.staInfo = res.data; this.staSsid = res.data.ssid || ''; } } catch (e) { console.warn('[sta-wifi] loadStatus:', e.message); } finally { this.hideLoading(); }
 			},
 			async saveSettings() {
 			if (!this.deviceConnected) { this.showToast('提示', '请先连接设备', 'warning'); return; }

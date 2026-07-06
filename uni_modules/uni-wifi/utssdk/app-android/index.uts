@@ -92,6 +92,7 @@ function wrapUniWifiInfoFromAndroid(androidInfo : AndroidUniWifiInfo) : UniWifiI
 /**
  * 从扫描结果中提取统一的wifi数据结构
  */
+@Suppress("DEPRECATION")
 function wrapUniWifiInfoFromScan(scanResult : ScanResult) : AndroidUniWifiInfo {
 
 	let ret : AndroidUniWifiInfo = {
@@ -524,6 +525,7 @@ export function offGetWifiList(callback? : UniWifiCallback) {
 /**
  * 真正执行wifi链接逻辑
  */
+@Suppress("DEPRECATION")
 function realWifiConnect(option : WifiConnectOption){
 
 	if (Global.mReceiver == null || Global.scanList.length < 1) {

@@ -49,6 +49,7 @@
 import apiService from '../../services/api';
 import Loading from '../../components/Loading';
 import CustomModal from '../../components/CustomModal';
+import constants from '../../config/constants';
 import deviceMixin from '../../mixins/device-mixin';
 import modalMixin from '../../mixins/modal-mixin';
 
@@ -88,7 +89,7 @@ export default {
 						}
 					});
 				}
-			} catch (e) { /* 静默 */ }
+			} catch (e) { console.warn('[scene] getCurrentScene:', e.message); }
 			finally { this.hideLoading(); }
 		},
 		async saveScene() {
@@ -101,6 +102,7 @@ export default {
 				const res = await apiService.setScene(this.currentScene);
 				if (res.status === 'success') {
 					this.showToast('成功', '场景已切换');
+					uni.$emit(constants.EVENTS.SETTINGS_CHANGED, { type: 'scene' });
 					await this.getCurrentScene();
 				}
 				else { this.showToast('失败', (res.data && res.data.message) || '保存失败'); }

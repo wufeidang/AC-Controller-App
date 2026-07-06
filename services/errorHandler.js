@@ -40,12 +40,14 @@ class ErrorHandler {
    * 处理错误：记录日志 + 全局事件分发（由页面 CustomModal 展示）
    * @param {Error} error - 错误对象
    * @param {Object} options - 选项
-   * @param {boolean} options.silent - 是否静默（不弹 toast）
+   * @param {boolean} options.silent - 是否静默（不弹 toast，但保留结构化日志）
    */
   static handleError(error, options = {}) {
-    console.error('错误:', error.message || error);
-
-    if (options.silent) return;
+    if (options.silent) {
+      console.warn('[app] silent error:', error.message || error, error.stack ? '\n' + error.stack : '');
+      return;
+    }
+    console.error('[app] error:', error.message || error);
 
     const message = this.getMessage(error);
     uni.$emit('app-error', { message, type: 'error' });

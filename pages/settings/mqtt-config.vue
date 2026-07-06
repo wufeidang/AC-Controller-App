@@ -85,7 +85,7 @@ export default {
 	onLoad() { this.checkDevice(); this.loadConfig(); },
 	onShow() { this.checkDevice(); },
 	methods: {
-		async loadConfig() { if (!this.deviceConnected) return; try { this.showLoading('加载中...'); const res = await api.getMqttConfig(); if (res.status === 'success') { const d = res.data; this.mqttServer = d.server || ''; this.mqttPort = d.port ? String(d.port) : '1883'; this.mqttUser = d.user || ''; this.mqttPass = d.pass || ''; this.mqttTopic = d.topic || ''; } } catch (e) { /* 静默 */ } finally { this.hideLoading(); } },
+		async loadConfig() { if (!this.deviceConnected) return; try { this.showLoading('加载中...'); const res = await api.getMqttConfig(); if (res.status === 'success') { const d = res.data; this.mqttServer = d.server || ''; this.mqttPort = d.port ? String(d.port) : '1883'; this.mqttUser = d.user || ''; this.mqttPass = d.pass || ''; this.mqttTopic = d.topic || ''; } } catch (e) { console.warn('[mqtt] loadConfig:', e.message); } finally { this.hideLoading(); } },
 			async saveSettings() {
 			if (!this.deviceConnected) { this.showToast('提示', '请先连接设备', 'warning'); return; }
 			if (this.saving) return;

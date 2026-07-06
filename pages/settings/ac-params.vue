@@ -5,14 +5,14 @@
 			<view class="temp-card">
 				<text class="t-label">设定温度</text>
 				<view class="t-row">
-					<view class="t-btn" @click="decreaseTemp" @touchstart="startHold(decreaseTemp)" @touchend="stopHold" @touchcancel="stopHold" :class="{ off: temperature <= 16 }" role="button" aria-label="降低温度" :aria-disabled="temperature <= 16">
+					<view class="t-btn" @click="decreaseTemp" @touchstart="startHold(decreaseTemp)" @touchend="stopHold" @touchcancel="stopHold" :class="{ off: temperature <= minTemp }" role="button" aria-label="降低温度" :aria-disabled="temperature <= minTemp">
 								<text class="t-btn-icon">−</text>
 							</view>
 							<view class="t-display" aria-label="当前温度" role="text">
 								<text class="t-num">{{ temperature }}</text>
 								<text class="t-unit">°C</text>
 							</view>
-							<view class="t-btn" @click="increaseTemp" @touchstart="startHold(increaseTemp)" @touchend="stopHold" @touchcancel="stopHold" :class="{ off: temperature >= 30 }" role="button" aria-label="升高温度" :aria-disabled="temperature >= 30">
+							<view class="t-btn" @click="increaseTemp" @touchstart="startHold(increaseTemp)" @touchend="stopHold" @touchcancel="stopHold" :class="{ off: temperature >= maxTemp }" role="button" aria-label="升高温度" :aria-disabled="temperature >= maxTemp">
 						<text class="t-btn-icon">+</text>
 					</view>
 				</view>
@@ -113,6 +113,7 @@
 import Loading from '../../components/Loading';
 import CustomModal from '../../components/CustomModal';
 import apiService from '../../services/api';
+import constants from '../../config/constants';
 import deviceMixin from '../../mixins/device-mixin';
 import modalMixin from '../../mixins/modal-mixin';
 
@@ -135,29 +136,37 @@ export default {
 				{ label: '送风', value: 'fan', icon: 'fan', color: '#8C8C8C', bg: '#FAFAFA', filter: '' },
 				{ label: '自动', value: 'auto', icon: 'sync', color: '#00B96B', bg: '#F6FFED', filter: '' }
 			],
-			fanSpeeds: [
-				{ label: '自动', value: 'auto' }, { label: '静音', value: 'quiet' },
-				{ label: '低速', value: 'low' }, { label: '中速', value: 'medium' },
-				{ label: '高速', value: 'high' }
-			],
 			swingModes: [
 				{ label: '摆风', value: 'auto' }, { label: '固定', value: 'fixed' }
 			],
-			brands: [
-				{ label: 'TCL', value: 'tcl' }, { label: '美的', value: 'midea' },
-				{ label: '海尔', value: 'haier' }, { label: '格力', value: 'gree' },
-				{ label: '大金', value: 'daikin' }, { label: '三菱', value: 'mitsubishi' },
-				{ label: '松下', value: 'panasonic' }, { label: '三星', value: 'samsung' },
-				{ label: 'LG', value: 'lg' }, { label: '东芝', value: 'toshiba' },
-				{ label: '日立', value: 'hitachi' }, { label: '富士通', value: 'fujitsu' },
-				{ label: '夏普', value: 'sharp' }, { label: '开利', value: 'carrier' },
-				{ label: '惠而浦', value: 'whirlpool' }
-			]
+brands: [
+	{ label: 'TCL', value: 'tcl' }, 
+	{ label: '美的', value: 'midea' },
+	{ label: '美的-Coolix', value: 'midea-coolix' },
+	{ label: '飞利浦', value: 'philips' }
+]
 		};
 	},
 	computed: {
 		displayedBrands() {
 			return this.brandExpanded ? this.brands : this.brands.slice(0, 5);
+		},
+		// 当前品牌的能力配置
+		brandCap() {
+			return constants.BRAND_CAPABILITIES[this.currentBrand] || constants.BRAND_CAPABILITIES.tcl;
+		},
+		minTemp() { return this.brandCap.minTemp; },
+		maxTemp() { return this.brandCap.maxTemp; },
+		// 当前品牌支持的风速项
+		fanSpeeds() {
+			const all = {
+				auto: { label: '自动', value: 'auto' },
+				quiet: { label: '静音', value: 'quiet' },
+				low: { label: '低速', value: 'low' },
+				medium: { label: '中速', value: 'medium' },
+				high: { label: '高速', value: 'high' }
+			};
+			return this.brandCap.fanSpeeds.map(v => all[v]).filter(Boolean);
 		}
 	},
 	onLoad() {
@@ -171,8 +180,11 @@ export default {
 			if (s) {
 				this.temperature = s.temperature || 26;
 				this.currentMode = s.mode || 'cool';
-				this.currentFanSpeed = s.fan_speed || 'medium';
+				this.currentFanSpeed = this._normalizeFanSpeed(s.fan_speed || 'medium');
 				this.currentSwing = s.swing || 'auto';
+				// 按当前品牌默认范围钳制温度
+				if (this.temperature < this.minTemp) this.temperature = this.minTemp;
+				if (this.temperature > this.maxTemp) this.temperature = this.maxTemp;
 			}
 		},
 		async getDeviceSettings() {
@@ -182,24 +194,43 @@ export default {
 				const res = await apiService.getAcParams();
 				if (res.status === 'success' && res.data) {
 					const d = res.data;
+					this.currentBrand = d.brand || 'tcl';
+					// 按品牌能力钳制温度范围
+					const cap = constants.BRAND_CAPABILITIES[this.currentBrand] || constants.BRAND_CAPABILITIES.tcl;
 					let t = d.temperature || 26;
-					if (t < 16) t = 16; if (t > 30) t = 30;
+					if (t < cap.minTemp) t = cap.minTemp;
+					if (t > cap.maxTemp) t = cap.maxTemp;
 					this.temperature = t;
 					this.currentMode = d.mode || 'cool';
-					this.currentFanSpeed = d.fan_speed || 'medium';
+					this.currentFanSpeed = this._normalizeFanSpeed(d.fan_speed || 'medium');
 					this.currentSwing = d.swing || 'auto';
-					this.currentBrand = d.brand || 'tcl';
 				}
 			} catch (e) {
 				this.loadSettings();
 			} finally { this.hideLoading(); }
 		},
-			decreaseTemp() { if (this.temperature > 16) this.temperature--; else this.stopHold(); },
-			increaseTemp() { if (this.temperature < 30) this.temperature++; else this.stopHold(); },
+			decreaseTemp() { if (this.temperature > this.minTemp) this.temperature--; else this.stopHold(); },
+			increaseTemp() { if (this.temperature < this.maxTemp) this.temperature++; else this.stopHold(); },
 		setMode(v)    { this.currentMode = v; },
 		setFanSpeed(v) { this.currentFanSpeed = v; },
 		setSwing(v)   { this.currentSwing = v; },
-		setBrand(v)   { this.currentBrand = v; },
+		setBrand(v)   {
+			this.currentBrand = v;
+			// 切换品牌后，温度/风速可能超出新品牌范围，需归一化
+			if (this.temperature < this.minTemp) this.temperature = this.minTemp;
+			if (this.temperature > this.maxTemp) this.temperature = this.maxTemp;
+			this.currentFanSpeed = this._normalizeFanSpeed(this.currentFanSpeed);
+		},
+		/**
+		 * 风速归一化：当前品牌不支持所选风速时回退
+		 * - quiet 在 midea/philips 上回退为 auto
+		 */
+		_normalizeFanSpeed(speed) {
+			const cap = constants.BRAND_CAPABILITIES[this.currentBrand] || constants.BRAND_CAPABILITIES.tcl;
+			if (cap.fanSpeeds.indexOf(speed) > -1) return speed;
+			if (speed === 'quiet') return 'auto';
+			return 'medium';
+		},
 		saveToLocalStorage() {
 			uni.setStorageSync('acSettings', {
 				temperature: this.temperature, mode: this.currentMode,
@@ -212,6 +243,7 @@ export default {
 			try {
 				this.saving = true;
 				this.showLoading('保存中...');
+				// 保存品牌
 				await apiService.setAcBrand(this.currentBrand);
 				await apiService.setAcParams({
 					temperature: this.temperature, mode: this.currentMode,
@@ -219,6 +251,7 @@ export default {
 				});
 				this.saveToLocalStorage();
 				this.showToast('成功', '已保存：' + this.temperature + '°C ' + (this.modes.find(m => m.value === this.currentMode) || { label: '' }).label + ' ' + (this.fanSpeeds.find(f => f.value === this.currentFanSpeed) || { label: '' }).label + ' ' + this.currentBrand.toUpperCase(), 'success');
+				uni.$emit(constants.EVENTS.SETTINGS_CHANGED, { type: 'ac_params' });
 			} catch (e) {
 				this.showToast('失败', e.message || '保存失败', 'error');
 			} finally {
@@ -279,7 +312,7 @@ export default {
 	/* 品牌选择：grid 等分，自动适应 4/5/6 列 */
 	.brand-grid {
 		display: grid;
-		grid-template-columns: repeat(5, 1fr);
+		grid-template-columns: repeat(4, 1fr);
 		gap: 16rpx;
 	}
 	.brand-item {
