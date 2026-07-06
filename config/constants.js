@@ -23,9 +23,8 @@ export default {
 		// OTA 超时 (ms)
 	OTA_TIMEOUT: 60000,
 
-	// OTA 默认固件 URL — 空字符串，用户需自行从文档获取最新地址
-	// 原默认地址含第三方令牌，已移除（宪法 VII：凭据零持久化）
-	OTA_DEFAULT_FIRMWARE_URL: '',
+	// OTA 默认固件 URL
+	OTA_DEFAULT_FIRMWARE_URL: 'http://bin.bemfa.com/b/27002/3BcZGI1OTA5NDczM2FjYjkzMTg2N2Q1YWY5NGE1N2ZjNzg=FRESTEC.bin',
 
 	// OTA 进度追踪
 	OTA_PROGRESS_MAX: 80,       // 模拟进度最高到 80%，余下靠轮询确认
