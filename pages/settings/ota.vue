@@ -148,12 +148,17 @@ export default {
 				}
 			} catch (e) { /* 静默 */ }
 		},
-		startUpdate() {
+		async startUpdate() {
 			if (!this.deviceConnected) { this.showToast('警告', '请先连接设备', 'warning'); return; }
 				if (!isNonEmpty(this.firmwareUrl)) { this.showToast('提示', '请输入固件 URL', 'warning'); return; }
 				if (!isValidUrl(this.firmwareUrl)) { this.showToast('提示', '固件 URL 格式不正确，请输入有效的 HTTP/HTTPS 地址', 'warning'); return; }
 			if (this.updating) return;
-			// AP 热点模式下无互联网连接，无法实时跟进 OTA 状态，直接拦截
+			// 检查手机当前连接的 WiFi，如果是设备热点则拦截
+			const phoneSsid = await this._getPhoneWifiSsid();
+			if (phoneSsid && /esp|8266/i.test(phoneSsid)) {
+				this.showToast('提示', '手机当前连接的是设备热点（' + phoneSsid + '），无法访问互联网下载固件。请切换到家庭 WiFi 后再试', 'warning');
+				return;
+			}
 			if (!this.staConnected) {
 				this.showToast('提示', '设备当前在 AP 热点模式，无法实时跟进固件更新状态，请连接家庭 WiFi 再试', 'warning');
 				return;
@@ -162,6 +167,31 @@ export default {
 			try { domain = new URL(this.firmwareUrl).hostname; } catch (e) { domain = this.firmwareUrl; }
 			this.confirmModalContent = `将向 ${domain} 请求固件文件。升级完成后自动重启。确定继续吗？`;
 			this.confirmModalVisible = true;
+		},
+		/** 获取手机当前连接的 WiFi 名称 */
+		_getPhoneWifiSsid() {
+			return new Promise(resolve => {
+				try {
+					uni.getNetworkType({
+						success: (res) => {
+							if (res.networkType !== 'wifi') { resolve(''); return; }
+							uni.startWifi({
+								success: () => {
+									uni.getConnectedWifi({
+										success: (wifi) => {
+											const ssid = wifi && wifi.wifi ? (wifi.wifi.SSID || wifi.wifi.ssid || '') : '';
+											resolve(ssid);
+										},
+										fail: () => resolve('')
+									});
+								},
+								fail: () => resolve('')
+							});
+						},
+						fail: () => resolve('')
+					});
+				} catch (e) { resolve(''); }
+			});
 		},
 		handleConfirmModalConfirm() { this.confirmModalVisible = false; this.performOtaUpdate(); },
 		handleConfirmModalCancel() { this.confirmModalVisible = false; },
