@@ -104,6 +104,7 @@
 
 	/* 输入框（统一聚焦发光样式）*/
 	.input-wrap {
+		position: relative;
 		height: 80rpx; padding: 0 24rpx;
 		background: $bg-elevated; border-radius: $radius-md;
 		border: 2rpx solid transparent;
@@ -111,7 +112,7 @@
 		display: flex; align-items: center;
 	}
 	.input-wrap.focus { background: $bg-card; border-color: $brand-primary; box-shadow: 0 0 0 6rpx rgba(22, 119, 255, 0.07); }
-	.input { width: 100%; height: 80rpx; font-size: $fs-body; color: $text-primary; background: transparent; }
+	.input { width: 100%; height: 80rpx; font-size: $fs-body; color: $text-primary; background: transparent; padding-right: 60rpx; }
 	.ph { color: $text-disabled; }
 
 	/* radio/segment 通用 */

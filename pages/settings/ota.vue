@@ -33,7 +33,7 @@
 							placeholder="WiFi 密码" maxlength="64"
 							@focus="focusPwd = true" @blur="focusPwd = false" />
 						<view class="pw-eye" @click="togglePassword">
-							<text>{{ showPassword ? '隐藏' : '显示' }}</text>
+							<image :src="'/static/icons/' + (showPassword ? 'eye' : 'eye-slash') + '.svg'" class="pw-eye-icon" mode="aspectFit" />
 						</view>
 					</view>
 				</view>
@@ -331,11 +331,12 @@ export default {
 	.form-item { margin-bottom: 24rpx; }
 	.form-item:last-child { margin-bottom: 0; }
 
-	/* 密码框眼睛按钮（叠加在焦点发光输入框右侧） */
+	/* 密码框眼睛图标 — 使用 SVG 图标替代文字，避免重叠 */
 	.input-wrap .pw-eye {
-		position: absolute; right: 20rpx; padding: 8rpx 12rpx;
+		position: absolute; right: 16rpx; top: 50%; transform: translateY(-50%);
+		padding: 12rpx; z-index: 1;
 	}
-	.pw-eye text { font-size: $fs-label; color: $brand-primary; position: static; }
+	.pw-eye-icon { width: 36rpx; height: 36rpx; display: block; }
 
 	.tips { display: flex; flex-direction: column; gap: 12rpx; }
 	.tips text { font-size: $fs-label; color: $text-secondary; line-height: 1.6; }
