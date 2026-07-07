@@ -325,29 +325,60 @@ export default {
 			});
 		},
 		_androidNsdScan(resolve, timeoutMs) {
-			// plus.android 桥接不支持 NsdManager 回调参数的方法调用
-			// 改用 java.net.InetAddress 解析 .local 域名（使用系统 mDNS 解析器）
-			(async () => {
-				const discovered = [];
-				const candidates = constants.MDNS_SCAN_CANDIDATES;
-				for (const hostname of candidates) {
-					try {
-						const InetAddress = plus.android.importClass('java.net.InetAddress');
-						const addr = InetAddress.getByName(hostname);
-						if (addr) {
-							const ip = addr.getHostAddress();
-							if (ip) {
-								discovered.push({ hostname, hostAddress: ip });
-							}
-						}
-					} catch (e) {
-						// 解析失败，跳过
-					}
+			try {
+				const main = plus.android.runtimeMainActivity();
+				const Context = plus.android.importClass('android.content.Context');
+				const NsdManager = plus.android.importClass('android.net.nsd.NsdManager');
+				const nsdManager = main.getSystemService(Context.NSD_SERVICE);
+				if (!nsdManager) {
+					console.warn('[mdns] NsdManager not available');
+					resolve([]);
+					return;
 				}
-				// 等待超时后返回
-				await new Promise(r => setTimeout(r, Math.min(timeoutMs, 2000)));
-				resolve(discovered);
-			})();
+				const discovered = [];
+
+				const discoveryListener = plus.android.implements('android.net.nsd.NsdManager$DiscoveryListener', {
+					onDiscoveryStarted: function() {},
+					onDiscoveryStopped: function() {},
+					onServiceFound: function(serviceInfo) {
+						try {
+							// 使用 plus.android.invoke 调用 Java 方法
+							const serviceType = plus.android.invoke(serviceInfo, 'getServiceType');
+							if (serviceType === '_http._tcp.') {
+								const resolveListener = plus.android.implements('android.net.nsd.NsdManager$ResolveListener', {
+									onResolveFailed: function() {},
+									onServiceResolved: function(svc) {
+										try {
+											const host = plus.android.invoke(svc, 'getHost');
+											if (host) {
+												const hostname = plus.android.invoke(host, 'getHostName');
+												const hostAddress = plus.android.invoke(host, 'getHostAddress');
+												if (hostname) {
+													discovered.push({ hostname, hostAddress });
+												}
+											}
+										} catch (e) { console.warn('[mdns] resolve err:', e); }
+									}
+								});
+								plus.android.invoke(nsdManager, 'resolveService', serviceInfo, resolveListener);
+							}
+						} catch (e) { console.warn('[mdns] onServiceFound:', e); }
+					},
+					onServiceLost: function() {},
+					onStartDiscoveryFailed: function() { resolve(discovered); },
+					onStopDiscoveryFailed: function() {}
+				});
+
+				plus.android.invoke(nsdManager, 'discoverServices', '_http._tcp', NsdManager.PROTOCOL_DNS_SD, discoveryListener);
+
+				setTimeout(() => {
+					try { plus.android.invoke(nsdManager, 'stopServiceDiscovery', discoveryListener); } catch (e) {}
+					resolve(discovered);
+				}, timeoutMs);
+			} catch (e) {
+				console.warn('[mdns] android nsd err:', e);
+				resolve([]);
+			}
 		},
 		_iosBonjourScan(resolve, timeoutMs) {
 			try {
