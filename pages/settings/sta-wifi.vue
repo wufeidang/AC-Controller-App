@@ -56,13 +56,24 @@ export default {
 				staInfo: null, staSsid: '', staPassword: '', showPassword: false, saving: false
 			};
 	},
-	onLoad() { this.checkDevice(); this.loadStatus(); },
-	onShow() { this.checkDevice(); },
+	onLoad() { this.checkDevice(); this.loadStatus(true); },
+	onShow() { this.checkDevice(); this.loadStatus(false); },
 	methods: {
-		async loadStatus() {
+		async loadStatus(showLoading) {
 			if (!this.deviceConnected) return;
-			try { this.showLoading('加载中...'); const res = await api.getStaWifi(); if (res.status === 'success') { this.staInfo = res.data; this.staSsid = res.data.ssid || ''; } } catch (e) { console.warn('[sta-wifi] loadStatus:', e.message); } finally { this.hideLoading(); }
-			},
+			try {
+				if (showLoading) this.showLoading('加载中...');
+				const res = await api.getStaWifi();
+				if (res.status === 'success') {
+					this.staInfo = res.data;
+					this.staSsid = res.data.ssid || '';
+				}
+			} catch (e) {
+				console.warn('[sta-wifi] loadStatus:', e.message);
+			} finally {
+				if (showLoading) this.hideLoading();
+			}
+		},
 			async saveSettings() {
 			if (!this.deviceConnected) { this.showToast('提示', '请先连接设备', 'warning'); return; }
 			if (!this.staSsid || !this.staPassword) { this.showToast('提示', '请输入 WiFi 名称和密码', 'warning'); return; }
