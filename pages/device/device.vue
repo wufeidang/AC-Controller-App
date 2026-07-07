@@ -260,8 +260,13 @@ export default {
 		async fetchStaStatus() {
 			try {
 				const res = await apiService.getStaWifi();
-				if (res.status === 'success' && res.data && res.data.sta_connected && res.data.sta_ip) {
-					this.staIp = res.data.sta_ip;
+				if (res.status === 'success' && res.data) {
+					const conn = res.data.sta_connected ?? res.data.connected;
+					if ((conn === true || conn === 1 || conn === 'true') && res.data.sta_ip || res.data.local_ip) {
+						this.staIp = res.data.sta_ip || res.data.local_ip || '';
+					} else {
+						this.staIp = '';
+					}
 				} else {
 					this.staIp = '';
 				}
