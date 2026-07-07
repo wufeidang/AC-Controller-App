@@ -325,61 +325,29 @@ export default {
 			});
 		},
 		_androidNsdScan(resolve, timeoutMs) {
-			try {
-				const main = plus.android.runtimeMainActivity();
-				const Context = plus.android.importClass('android.content.Context');
-				const NsdManager = plus.android.importClass('android.net.nsd.NsdManager');
-				const nsdManager = main.getSystemService(Context.NSD_SERVICE);
-				if (!nsdManager) {
-					console.warn('[mdns] NsdManager not available (system service returned null)');
-					resolve([]);
-					return;
-				}
+			// plus.android 桥接不支持 NsdManager 回调参数的方法调用
+			// 改用 java.net.InetAddress 解析 .local 域名（使用系统 mDNS 解析器）
+			(async () => {
 				const discovered = [];
-
-				const discoveryListener = plus.android.implements('android.net.nsd.NsdManager$DiscoveryListener', {
-					onDiscoveryStarted: function(serviceType) {},
-					onDiscoveryStopped: function(serviceType) {},
-					onServiceFound: function(serviceInfo) {
-						try {
-							const st = serviceInfo.getServiceType();
-							if (st === '_http._tcp.') {
-								// 立即解析服务获取主机名
-								const resolveListener = plus.android.implements('android.net.nsd.NsdManager$ResolveListener', {
-									onResolveFailed: function(svc, code) {},
-									onServiceResolved: function(svc) {
-										try {
-											const host = svc.getHost();
-											if (host) {
-												discovered.push({
-													hostname: host.getHostName(),
-													hostAddress: host.getHostAddress()
-												});
-											}
-										} catch (e) { console.warn('[mdns] resolve getHost:', e); }
-									}
-								});
-								nsdManager.resolveService(serviceInfo, resolveListener);
+				const candidates = constants.MDNS_SCAN_CANDIDATES;
+				for (const hostname of candidates) {
+					try {
+						const InetAddress = plus.android.importClass('java.net.InetAddress');
+						const addr = InetAddress.getByName(hostname);
+						if (addr) {
+							const ip = addr.getHostAddress();
+							if (ip) {
+								discovered.push({ hostname, hostAddress: ip });
 							}
-						} catch (e) { console.warn('[mdns] onServiceFound:', e); }
-					},
-					onServiceLost: function(serviceInfo) {},
-					onStartDiscoveryFailed: function(svc, code) {
-						resolve(discovered);
-					},
-					onStopDiscoveryFailed: function(svc, code) {}
-				});
-
-				nsdManager.discoverServices('_http._tcp', NsdManager.PROTOCOL_DNS_SD, discoveryListener);
-
-				setTimeout(() => {
-					try { nsdManager.stopServiceDiscovery(discoveryListener); } catch (e) {}
-					resolve(discovered);
-				}, timeoutMs);
-			} catch (e) {
-				console.warn('[mdns] android nsd err:', e);
-				resolve([]);
-			}
+						}
+					} catch (e) {
+						// 解析失败，跳过
+					}
+				}
+				// 等待超时后返回
+				await new Promise(r => setTimeout(r, Math.min(timeoutMs, 2000)));
+				resolve(discovered);
+			})();
 		},
 		_iosBonjourScan(resolve, timeoutMs) {
 			try {
