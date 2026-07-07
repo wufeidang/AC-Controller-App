@@ -311,7 +311,7 @@ brands: [
 	/* 品牌选择：grid 等分，自动适应 4/5/6 列 */
 	.brand-grid {
 		display: grid;
-		grid-template-columns: repeat(4, 1fr);
+		grid-template-columns: repeat(3, 1fr);
 		gap: 16rpx;
 	}
 	.brand-item {
