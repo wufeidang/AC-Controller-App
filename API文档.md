@@ -100,7 +100,7 @@
       "mode": "cool",
       "fan_speed": "medium",
       "swing": "auto",
-      "brand": "tcl"  // 见下方"设置空调品牌"章节，共支持4个品牌
+      "brand": "tcl"  // 见下方"设置空调品牌"章节，共支持3个品牌
     }
   }
 }
@@ -288,7 +288,7 @@
 }
 ```
 
-> **注意**: `brand` 字段支持 4 个空调品牌（`tcl`、`midea`、`midea-coolix`、`philips`），详见 [16. 设置空调品牌](#16-设置空调品牌)。
+> **注意**: `brand` 字段支持 3 个空调品牌（`tcl`、`midea`、`philips`），详见 [16. 设置空调品牌](#16-设置空调品牌)。
 
 ### 10. 获取设备信息
 
@@ -397,7 +397,7 @@
 **命令**: `set_ac_brand`
 
 **参数**:
-- `brand`: 空调品牌，可选值：`tcl`、`midea`（Midea 48-bit 协议）、`midea-coolix`（Midea Coolix 协议，覆盖部分国产美的）、`philips`
+- `brand`: 空调品牌，可选值：`tcl`、`midea`、`philips`
 
 **返回值**:
 ```json
@@ -955,7 +955,7 @@ API调用 → 修改内存数据 → 设置脏标记(dirty flag)
 - `"No action specified"`: 未指定动作
 - `"Invalid firmware URL"`: 无效的固件URL
 - `"Missing required parameters"`: 缺少必要参数
-- `"无效的空调品牌，支持的品牌：tcl/midea/midea-48/midea-coolix/philips"`: 空调品牌无效
+- `"无效的空调品牌，支持的品牌：tcl/midea/philips"`: 空调品牌无效
 - `"No SSID specified"`: 未指定SSID
 - `"No password specified"`: 未指定密码
 - `"No brand specified"`: 未指定品牌
@@ -968,14 +968,12 @@ API调用 → 修改内存数据 → 设置脏标记(dirty flag)
 
 | 品牌 | brand值 | 红外协议 | 温度范围 | 风速支持 | quiet回退 |
 |------|---------|---------|---------|---------|----------|
-| TCL | `tcl` | TCL 112AC | 16-30°C | auto/low/medium/high/**quiet** | - |
-| 美的 | `midea` | Midea | 17-30°C | auto/low/medium/high/**quiet** | - |
-| 美的-Coolix | `midea-coolix` | Coolix | 17-30°C | auto/low/medium/high | quiet→auto |
-| 飞利浦 | `philips` | Coolix | 17-30°C | auto/low/medium/high | quiet→auto |
+| TCL | `tcl` | TCL 112bit | 16-30°C | auto/low/medium/high/**quiet** | - |
+| 美的 | `midea` | Coolix | 17-30°C | auto/low/medium/high | quiet→auto |
+| 飞利浦 | `philips` | Goodweather | 17-30°C | auto/low/medium/high | quiet→auto |
 
-- `quiet` 风速在 TCL 和 Midea 48-bit 品牌下有效；Midea Coolix 和 Philips 会自动回退为 `auto`
+- `quiet` 风速仅 TCL 支持；美的和飞利浦会自动回退为 `auto`
 - 摆风模式：所有品牌均支持 `auto`（自动摆风）和 `fixed`（固定风向）切换
-- 美的-Coolix 协议覆盖部分国产美的挂机/柜机（如 RG52D/BGE 遥控器、MS12FU-10HRDN1 等）；若美的空调不响应 `midea` 品牌，请尝试切换为 `midea-coolix`
 
 ## 版本历史
 

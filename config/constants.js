@@ -31,37 +31,29 @@ export default {
 	OTA_POLL_INTERVAL: 5000,     // 轮询检测设备重启间隔 (ms)
 	OTA_VERIFY_TIMEOUT: 120000, // 轮询超时 (ms)
 
-	// 品牌映射表 — 支持 4 个品牌值（固件 v1.2.0）
+	// 品牌映射表 — 支持 3 个品牌值
 	BRAND_MAP: {
 		tcl: 'TCL',
 		midea: '美的',
-		'midea-coolix': '美的-Coolix',
 		philips: '飞利浦'
 	},
 
 	// 品牌能力差异配置（红外协议、温度范围、支持的风速）
-	// quiet 风速在不支持的品牌上会被自动回退为 auto
 	BRAND_CAPABILITIES: {
 		tcl: {
-			protocol: 'TCL 112AC',
+			protocol: 'TCL 112bit',
 			minTemp: 16,
 			maxTemp: 30,
 			fanSpeeds: ['auto', 'low', 'medium', 'high', 'quiet']
 		},
 		midea: {
-			protocol: 'Midea',
-			minTemp: 17,
-			maxTemp: 30,
-			fanSpeeds: ['auto', 'low', 'medium', 'high', 'quiet']
-		},
-		'midea-coolix': {
 			protocol: 'Coolix',
 			minTemp: 17,
 			maxTemp: 30,
 			fanSpeeds: ['auto', 'low', 'medium', 'high']  // quiet → auto
 		},
 		philips: {
-			protocol: 'Coolix',
+			protocol: 'Goodweather',
 			minTemp: 17,
 			maxTemp: 30,
 			fanSpeeds: ['auto', 'low', 'medium', 'high']  // quiet → auto

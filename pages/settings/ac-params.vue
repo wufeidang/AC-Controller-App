@@ -142,7 +142,6 @@ export default {
 brands: [
 	{ label: 'TCL', value: 'tcl' }, 
 	{ label: '美的', value: 'midea' },
-	{ label: '美的-Coolix', value: 'midea-coolix' },
 	{ label: '飞利浦', value: 'philips' }
 ]
 		};
