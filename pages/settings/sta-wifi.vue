@@ -6,10 +6,9 @@
 			<!-- 连接状态 -->
 			<view class="card" v-if="staInfo">
 				<text class="card-title">连接状态</text>
-				<view class="info-row"><text class="info-label">状态</text><view class="badge" :class="{ on: staInfo.connected }"><view class="dot"></view><text>{{ staInfo.connected ? '已连接' : '未连接' }}</text></view></view>
-				<view class="info-row" v-if="staInfo.ssid"><text class="info-label">WiFi</text><text class="info-value">{{ staInfo.ssid }}</text></view>
-				<view class="info-row" v-if="staInfo.local_ip"><text class="info-label">IP</text><text class="info-value">{{ staInfo.local_ip }}</text></view>
-				<view class="info-row" v-if="staInfo.rssi !== undefined"><text class="info-label">信号</text><text class="info-value">{{ staInfo.rssi }} dBm</text></view>
+				<view class="info-row"><text class="info-label">状态</text><view class="badge" :class="{ on: staInfo.sta_connected }"><view class="dot"></view><text>{{ staInfo.sta_connected ? '已连接' : '未连接' }}</text></view></view>
+				<view class="info-row" v-if="staInfo.sta_ssid"><text class="info-label">WiFi</text><text class="info-value">{{ staInfo.sta_ssid }}</text></view>
+				<view class="info-row" v-if="staInfo.sta_ip"><text class="info-label">IP</text><text class="info-value">{{ staInfo.sta_ip }}</text></view>
 			</view>
 
 			<!-- 配置表单 -->
@@ -66,7 +65,7 @@ export default {
 				const res = await api.getStaWifi();
 				if (res.status === 'success') {
 					this.staInfo = res.data;
-					this.staSsid = res.data.ssid || '';
+					this.staSsid = res.data.sta_ssid || '';
 				}
 			} catch (e) {
 				console.warn('[sta-wifi] loadStatus:', e.message);
@@ -91,8 +90,8 @@ export default {
 						const res = await api.getStaWifi();
 						if (res.status === 'success') {
 							this.staInfo = res.data;
-							if (res.data && res.data.connected) {
-								this.showToast('成功', `已连接 ${res.data.ssid || ''}`, 'success');
+							if (res.data && res.data.sta_connected) {
+								this.showToast('成功', `已连接 ${res.data.sta_ssid || ''}`, 'success');
 								return;
 							}
 						}
