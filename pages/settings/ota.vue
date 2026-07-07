@@ -178,7 +178,12 @@ export default {
 			if (this.updating) return;
 			let domain = '';
 			try { domain = new URL(this.firmwareUrl).hostname; } catch (e) { domain = this.firmwareUrl; }
-			this.confirmModalContent = `将向 ${domain} 请求固件文件。设备将连接 WiFi 下载并重启。确定继续吗？`;
+			let confirmMsg = `将向 ${domain} 请求固件文件。`;
+			if (!this.staConnected) {
+				confirmMsg += '设备将先连接家庭 WiFi 再下载固件，请确保 WiFi 密码正确。';
+			}
+			confirmMsg += '升级完成后自动重启。确定继续吗？';
+			this.confirmModalContent = confirmMsg;
 			this.confirmModalVisible = true;
 		},
 		handleConfirmModalConfirm() { this.confirmModalVisible = false; this.performOtaUpdate(); },
@@ -271,7 +276,12 @@ export default {
 				this.otaPhase = 'idle';
 				this.otaProgress = 0;
 				this.updating = false;
-				this.showToast('升级异常', msg, 'error');
+				// 在 AP 热点下无互联网，属于正常现象，给出明确指引
+				if (!this.staConnected) {
+					this.showToast('提示', '设备当前在 AP 热点模式，无法访问互联网下载固件。请确保设备已连接家庭 WiFi', 'warning');
+				} else {
+					this.showToast('升级异常', msg, 'error');
+				}
 			},
 
 		/** 用户取消等待（仅 verifying 阶段） */
