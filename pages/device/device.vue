@@ -77,6 +77,7 @@
 							<view class="md-text">
 								<text class="md-hostname">{{ d.hostname }}</text>
 								<text class="md-id" v-if="d.deviceId">{{ d.deviceId }}</text>
+								<text class="md-ip" v-if="d.hostAddress">{{ d.hostAddress }}</text>
 							</view>
 						</view>
 						<view class="md-go">›</view>
@@ -278,32 +279,161 @@ export default {
 			this.mdnsScanning = true;
 			if (userInitiated) this.mdnsDevices = [];
 
-			const set = new Set();
-			constants.MDNS_SCAN_CANDIDATES.forEach(h => set.add(h));
-			if (this.lastDevice && this.lastDevice.ip) set.add(this.lastDevice.ip);
-			set.add(constants.DEFAULT_IP);
+			// 优先使用原生 mDNS 服务发现
+			const nativeDevices = await this._nativeMdnsScan();
+			if (nativeDevices.length > 0) {
+				// 对发现的设备逐个 HTTP 探测确认
+				const results = await Promise.allSettled(
+					nativeDevices.map(d => this._tryHost(d.hostname, d))
+				);
+				this.mdnsDevices = results
+					.filter(r => r.status === 'fulfilled' && r.value)
+					.map(r => r.value);
+			}
 
-			const candidates = [...set];
-			const results = await Promise.allSettled(
-				candidates.map(h => this._tryHost(h))
-			);
-			this.mdnsDevices = results
-				.filter(r => r.status === 'fulfilled' && r.value)
-				.map(r => r.value);
+			// 如果原生发现无结果，回退到候选列表探测
+			if (this.mdnsDevices.length === 0) {
+				const set = new Set();
+				constants.MDNS_SCAN_CANDIDATES.forEach(h => set.add(h));
+				if (this.lastDevice && this.lastDevice.ip) set.add(this.lastDevice.ip);
+				set.add(constants.DEFAULT_IP);
+				const candidates = [...set];
+				const results = await Promise.allSettled(
+					candidates.map(h => this._tryHost(h))
+				);
+				this.mdnsDevices = results
+					.filter(r => r.status === 'fulfilled' && r.value)
+					.map(r => r.value);
+			}
 			this.mdnsScanning = false;
 		},
-		_tryHost(hostname) {
+		/**
+		 * 原生 mDNS 服务发现
+		 * Android: NsdManager 扫描 _http._tcp 服务
+		 * iOS: NSNetServiceBrowser 扫描 _http._tcp 服务
+		 */
+		_nativeMdnsScan() {
 			return new Promise((resolve) => {
+				const platform = uni.getSystemInfoSync().platform;
+				if (platform === 'android' && typeof plus !== 'undefined') {
+					this._androidNsdScan(resolve, 5000);
+				} else if (platform === 'ios' && typeof plus !== 'undefined') {
+					this._iosBonjourScan(resolve, 5000);
+				} else {
+					resolve([]);
+				}
+			});
+		},
+		_androidNsdScan(resolve, timeoutMs) {
+			try {
+				const main = plus.android.runtimeMainActivity();
+				const context = main.getApplicationContext();
+				const NsdManager = plus.android.importClass('android.net.nsd.NsdManager');
+				const nsdManager = context.getSystemService('nsd');
+				const discovered = [];
+
+				const discoveryListener = plus.android.implements('android.net.nsd.NsdManager$DiscoveryListener', {
+					onDiscoveryStarted: function(serviceType) {},
+					onDiscoveryStopped: function(serviceType) {},
+					onServiceFound: function(serviceInfo) {
+						try {
+							const st = serviceInfo.getServiceType();
+							if (st === '_http._tcp.') {
+								// 立即解析服务获取主机名
+								const resolveListener = plus.android.implements('android.net.nsd.NsdManager$ResolveListener', {
+									onResolveFailed: function(svc, code) {},
+									onServiceResolved: function(svc) {
+										try {
+											const host = svc.getHost();
+											if (host) {
+												discovered.push({
+													hostname: host.getHostName(),
+													hostAddress: host.getHostAddress()
+												});
+											}
+										} catch (e) { console.warn('[mdns] resolve getHost:', e); }
+									}
+								});
+								nsdManager.resolveService(serviceInfo, resolveListener);
+							}
+						} catch (e) { console.warn('[mdns] onServiceFound:', e); }
+					},
+					onServiceLost: function(serviceInfo) {},
+					onStartDiscoveryFailed: function(svc, code) {
+						resolve(discovered);
+					},
+					onStopDiscoveryFailed: function(svc, code) {}
+				});
+
+				nsdManager.discoverServices('_http._tcp', NsdManager.PROTOCOL_DNS_SD, discoveryListener);
+
+				setTimeout(() => {
+					try { nsdManager.stopServiceDiscovery(discoveryListener); } catch (e) {}
+					resolve(discovered);
+				}, timeoutMs);
+			} catch (e) {
+				console.warn('[mdns] android nsd err:', e);
+				resolve([]);
+			}
+		},
+		_iosBonjourScan(resolve, timeoutMs) {
+			try {
+				const found = [];
+				const NSNetServiceBrowser = plus.ios.importClass('NSNetServiceBrowser');
+				const browser = NSNetServiceBrowser.alloc().init();
+
+				// 获取当前 run loop
+				const NSRunLoop = plus.ios.importClass('NSRunLoop');
+				const currentRunLoop = NSRunLoop.currentRunLoop();
+
+				const delegate = plus.ios.implements({
+					netServiceBrowserDidFindService: function(brow, service, moreComing) {
+						try {
+							const hostName = service.hostName();
+							const name = service.name();
+							if (hostName) {
+								found.push({ hostname: hostName, name: name });
+							}
+						} catch (e) { console.warn('[mdns] ios found:', e); }
+					},
+					netServiceBrowserDidRemoveService: function(brow, service, moreComing) {},
+					netServiceBrowserDidStopSearch: function(brow) {},
+					netServiceBrowserDidNotSearch: function(brow, dict) {}
+				});
+
+				browser.setDelegate(delegate);
+				browser.searchForServicesOfType('_http._tcp', 'local.');
+
+				setTimeout(() => {
+					try {
+						browser.stop();
+						plus.ios.deleteObject(browser);
+						plus.ios.deleteObject(delegate);
+					} catch (e) {}
+					resolve(found);
+				}, timeoutMs);
+			} catch (e) {
+				console.warn('[mdns] ios bonjour err:', e);
+				resolve([]);
+			}
+		},
+		_tryHost(hostname, extra) {
+			return new Promise((resolve) => {
+				const cleanHost = hostname.replace(/\.$/, ''); // 去掉末尾点
 				const timer = setTimeout(() => resolve(null), constants.MDNS_SCAN_TIMEOUT);
 				uni.request({
-					url: `http://${hostname}:80`,
+					url: `http://${cleanHost}:80`,
 					method: 'POST',
 					data: { cmd: 'get_device_id', data: {} },
 					timeout: constants.MDNS_SCAN_TIMEOUT,
 					success: (r) => {
 						clearTimeout(timer);
 						if (r.statusCode === 200 && r.data && r.data.status === 'success') {
-							resolve({ hostname, deviceId: r.data.data.device_id || '' });
+							resolve({
+								hostname: cleanHost,
+								deviceId: r.data.data.device_id || '',
+								hostAddress: extra ? extra.hostAddress : ''
+							});
 						} else { resolve(null); }
 					},
 					fail: () => { clearTimeout(timer); resolve(null); }
