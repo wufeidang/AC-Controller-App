@@ -327,9 +327,14 @@ export default {
 		_androidNsdScan(resolve, timeoutMs) {
 			try {
 				const main = plus.android.runtimeMainActivity();
-				const context = main.getApplicationContext();
+				const Context = plus.android.importClass('android.content.Context');
 				const NsdManager = plus.android.importClass('android.net.nsd.NsdManager');
-				const nsdManager = context.getSystemService('nsd');
+				const nsdManager = main.getSystemService(Context.NSD_SERVICE);
+				if (!nsdManager) {
+					console.warn('[mdns] NsdManager not available (system service returned null)');
+					resolve([]);
+					return;
+				}
 				const discovered = [];
 
 				const discoveryListener = plus.android.implements('android.net.nsd.NsdManager$DiscoveryListener', {
