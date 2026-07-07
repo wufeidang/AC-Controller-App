@@ -18,25 +18,35 @@
 							@focus="focusUrl = true" @blur="focusUrl = false" />
 					</view>
 				</view>
-				<view class="form-item">
-					<text class="label">WiFi 名称 (SSID)</text>
-					<view class="input-wrap" :class="{ focus: focusSsid }">
-						<input v-model="wifiSsid" class="input" placeholder="用于下载固件的 WiFi" maxlength="32"
-							@focus="focusSsid = true" @blur="focusSsid = false" />
+
+				<!-- 已连接家庭 WiFi 时隐藏 WiFi 输入 -->
+				<template v-if="staConnected">
+					<view class="sta-hint">
+						<view class="sta-hint-dot"></view>
+						<text>设备已连接家庭 WiFi（{{ staSsid }}），可直接下载固件</text>
 					</view>
-				</view>
-				<view class="form-item">
-					<text class="label">WiFi 密码</text>
-					<view class="input-wrap" :class="{ focus: focusPwd }">
-						<input v-model="wifiPassword" class="input"
-							:type="showPassword ? 'text' : 'password'"
-							placeholder="WiFi 密码" maxlength="64"
-							@focus="focusPwd = true" @blur="focusPwd = false" />
-						<view class="pw-eye" @click="togglePassword">
-							<image :src="'/static/icons/' + (showPassword ? 'eye' : 'eye-slash') + '.svg'" class="pw-eye-icon" mode="aspectFit" />
+				</template>
+				<template v-else>
+					<view class="form-item">
+						<text class="label">WiFi 名称 (SSID)</text>
+						<view class="input-wrap" :class="{ focus: focusSsid }">
+							<input v-model="wifiSsid" class="input" placeholder="用于下载固件的 WiFi" maxlength="32"
+								@focus="focusSsid = true" @blur="focusSsid = false" />
 						</view>
 					</view>
-				</view>
+					<view class="form-item">
+						<text class="label">WiFi 密码</text>
+						<view class="input-wrap" :class="{ focus: focusPwd }">
+							<input v-model="wifiPassword" class="input"
+								:type="showPassword ? 'text' : 'password'"
+								placeholder="WiFi 密码" maxlength="64"
+								@focus="focusPwd = true" @blur="focusPwd = false" />
+							<view class="pw-eye" @click="togglePassword">
+								<image :src="'/static/icons/' + (showPassword ? 'eye' : 'eye-slash') + '.svg'" class="pw-eye-icon" mode="aspectFit" />
+							</view>
+						</view>
+					</view>
+				</template>
 			</view>
 
 			<view class="card">
@@ -122,6 +132,7 @@ export default {
 					currentVersion: '', firmwareUrl: constants.OTA_DEFAULT_FIRMWARE_URL, wifiSsid: '', wifiPassword: '', showPassword: false,
 				focusUrl: false, focusSsid: false, focusPwd: false,
 				updating: false,
+				staConnected: false, staSsid: '',
 				confirmModalVisible: false, confirmModalContent: '设备将开始固件升级，升级完成后自动重启。确定继续吗？',
 				// OTA 进度追踪
 				otaProgress: 0,
@@ -139,7 +150,7 @@ export default {
 			return constants.DEFAULT_IP;
 		}
 	},
-	onLoad() { this.checkDevice(); this.loadSaved(); this.getFw(); },
+	onLoad() { this.checkDevice(); this.loadSaved(); this.getFw(); this.checkSta(); },
 	onUnload() { this.cancelOta(); },
 	methods: {
 		loadSaved() {
@@ -147,12 +158,23 @@ export default {
 			const s = uni.getStorageSync('wifiSsid'); if (s) { this.wifiSsid = s; const p = uni.getStorageSync('wifiPassword'); if (p) this.wifiPassword = p; }
 		},
 		async getFw() { if (!this.deviceConnected) return; try { this.showLoading('获取中...'); const res = await apiService.getFirmwareVersion(); if (res.status === 'success') this.currentVersion = res.data.firmware_version || '未知'; } catch (e) { console.warn('[ota] getFw:', e.message); } finally { this.hideLoading(); } },
+		async checkSta() {
+			if (!this.deviceConnected) return;
+			try {
+				const res = await apiService.getStaWifi();
+				if (res.status === 'success' && res.data && res.data.connected) {
+					this.staConnected = true;
+					this.staSsid = res.data.ssid || '';
+				}
+			} catch (e) { /* 静默 */ }
+		},
 		togglePassword() { this.showPassword = !this.showPassword; },
 		startUpdate() {
 			if (!this.deviceConnected) { this.showToast('警告', '请先连接设备', 'warning'); return; }
 				if (!isNonEmpty(this.firmwareUrl)) { this.showToast('提示', '请输入固件 URL', 'warning'); return; }
 				if (!isValidUrl(this.firmwareUrl)) { this.showToast('提示', '固件 URL 格式不正确，请输入有效的 HTTP/HTTPS 地址', 'warning'); return; }
-				if (!isNonEmpty(this.wifiSsid)) { this.showToast('提示', '请输入 WiFi 名称', 'warning'); return; }
+				// 未连接家庭 WiFi 时需验证 WiFi 信息
+				if (!this.staConnected && !isNonEmpty(this.wifiSsid)) { this.showToast('提示', '请输入 WiFi 名称', 'warning'); return; }
 			if (this.updating) return;
 			let domain = '';
 			try { domain = new URL(this.firmwareUrl).hostname; } catch (e) { domain = this.firmwareUrl; }
@@ -330,6 +352,16 @@ export default {
 
 	.tips { display: flex; flex-direction: column; gap: 12rpx; }
 	.tips text { font-size: $fs-label; color: $text-secondary; line-height: 1.6; }
+	.sta-hint {
+		display: flex; align-items: center; gap: 10rpx;
+		background: $color-success-bg; border-radius: $radius-md;
+		padding: 16rpx 20rpx; margin-bottom: 4rpx;
+	}
+	.sta-hint-dot {
+		width: 14rpx; height: 14rpx; border-radius: 50%;
+		background: $color-success; flex-shrink: 0;
+	}
+	.sta-hint text { font-size: $fs-label; color: $color-success; line-height: 1.5; }
 
 	/* OTA 进度遮罩 */
 	.ota-overlay {
