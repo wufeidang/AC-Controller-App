@@ -28,7 +28,7 @@
 				</view>
 			</view>
 
-			<!-- 手动 IP 输入（始终显示） -->
+			<!-- 手动 IP 输入（始终显示）
 			<view class="card">
 				<view class="card-title-row">
 					<text class="card-title">手动输入 IP</text>
@@ -49,7 +49,7 @@
 				<view class="btn btn-primary" @click="doConnect" :class="{ off: connecting }" role="button" aria-label="连接到指定 IP">
 					<text>{{ connecting ? '连接中...' : '连接到此 IP' }}</text>
 				</view>
-			</view>
+			</view>  -->
 
 			<!-- mDNS 局域网设备发现 -->
 			<view class="card">
@@ -76,6 +76,7 @@
 							<image src="/static/icons/device.svg" class="md-icon" mode="aspectFit" />
 							<view class="md-text">
 								<text class="md-hostname">{{ d.hostname }}</text>
+								<text class="md-url">http://{{ d.hostname }}:80</text>
 								<text class="md-id" v-if="d.deviceId">{{ d.deviceId }}</text>
 								<text class="md-ip" v-if="d.hostAddress">{{ d.hostAddress }}</text>
 							</view>
@@ -354,7 +355,9 @@ export default {
 												const hostname = plus.android.invoke(host, 'getHostName');
 												const hostAddress = plus.android.invoke(host, 'getHostAddress');
 												if (hostname) {
-													discovered.push({ hostname, hostAddress });
+													// getHostName 可能不含 .local，补全
+													const fullName = hostname.indexOf('.') > -1 ? hostname : hostname + '.local';
+													discovered.push({ hostname: fullName, hostAddress });
 												}
 											}
 										} catch (e) { console.warn('[mdns] resolve err:', e); }
@@ -581,6 +584,11 @@ export default {
 .md-text { display: flex; flex-direction: column; gap: 4rpx; min-width: 0; }
 .md-hostname {
 	font-size: 28rpx; color: $text-primary; font-weight: 500;
+	white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.md-url {
+	font-size: $fs-caption; color: $brand-primary;
+	font-family: monospace;
 	white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
 }
 .md-id {
