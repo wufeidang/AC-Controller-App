@@ -603,7 +603,8 @@
 {
   "status": "success",
   "data": {
-    "message": "STA WiFi设置成功"
+    "message": "STA connecting",
+    "sta_ssid": "MyHomeWiFi"
   }
 }
 ```
@@ -621,10 +622,11 @@
 {
   "status": "success",
   "data": {
-    "ssid": "MyHomeWiFi",
-    "connected": true,
-    "local_ip": "192.168.1.100",
-    "rssi": -45
+    "sta_ssid": "MyHomeWiFi",
+    "sta_connected": true,
+    "sta_ip": "192.168.1.100",
+    "ap_ssid": "ESP8266-AC",
+    "ap_ip": "192.168.4.1"
   }
 }
 ```
@@ -982,5 +984,5 @@ API调用 → 修改内存数据 → 设置脏标记(dirty flag)
 | v1.0.0 | 初始 | 基础功能：温湿度监测、TCL/美的/海尔/格力红外控制、Web API、场景模式、OTA升级、电源管理 |
 | v1.1.0 | 2025-03 | 新增 MQTT 集成（Home Assistant）、STA模式（AP+STA双模共存）、休眠开关、EEPROM结构体化管理 |
 | v1.2.0 | 2025-06 | **品牌体系重构**：支持 TCL/Midea/Midea-Coolix/Philips 4品牌；温湿度由 getStatus 统一返回；OTA 分两步（start_ota_mode + firmware_url）；EEPROM初始化乱码修复；场景模式结构体化 |
-| v1.2.1 | 2025-07 | 品牌能力差异配置：TCL 16-30°C 支持 quiet；Midea 17-30°C 支持 quiet；Midea-Coolix/Philips 17-30°C quiet→auto；App 精简设备连接页（上次连接+手动IP+mDNS发现）；断连3次自动跳转设备页 |
+| v1.2.1 | 2025-07 | 品牌能力差异配置：TCL 16-30°C 支持 quiet；Midea/Philips 17-30°C quiet→auto；App 精简设备连接页（上次连接+手动IP+mDNS发现）；断连3次自动跳转设备页；STA WiFi 响应字段对齐固件（sta_ssid/sta_connected/sta_ip）；get_sta_wifi 移除 rssi 字段 |
 
