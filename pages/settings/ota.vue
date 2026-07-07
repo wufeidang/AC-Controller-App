@@ -19,7 +19,6 @@
 					</view>
 				</view>
 
-				<!-- 已连接家庭 WiFi 时隐藏 WiFi 输入 -->
 				<template v-if="staConnected">
 					<view class="sta-hint">
 						<view class="sta-hint-dot"></view>
@@ -27,24 +26,9 @@
 					</view>
 				</template>
 				<template v-else>
-					<view class="form-item">
-						<text class="label">WiFi 名称 (SSID)</text>
-						<view class="input-wrap" :class="{ focus: focusSsid }">
-							<input v-model="wifiSsid" class="input" placeholder="用于下载固件的 WiFi" maxlength="32"
-								@focus="focusSsid = true" @blur="focusSsid = false" />
-						</view>
-					</view>
-					<view class="form-item">
-						<text class="label">WiFi 密码</text>
-						<view class="input-wrap" :class="{ focus: focusPwd }">
-							<input v-model="wifiPassword" class="input"
-								:type="showPassword ? 'text' : 'password'"
-								placeholder="WiFi 密码" maxlength="64"
-								@focus="focusPwd = true" @blur="focusPwd = false" />
-							<view class="pw-eye" @click="togglePassword">
-								<image :src="'/static/icons/' + (showPassword ? 'eye' : 'eye-slash') + '.svg'" class="pw-eye-icon" mode="aspectFit" />
-							</view>
-						</view>
+					<view class="sta-hint warn">
+						<view class="sta-hint-dot"></view>
+						<text>设备当前在 AP 热点模式，请先连接家庭 WiFi 后再升级</text>
 					</view>
 				</template>
 			</view>
@@ -129,8 +113,8 @@ export default {
 	mixins: [deviceMixin, modalMixin],
 			data() {
 				return {
-					currentVersion: '', firmwareUrl: constants.OTA_DEFAULT_FIRMWARE_URL, wifiSsid: '', wifiPassword: '', showPassword: false,
-				focusUrl: false, focusSsid: false, focusPwd: false,
+					currentVersion: '', firmwareUrl: constants.OTA_DEFAULT_FIRMWARE_URL,
+				focusUrl: false,
 				updating: false,
 				staConnected: false, staSsid: '',
 				confirmModalVisible: false, confirmModalContent: '设备将开始固件升级，升级完成后自动重启。确定继续吗？',
@@ -150,13 +134,9 @@ export default {
 			return constants.DEFAULT_IP;
 		}
 	},
-	onLoad() { this.checkDevice(); this.loadSaved(); this.getFw(); this.checkSta(); },
+	onLoad() { this.checkDevice(); this.getFw(); this.checkSta(); },
 	onUnload() { this.cancelOta(); },
 	methods: {
-		loadSaved() {
-			const u = uni.getStorageSync('otaUrl'); if (u) this.firmwareUrl = u;
-			const s = uni.getStorageSync('wifiSsid'); if (s) { this.wifiSsid = s; const p = uni.getStorageSync('wifiPassword'); if (p) this.wifiPassword = p; }
-		},
 		async getFw() { if (!this.deviceConnected) return; try { this.showLoading('获取中...'); const res = await apiService.getFirmwareVersion(); if (res.status === 'success') this.currentVersion = res.data.firmware_version || '未知'; } catch (e) { console.warn('[ota] getFw:', e.message); } finally { this.hideLoading(); } },
 		async checkSta() {
 			if (!this.deviceConnected) return;
@@ -168,22 +148,19 @@ export default {
 				}
 			} catch (e) { /* 静默 */ }
 		},
-		togglePassword() { this.showPassword = !this.showPassword; },
 		startUpdate() {
 			if (!this.deviceConnected) { this.showToast('警告', '请先连接设备', 'warning'); return; }
 				if (!isNonEmpty(this.firmwareUrl)) { this.showToast('提示', '请输入固件 URL', 'warning'); return; }
 				if (!isValidUrl(this.firmwareUrl)) { this.showToast('提示', '固件 URL 格式不正确，请输入有效的 HTTP/HTTPS 地址', 'warning'); return; }
-				// 未连接家庭 WiFi 时需验证 WiFi 信息
-				if (!this.staConnected && !isNonEmpty(this.wifiSsid)) { this.showToast('提示', '请输入 WiFi 名称', 'warning'); return; }
 			if (this.updating) return;
+			// AP 热点模式下无互联网连接，无法实时跟进 OTA 状态，直接拦截
+			if (!this.staConnected) {
+				this.showToast('提示', '设备当前在 AP 热点模式，无法实时跟进固件更新状态，请连接家庭 WiFi 再试', 'warning');
+				return;
+			}
 			let domain = '';
 			try { domain = new URL(this.firmwareUrl).hostname; } catch (e) { domain = this.firmwareUrl; }
-			let confirmMsg = `将向 ${domain} 请求固件文件。`;
-			if (!this.staConnected) {
-				confirmMsg += '设备将先连接家庭 WiFi 再下载固件，请确保 WiFi 密码正确。';
-			}
-			confirmMsg += '升级完成后自动重启。确定继续吗？';
-			this.confirmModalContent = confirmMsg;
+			this.confirmModalContent = `将向 ${domain} 请求固件文件。升级完成后自动重启。确定继续吗？`;
 			this.confirmModalVisible = true;
 		},
 		handleConfirmModalConfirm() { this.confirmModalVisible = false; this.performOtaUpdate(); },
@@ -276,12 +253,7 @@ export default {
 				this.otaPhase = 'idle';
 				this.otaProgress = 0;
 				this.updating = false;
-				// 在 AP 热点下无互联网，属于正常现象，给出明确指引
-				if (!this.staConnected) {
-					this.showToast('提示', '设备当前在 AP 热点模式，无法访问互联网下载固件。请确保设备已连接家庭 WiFi', 'warning');
-				} else {
-					this.showToast('升级异常', msg, 'error');
-				}
+				this.showToast('升级异常', msg, 'error');
 			},
 
 		/** 用户取消等待（仅 verifying 阶段） */
@@ -367,11 +339,14 @@ export default {
 		background: $color-success-bg; border-radius: $radius-md;
 		padding: 16rpx 20rpx; margin-bottom: 4rpx;
 	}
+	.sta-hint.warn { background: $color-warning-bg; }
 	.sta-hint-dot {
 		width: 14rpx; height: 14rpx; border-radius: 50%;
 		background: $color-success; flex-shrink: 0;
 	}
+	.sta-hint.warn .sta-hint-dot { background: $color-warning; }
 	.sta-hint text { font-size: $fs-label; color: $color-success; line-height: 1.5; }
+	.sta-hint.warn text { color: $color-warning-text; }
 
 	/* OTA 进度遮罩 */
 	.ota-overlay {
