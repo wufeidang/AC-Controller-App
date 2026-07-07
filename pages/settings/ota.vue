@@ -90,12 +90,6 @@
 			confirm-text="确定升级" cancel-text="取消" type="warning"
 			@confirm="handleConfirmModalConfirm" @cancel="handleConfirmModalCancel" />
 
-		<!-- 验证输入 -->
-		<CustomModal :visible="validateModalVisible" title="输入验证" :content="validateModalContent"
-			:editable="true" :placeholder-text="validateModalPlaceholder"
-			confirm-text="确定" cancel-text="取消"
-			@confirm="handleValidateModalConfirm" @cancel="handleValidateModalCancel" />
-
 			<!-- 普通提示 -->
 			<CustomModal :visible="modalVisible" :title="modalTitle" :content="modalContent"
 				:close-on-click-overlay="false" :type="modalType" :show-buttons="false" />
@@ -129,8 +123,6 @@ export default {
 				focusUrl: false, focusSsid: false, focusPwd: false,
 				updating: false,
 				confirmModalVisible: false, confirmModalContent: '设备将开始固件升级，升级完成后自动重启。确定继续吗？',
-				validateModalVisible: false, validateModalTitle: '输入验证',
-				validateModalContent: '请输入 "upgrade" 确认升级', validateModalPlaceholder: '请输入 upgrade',
 				// OTA 进度追踪
 				otaProgress: 0,
 				otaPhase: 'idle', // idle | connecting | downloading | verifying | done | failed
@@ -167,10 +159,8 @@ export default {
 			this.confirmModalContent = `将向 ${domain} 请求固件文件。设备将连接 WiFi 下载并重启。确定继续吗？`;
 			this.confirmModalVisible = true;
 		},
-		handleConfirmModalConfirm() { this.confirmModalVisible = false; this.validateModalVisible = true; },
+		handleConfirmModalConfirm() { this.confirmModalVisible = false; this.performOtaUpdate(); },
 		handleConfirmModalCancel() { this.confirmModalVisible = false; },
-			handleValidateModalConfirm(inputValue) { this.validateModalVisible = false; if (inputValue === 'upgrade') this.performOtaUpdate(); },
-			handleValidateModalCancel() { this.validateModalVisible = false; },
 
 		// ===== OTA 进度追踪 =====
 		/**
