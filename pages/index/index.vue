@@ -316,29 +316,14 @@
 		async fetchStatus() {
 			if (!this.deviceConnected) return;
 			if (this.statusPending) {
-				this._retryPending = true;  // 标记重试，当前请求完成后立即再执行一次
+				this._retryPending = true;
 				return;
 			}
 			this.statusPending = true;
 			try {
 				const res = await apiService.getStatus();
 				if (res.status !== 'success') {
-					this.failCount++;
-					if (this.failCount >= this.failThreshold && this._currentInterval !== constants.POLL_BACKOFF_INTERVAL) {
-						this.stopPoll();
-						this.startPoll(constants.POLL_BACKOFF_INTERVAL);
-					}
-					// 连续 3 次失败后自动断开，跳转设备页
-					if (this.failCount >= this.failThreshold) {
-						this.stopPoll();
-						this.deviceConnected = false;
-						const dev = uni.getStorageSync('connectedDevice');
-						if (dev) {
-							dev.connected = false;
-							uni.setStorageSync('connectedDevice', dev);
-						}
-						uni.redirectTo({ url: '/pages/device/device' });
-					}
+					this._disconnectAndRedirect();
 					return;
 				}
 				this.failCount = 0;
@@ -379,26 +364,7 @@
 					}
 				}
 			} catch (e) {
-				this.failCount++;
-				if (this.failCount >= this.failThreshold && this._currentInterval !== constants.POLL_BACKOFF_INTERVAL) {
-					this.stopPoll();
-					this.startPoll(constants.POLL_BACKOFF_INTERVAL);
-					if (!this.hasShownBackoffToast) {
-						this.hasShownBackoffToast = true;
-						this.showToast('提示', '设备连接异常，已降低心跳频率', 'warning');
-					}
-				}
-				// 连续 3 次失败后自动断开，跳转设备页
-				if (this.failCount >= this.failThreshold) {
-					this.stopPoll();
-					this.deviceConnected = false;
-					const dev = uni.getStorageSync('connectedDevice');
-					if (dev) {
-						dev.connected = false;
-						uni.setStorageSync('connectedDevice', dev);
-					}
-					uni.redirectTo({ url: '/pages/device/device' });
-				}
+				this._disconnectAndRedirect();
 			}
 			finally {
 				this.statusPending = false;
@@ -419,7 +385,17 @@
 		stopPoll() {
 			if (this.pollTimer) { clearInterval(this.pollTimer); this.pollTimer = null; }
 		},
-		async toggleACStatus(e) {
+		_disconnectAndRedirect() {
+				this.stopPoll();
+				this.deviceConnected = false;
+				const dev = uni.getStorageSync('connectedDevice');
+				if (dev) {
+					dev.connected = false;
+					uni.setStorageSync('connectedDevice', dev);
+				}
+				uni.redirectTo({ url: '/pages/device/device' });
+			},
+			async toggleACStatus(e) {
 			const on = e.detail.value;
 			if (!this.deviceConnected) { this.showToast('提示', '请先连接设备'); return; }
 			if (this.switchLoading) return;
