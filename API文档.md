@@ -588,32 +588,27 @@
 }
 ```
 
-### 26. 设置STA（客户端）WiFi
+### 26. 设置STA WiFi
 
 **命令**: `set_sta_wifi`
 
-**说明**: 配置设备连接家庭/公司WiFi网络（STA模式）。设备将以 AP+STA 双模式运行，AP 模式保持用于本地管理，STA 模式连接外部网络用于 MQTT 通信和互联网访问。
-
 **参数**:
-- `ssid`: STA模式WiFi名称（必填）
-- `password`: STA模式WiFi密码（必填）
+- `ssid`: 家庭WiFi名称（必填）
+- `password`: 家庭WiFi密码（必填）
 
 **返回值**:
 ```json
 {
   "status": "success",
   "data": {
-    "message": "STA connecting",
-    "sta_ssid": "MyHomeWiFi"
+    "message": "STA WiFi设置成功"
   }
 }
 ```
 
-### 27. 获取STA（客户端）WiFi状态
+### 27. 获取STA WiFi状态
 
 **命令**: `get_sta_wifi`
-
-**说明**: 获取设备的STA模式WiFi连接状态。
 
 **参数**: 无
 
@@ -622,12 +617,11 @@
 {
   "status": "success",
   "data": {
-    "sta_ssid": "MyHomeWiFi",
-    "sta_connected": true,
-    "sta_ip": "192.168.1.100",
-    "ap_ssid": "ESP8266-AC",
-    "ap_ip": "192.168.4.1"
-  }
+    "ssid": "家庭WiFi",
+    "connected": true,
+    "local_ip": "192.168.1.100",
+    "rssi": -45
+	}
 }
 ```
 

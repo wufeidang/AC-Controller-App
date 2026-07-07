@@ -6,9 +6,10 @@
 			<!-- 连接状态 -->
 			<view class="card" v-if="staInfo">
 				<text class="card-title">连接状态</text>
-				<view class="info-row"><text class="info-label">状态</text><view class="badge" :class="{ on: staConnected }"><view class="dot"></view><text>{{ staConnected ? '已连接' : '未连接' }}</text></view></view>
-				<view class="info-row" v-if="staSsidVal"><text class="info-label">WiFi</text><text class="info-value">{{ staSsidVal }}</text></view>
-				<view class="info-row" v-if="staIpVal"><text class="info-label">IP</text><text class="info-value">{{ staIpVal }}</text></view>
+				<view class="info-row"><text class="info-label">状态</text><view class="badge" :class="{ on: staInfo.connected }"><view class="dot"></view><text>{{ staInfo.connected ? '已连接' : '未连接' }}</text></view></view>
+				<view class="info-row" v-if="staInfo.ssid"><text class="info-label">WiFi</text><text class="info-value">{{ staInfo.ssid }}</text></view>
+				<view class="info-row" v-if="staInfo.local_ip"><text class="info-label">IP</text><text class="info-value">{{ staInfo.local_ip }}</text></view>
+				<view class="info-row" v-if="staInfo.rssi !== undefined"><text class="info-label">信号</text><text class="info-value">{{ staInfo.rssi }} dBm</text></view>
 			</view>
 
 			<!-- 配置表单 -->
@@ -55,25 +56,6 @@ export default {
 				staInfo: null, staSsid: '', staPassword: '', showPassword: false, saving: false
 			};
 	},
-	computed: {
-		/**
-		 * 固件可能返回 sta_connected / connected (boolean) 或 sta_connected / connected (int 0/1)
-		 * 统一归一化
-		 */
-		staConnected() {
-			if (!this.staInfo) return false;
-			const v = this.staInfo.sta_connected ?? this.staInfo.connected;
-			return v === true || v === 1 || v === 'true' || v === '1';
-		},
-		staSsidVal() {
-			if (!this.staInfo) return '';
-			return this.staInfo.sta_ssid || this.staInfo.ssid || '';
-		},
-		staIpVal() {
-			if (!this.staInfo) return '';
-			return this.staInfo.sta_ip || this.staInfo.local_ip || '';
-		}
-	},
 	onLoad() { this.checkDevice(); this.loadStatus(true); },
 	onShow() { this.checkDevice(); this.loadStatus(false); },
 	methods: {
@@ -84,7 +66,7 @@ export default {
 				const res = await api.getStaWifi();
 				if (res.status === 'success') {
 					this.staInfo = res.data;
-					this.staSsid = res.data.sta_ssid || res.data.ssid || '';
+					this.staSsid = res.data.ssid || '';
 				}
 			} catch (e) {
 				console.warn('[sta-wifi] loadStatus:', e.message);
@@ -109,9 +91,8 @@ export default {
 						const res = await api.getStaWifi();
 						if (res.status === 'success') {
 							this.staInfo = res.data;
-							const conn = res.data.sta_connected ?? res.data.connected;
-							if (conn === true || conn === 1 || conn === 'true' || conn === '1') {
-								this.showToast('成功', `已连接 ${res.data.sta_ssid || res.data.ssid || ''}`, 'success');
+							if (res.data && res.data.connected) {
+								this.showToast('成功', `已连接 ${res.data.ssid || ''}`, 'success');
 								return;
 							}
 						}
