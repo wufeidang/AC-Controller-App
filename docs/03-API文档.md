@@ -1001,4 +1001,5 @@ API调用 → 修改内存数据 → 设置脏标记(dirty flag)
 | v1.1.0 | 2025-03 | 新增 MQTT 集成（Home Assistant）、STA模式（AP+STA双模共存）、休眠开关、EEPROM结构体化管理 |
 | v1.2.0 | 2025-06 | **品牌扩展**：支持 TCL/Midea/Philips 3品牌；EEPROM初始化乱码修复；命令分发表重构；场景模式结构体化；OTA版本解析去重；MQTT写入策略统一 |
 | v1.2.2 | 2025-07 | App 品牌选择新增品牌；OTA 支持 Bemfa 平台自动获取固件；新增 `set_ota_version`/`get_ota_version` 命令；有新版本时提示，无新版本禁用升级 |
+| v2.5.0 | 2026-07 | **App 远程版本控制**：WGT 热更新支持；禁用 WiFi 休眠修复超时；移除美的-RN02S13；set_ac_params 合并 brand |
 

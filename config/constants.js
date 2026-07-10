@@ -125,5 +125,8 @@ export default {
 	},
 
 	// 轮询退避间隔 — 设备连续失败 ≥ 3 次后降频
-	POLL_BACKOFF_INTERVAL: 30000
+	POLL_BACKOFF_INTERVAL: 30000,
+
+	// App 远程版本检查（WGT 热更新）
+	APP_VERSION_CHECK_URL: 'https://example.com/version.json' // ← 替换为实际部署地址
 };

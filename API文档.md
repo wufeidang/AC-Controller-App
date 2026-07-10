@@ -1004,4 +1004,5 @@ API调用 → 修改内存数据 → 设置脏标记(dirty flag)
 | v1.2.0 | 2025-06 | **品牌体系重构**：支持 TCL/Midea/Philips 3品牌；温湿度由 getStatus 统一返回；OTA 分两步（start_ota_mode + firmware_url）；EEPROM初始化乱码修复；场景模式结构体化 |
 | v1.2.1 | 2025-07 | 品牌能力差异配置：TCL 16-30°C 支持 quiet；Midea/Philips 17-30°C quiet→auto；App 精简设备连接页（上次连接+手动IP+mDNS发现）；断连3次自动跳转设备页；STA WiFi 响应字段对齐固件（sta_ssid/sta_connected/sta_ip）；get_sta_wifi 移除 rssi 字段 |
 | v1.2.2 | 2025-07 | App 品牌选择新增品牌；OTA 支持 Bemfa 平台自动获取固件；新增 `set_ota_version`/`get_ota_version` 命令记录已安装平台版本；有新版本时提示用户，无新版本禁用升级 |
+| v2.5.0 | 2026-07 | **App 远程版本控制**：WGT 热更新支持（检查版本 → 下载 → 安装）；版本号统一从 manifest.json 读取；禁用 WiFi 休眠修复 AP 响应慢和 HTTP 超时；移除美的-RN02S13 品牌；set_ac_params 合并 brand 参数减少一次请求 |
 
