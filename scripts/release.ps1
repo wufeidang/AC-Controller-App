@@ -5,7 +5,7 @@ param(
     [string]$ChangelogLines
 )
 
-$ProjectRoot = "E:\esp8266_work\GT-project\app\空调温控"
+$ProjectRoot = Split-Path -Parent $PSScriptRoot
 $WgtDir = "$ProjectRoot\unpackage\release\wgt"
 $Today = Get-Date -Format "yyyy-MM-dd"
 
