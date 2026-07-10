@@ -26,13 +26,12 @@
   - [20. 重启设备](#20-重启设备)
   - [21. 恢复出厂设置](#21-恢复出厂设置)
   - [22. 获取系统信息](#22-获取系统信息)
-  - [23. 进入深度睡眠](#23-进入深度睡眠)
-  - [24. 设置休眠开关](#24-设置休眠开关)
-  - [25. 获取休眠开关状态](#25-获取休眠开关状态)
-  - [26. 设置STA（客户端）WiFi](#26-设置sta客户端wifi)
-  - [27. 获取STA（客户端）WiFi状态](#27-获取sta客户端wifi状态)
-  - [28. 设置MQTT配置](#28-设置mqtt配置)
-  - [29. 获取MQTT配置](#29-获取mqtt配置)
+  - [23. 设置STA（客户端）WiFi](#23-设置sta客户端wifi)
+- [24. 获取STA（客户端）WiFi状态](#24-获取sta客户端wifi状态)
+- [25. 设置MQTT配置](#25-设置mqtt配置)
+- [26. 获取MQTT配置](#26-获取mqtt配置)
+- [27. 获取OTA版本号](#27-获取ota版本号)
+- [28. 设置OTA版本号](#28-设置ota版本号)
 - [错误处理](#错误处理)
 - [品牌差异说明](#品牌差异说明)
 - [版本历史](#版本历史)
@@ -83,7 +82,6 @@
     "hum_off_threshold": 60.0,
     "check_interval": 5,
     "client_connected": false,
-    "sleep_enabled": false,
     "calibration": {
       "temp_offset": 0.0,
       "hum_offset": 0.0
@@ -135,9 +133,10 @@
 **命令**: `set_ac_params`
 
 **参数**:
+- `brand`: 空调品牌（可选），可选值：`tcl`、`midea`、`philips`。变更品牌时需先设置此项，设备会重新初始化红外发射器
 - `temperature`: 温度（整数），范围视品牌而定：TCL 16-30°C，Midea/Philips 17-30°C
 - `mode`: 模式，可选值：`auto`（自动）、`cool`（制冷）、`heat`（制热）、`fan`（送风）、`dry`（除湿）
-- `fan_speed`: 风速，可选值：`auto`（自动）、`low`（低速）、`medium`（中速）、`high`（高速）、`quiet`（静音）。注意：`quiet` 在 TCL 和 Midea 48-bit 品牌下有效；Midea Coolix 和 Philips 自动回退为 `auto`
+- `fan_speed`: 风速，可选值：`auto`（自动）、`low`（低速）、`medium`（中速）、`high`（高速）、`quiet`（静音）。注意：`quiet` 仅 TCL 支持；Midea 和 Philips 自动回退为 `auto`
 - `swing`: 摆风，可选值：`auto`（自动）、`fixed`（固定）
 
 **返回值**:
@@ -210,6 +209,42 @@
   }
   ```
 
+#### App 端 Bemfa 固件自动获取
+
+App 支持从 Bemfa 物联网平台自动获取最新固件下载链接，无需手动输入 URL。
+
+**Bemfa 固件版本 API**（App 直接调用，非设备端）:
+
+| 参数 | 必填 | 类型 | 说明 |
+|------|------|------|------|
+| `openID` | 是 | string | Bemfa 用户私钥 |
+| `topic` | 是 | string | 设备主题值 |
+| `deviceType` | 是 | int | 设备类型：1=MQTT, 3=TCP, 5=MQTTv2, 7=TCPv2 |
+| `secure` | 否 | bool | 是否返回 https URL，默认 false |
+
+**请求地址**: `https://apis.bemfa.com/vb/api/v1/firmwareVersion`
+
+**返回示例**:
+```json
+{
+  "code": 0,
+  "msg": "success",
+  "data": {
+    "url": "http://bin.bemfa.com/b/28687/xxx.bin",
+    "version": 2,
+    "tag": "固件备注",
+    "size": 7918,
+    "unix": 1773584364
+  }
+}
+```
+
+**OTA 升级流程（App 端）**:
+1. 用户填写 Bemfa `openID` 和 `topic`（保存至本地存储）
+2. 点击"获取最新固件"调用 Bemfa API 获取固件 URL
+3. 固件 URL 自动填入输入框，显示版本号和备注
+4. 用户确认后发送给设备执行升级
+
 ### 6. 设置校准参数
 
 **命令**: `set_calibration`
@@ -236,6 +271,7 @@
 - `device_name`: 设备名称
 - `device_location`: 设备位置
 - `wifi_name`: WiFi名称
+- `firmware_version`: 固件版本号（用于 OTA 成功后同步版本）
 
 **返回值**:
 ```json
@@ -539,56 +575,7 @@
 }
 ```
 
-### 23. 进入深度睡眠
-
-**命令**: `enter_deep_sleep`
-
-**参数**: 无
-
-**返回值**:
-```json
-{
-  "status": "success",
-  "data": {
-    "message": "进入深度睡眠模式"
-  }
-}
-```
-
-### 24. 设置休眠开关
-
-**命令**: `set_sleep_enabled`
-
-**参数**:
-- `enabled`: 休眠开关状态，布尔值（true/false）
-
-**返回值**:
-```json
-{
-  "status": "success",
-  "data": {
-    "message": "休眠开关已开启"
-  }
-}
-```
-
-### 25. 获取休眠开关状态
-
-**命令**: `get_sleep_enabled`
-
-**参数**: 无
-
-**返回值**:
-```json
-{
-  "status": "success",
-  "data": {
-    "sleep_enabled": true
-  }
-}
-```
-
-### 26. 设置STA WiFi
+### 23. 设置STA WiFi
 
 **命令**: `set_sta_wifi`
 
@@ -606,7 +593,7 @@
 }
 ```
 
-### 27. 获取STA WiFi状态
+### 24. 获取STA WiFi状态
 
 **命令**: `get_sta_wifi`
 
@@ -625,7 +612,7 @@
 }
 ```
 
-### 28. 设置MQTT配置
+### 25. 设置MQTT配置
 
 **命令**: `set_mqtt_config`
 
@@ -648,7 +635,7 @@
 }
 ```
 
-### 29. 获取MQTT配置
+### 26. 获取MQTT配置
 
 **命令**: `get_mqtt_config`
 
@@ -666,6 +653,43 @@
     "user": "mqtt_user",
     "pass": "mqtt_pass",
     "topic": "home/ac"
+  }
+}
+```
+
+### 27. 获取OTA版本号
+
+**命令**: `get_ota_version`
+
+**说明**: 获取设备上次通过 Bemfa 平台 OTA 安装的固件版本号。用于判断是否有新版本。
+
+**参数**: 无
+
+**返回值**:
+```json
+{
+  "status": "success",
+  "data": {
+    "ota_version": "2"
+  }
+}
+```
+
+### 28. 设置OTA版本号
+
+**命令**: `set_ota_version`
+
+**说明**: 设置设备上次通过 Bemfa 平台 OTA 安装的固件版本号。OTA 升级成功后由 App 自动调用。
+
+**参数**:
+- `ota_version`: Bemfa 平台版本号（字符串）
+
+**返回值**:
+```json
+{
+  "status": "success",
+  "data": {
+    "message": "OTA版本号已更新"
   }
 }
 ```
@@ -951,7 +975,7 @@ API调用 → 修改内存数据 → 设置脏标记(dirty flag)
 - `"No action specified"`: 未指定动作
 - `"Invalid firmware URL"`: 无效的固件URL
 - `"Missing required parameters"`: 缺少必要参数
-- `"无效的空调品牌，支持的品牌：tcl/midea/philips"`: 空调品牌无效
+- `"无效的空调品牌，支持的品牌：tcl, midea, philips"`: 空调品牌无效
 - `"No SSID specified"`: 未指定SSID
 - `"No password specified"`: 未指定密码
 - `"No brand specified"`: 未指定品牌
@@ -965,7 +989,7 @@ API调用 → 修改内存数据 → 设置脏标记(dirty flag)
 | 品牌 | brand值 | 红外协议 | 温度范围 | 风速支持 | quiet回退 |
 |------|---------|---------|---------|---------|----------|
 | TCL | `tcl` | TCL 112bit | 16-30°C | auto/low/medium/high/**quiet** | - |
-| 美的 | `midea` | Coolix | 17-30°C | auto/low/medium/high | quiet→auto |
+| 美的（Coolix） | `midea` | Coolix | 17-30°C | auto/low/medium/high | quiet→auto |
 | 飞利浦 | `philips` | Goodweather | 17-30°C | auto/low/medium/high | quiet→auto |
 
 - `quiet` 风速仅 TCL 支持；美的和飞利浦会自动回退为 `auto`
@@ -977,6 +1001,7 @@ API调用 → 修改内存数据 → 设置脏标记(dirty flag)
 |------|------|----------|
 | v1.0.0 | 初始 | 基础功能：温湿度监测、TCL/美的/海尔/格力红外控制、Web API、场景模式、OTA升级、电源管理 |
 | v1.1.0 | 2025-03 | 新增 MQTT 集成（Home Assistant）、STA模式（AP+STA双模共存）、休眠开关、EEPROM结构体化管理 |
-| v1.2.0 | 2025-06 | **品牌体系重构**：支持 TCL/Midea/Midea-Coolix/Philips 4品牌；温湿度由 getStatus 统一返回；OTA 分两步（start_ota_mode + firmware_url）；EEPROM初始化乱码修复；场景模式结构体化 |
+| v1.2.0 | 2025-06 | **品牌体系重构**：支持 TCL/Midea/Philips 3品牌；温湿度由 getStatus 统一返回；OTA 分两步（start_ota_mode + firmware_url）；EEPROM初始化乱码修复；场景模式结构体化 |
 | v1.2.1 | 2025-07 | 品牌能力差异配置：TCL 16-30°C 支持 quiet；Midea/Philips 17-30°C quiet→auto；App 精简设备连接页（上次连接+手动IP+mDNS发现）；断连3次自动跳转设备页；STA WiFi 响应字段对齐固件（sta_ssid/sta_connected/sta_ip）；get_sta_wifi 移除 rssi 字段 |
+| v1.2.2 | 2025-07 | App 品牌选择新增品牌；OTA 支持 Bemfa 平台自动获取固件；新增 `set_ota_version`/`get_ota_version` 命令记录已安装平台版本；有新版本时提示用户，无新版本禁用升级 |
 

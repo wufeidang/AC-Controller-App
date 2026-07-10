@@ -26,6 +26,10 @@ export default {
 	// OTA 默认固件 URL
 	OTA_DEFAULT_FIRMWARE_URL: 'http://bin.bemfa.com/b/27002/3BcZGI1OTA5NDczM2FjYjkzMTg2N2Q1YWY5NGE1N2ZjNzg=FRESTEC.bin',
 
+	// Bemfa 固件版本 API
+	BEMFA_FIRMWARE_API: 'https://apis.bemfa.com/vb/api/v1/firmwareVersion',
+	BEMFA_DEVICE_TYPE: 3,  // 1=MQTT, 3=TCP, 5=MQTTv2, 7=TCPv2
+
 	// OTA 进度追踪
 	OTA_PROGRESS_MAX: 80,       // 模拟进度最高到 80%，余下靠轮询确认
 	OTA_POLL_INTERVAL: 5000,     // 轮询检测设备重启间隔 (ms)
@@ -116,7 +120,8 @@ export default {
 	// staWifiHistory: [{ ssid, timestamp }] — 仅 SSID，不含密码（宪法 VII）
 	STORAGE_KEYS: {
 		CONNECTED_DEVICE: 'connectedDevice',
-		STA_WIFI_HISTORY: 'staWifiHistory'
+		STA_WIFI_HISTORY: 'staWifiHistory',
+		BEMFA_CONFIG: 'bemfaConfig'  // { openID, topic }
 	},
 
 	// 轮询退避间隔 — 设备连续失败 ≥ 3 次后降频

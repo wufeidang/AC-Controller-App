@@ -381,34 +381,6 @@ class ApiService {
   }
 
   /**
-   * 进入深度睡眠
-   * @returns {Promise} - 返回深度睡眠结果
-   */
-  async enterDeepSleep() {
-    return this.request({ cmd: 'enter_deep_sleep', data: {} });
-  }
-
-  /**
-   * 设置休眠开关
-   * @param {boolean} enabled - 休眠开关状态
-   * @returns {Promise} - 返回设置结果
-   */
-  async setSleepEnabled(enabled) {
-    return this.request({
-      cmd: 'set_sleep_enabled',
-      data: { enabled }
-    });
-  }
-
-  /**
-   * 获取休眠开关状态
-   * @returns {Promise} - 返回休眠开关状态
-   */
-  async getSleepEnabled() {
-    return this.request({ cmd: 'get_sleep_enabled', data: {} });
-  }
-
-  /**
    * 设置STA（客户端）WiFi
    * @param {Object} data - STA WiFi配置
    * @param {string} data.ssid - WiFi名称
@@ -456,6 +428,66 @@ class ApiService {
    */
   async getMqttConfig() {
     return this.request({ cmd: 'get_mqtt_config', data: {} });
+  }
+
+  /**
+   * 获取设备上次OTA安装的Bemfa平台版本号
+   * @returns {Promise} - 返回 { ota_version: string }
+   */
+  async getOtaVersion() {
+    return this.request({ cmd: 'get_ota_version', data: {} });
+  }
+
+  /**
+   * 设置设备上次OTA安装的Bemfa平台版本号
+   * @param {string} version - Bemfa平台版本号
+   * @returns {Promise} - 返回设置结果
+   */
+  async setOtaVersion(version) {
+    return this.request({
+      cmd: 'set_ota_version',
+      data: { ota_version: String(version) }
+    });
+  }
+
+  /**
+   * 从 Bemfa 平台获取最新固件下载链接
+   * @param {Object} params - Bemfa API 参数
+   * @param {string} params.openID - 用户私钥
+   * @param {string} params.topic - 设备主题值
+   * @param {number} [params.deviceType=3] - 设备类型 (1=MQTT, 3=TCP, 5=MQTTv2, 7=TCPv2)
+   * @param {boolean} [params.secure=false] - 是否返回 https URL
+   * @returns {Promise} - 返回 { url, version, tag, size, unix }
+   */
+  async getBemfaFirmwareUrl(params) {
+    const { openID, topic, deviceType = 3, secure = false } = params;
+    if (!openID || !topic) {
+      throw new Error('缺少 Bemfa openID 或 topic');
+    }
+    const qs = `openID=${encodeURIComponent(openID)}&topic=${encodeURIComponent(topic)}&deviceType=${deviceType}&secure=${secure}`;
+    const url = `${constants.BEMFA_FIRMWARE_API}?${qs}`;
+    try {
+      const response = await uni.request({
+        url,
+        method: 'GET',
+        timeout: 10000
+      });
+      if (response.statusCode === 200 && response.data && response.data.code === 0) {
+        return response.data.data;
+      }
+      const msg = (response.data && response.data.msg) || '获取固件信息失败';
+      throw new Error(msg);
+    } catch (error) {
+      if (!error.deviceError) {
+        const errMsg = error.errMsg || error.message || '';
+        if (errMsg.indexOf('timeout') > -1) {
+          error.message = 'Bemfa 平台请求超时，请稍后重试';
+        } else if (errMsg.indexOf('fail') > -1) {
+          error.message = '无法访问 Bemfa 平台，请检查网络';
+        }
+      }
+      throw error;
+    }
   }
 }
 

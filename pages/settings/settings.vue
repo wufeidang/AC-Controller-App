@@ -5,7 +5,6 @@
 				<view class="section-label">控制策略</view>
 				<view class="card">
 					<SettingItem label="场景模式" icon="scene" :isSvgIcon="true" @click="go('scene')" />
-					<SettingItem label="休眠开关" icon="sleep" :isSvgIcon="true" @click="go('sleep-settings')" />
 					<SettingItem label="温湿度校准" icon="calibration" :isSvgIcon="true" @click="go('calibration')" />
 				</view>
 
@@ -22,7 +21,6 @@
 				<view class="section-label">维护</view>
 				<view class="card">
 					<SettingItem label="重启设备" icon="reload" :isSvgIcon="true" @click="restartDevice" />
-					<SettingItem label="深度睡眠" icon="moon" :isSvgIcon="true" @click="enterDeepSleep" />
 				</view>
 				<view class="card">
 					<SettingItem label="恢复出厂设置" icon="warning" :isSvgIcon="true" @click="factoryReset" :danger="true" />
@@ -78,7 +76,7 @@
 		mixins: [modalMixin],
 		data() {
 			return {
-				appVersion: '2.3.0',
+				appVersion: '2.4.0',
 				loading: false,
 				confirmAction: ''  // 用于确认弹窗的动作路由
 			};
@@ -91,14 +89,6 @@
 					confirmText: '确定重启',
 					type: 'warning',
 					onConfirm: () => this.executeAction('restart')
-				});
-			},
-			enterDeepSleep() {
-				this.confirmAction = 'deepSleep';
-				this.showConfirm('进入深度睡眠', '确定要让设备进入深度睡眠模式吗？唤醒需要断电重启。', {
-					confirmText: '确定进入',
-					type: 'warning',
-					onConfirm: () => this.executeAction('deepSleep')
 				});
 			},
 			factoryReset() {
@@ -130,7 +120,6 @@
 				this.showLoading('执行中...');
 				switch (action) {
 					case 'restart': await apiService.restartDevice(); this.showToast('成功', '重启命令已发送'); break;
-					case 'deepSleep': await apiService.enterDeepSleep(); this.showToast('成功', '已进入深度睡眠'); break;
 					case 'factoryReset': await apiService.factoryReset(); this.showToast('成功', '恢复出厂设置成功'); break;
 					case 'clearCache': this.clearNonCriticalStorage(); this.showToast('成功', '缓存已清除', 'success'); break;
 				}

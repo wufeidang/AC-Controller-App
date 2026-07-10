@@ -71,13 +71,10 @@
 				<view class="md-list" v-if="mdnsDevices.length > 0">
 					<view class="md-item" v-for="(d, i) in mdnsDevices" :key="d.hostname + i"
 						@click="selectMdnsDevice(d)" role="button"
-						:aria-label="`连接到局域网设备 ${d.hostname}`">
+						:aria-label="`连接到设备 ${d.deviceId || d.hostname}`">
 						<view class="md-left">
-							<image src="/static/icons/device.svg" class="md-icon" mode="aspectFit" />
 							<view class="md-text">
-								<text class="md-hostname">{{ d.hostname }}</text>
-								<text class="md-url">http://{{ d.hostname }}:80</text>
-								<text class="md-id" v-if="d.deviceId">{{ d.deviceId }}</text>
+								<text class="md-id">{{ d.deviceId || d.hostname }}</text>
 								<text class="md-ip" v-if="d.hostAddress">{{ d.hostAddress }}</text>
 							</view>
 						</view>
@@ -91,46 +88,8 @@
 			</view>
 		</view>
 
-		<!-- 已连接 -->
+		<!-- 已连接 — 直接跳转控制面板 -->
 		<view class="body" v-else>
-			<view class="success-hero">
-				<view class="sh-icon">✓</view>
-				<text class="sh-title">设备已连接</text>
-				<text class="sh-desc">{{ deviceAddress }}</text>
-			</view>
-
-			<view class="card">
-				<text class="card-title">连接信息</text>
-				<view class="info-row">
-					<text class="ir-label">AP 地址</text>
-					<text class="ir-val">{{ deviceAddress }}</text>
-				</view>
-				<view class="info-row" v-if="staIp">
-					<text class="ir-label">STA 地址</text>
-					<text class="ir-val sta">{{ staIp }}</text>
-				</view>
-				<view class="info-row">
-					<text class="ir-label">设备 ID</text>
-					<text class="ir-val">{{ deviceId || '-' }}</text>
-				</view>
-			</view>
-
-			<view class="card hint-card" v-if="!staIp && showStaHint">
-				<view class="hint-row">
-					<text class="hint-emoji">💡</text>
-					<text class="hint-text">设备尚未接入家庭 WiFi，手机切回家庭 WiFi 后将无法远程控制</text>
-				</view>
-				<view class="hint-btn" @click="navigateTo('settings/sta-wifi')" role="button" aria-label="配置家庭 WiFi">
-					<text>配置家庭 WiFi</text>
-				</view>
-			</view>
-
-			<view class="btn btn-primary" @click="navigateBack" role="button" aria-label="进入控制面板">
-				<text>进入控制面板</text>
-			</view>
-			<view class="btn-danger-outline" @click="handleDisconnect" role="button" aria-label="断开当前设备连接">
-				<text>断开连接</text>
-			</view>
 		</view>
 
 		<Loading :visible="loadingVisible" text="连接中..." />
@@ -165,7 +124,6 @@ export default {
 			connecting: false,
 			inputAddress: constants.DEFAULT_IP,
 			inputFocused: false,
-			staIp: '',
 			lastDevice: null,
 			showStaHint: true,
 			mdnsScanning: false,
@@ -179,17 +137,21 @@ export default {
 	onLoad() {
 		this._loadLastDevice();
 		this.checkDevice();
-		if (this.deviceConnected) return;
-		// 如果有上次连接的设备且有上次的 IP，自动填入输入框
+		if (this.deviceConnected) {
+			uni.redirectTo({ url: '/pages/index/index' });
+			return;
+		}
 		if (this.lastDevice && this.lastDevice.ip) {
 			this.inputAddress = this.lastDevice.ip;
 		}
-		// 进入页面自动扫描局域网设备
 		this._autoScanMdns();
 	},
 	onShow() {
 		this.checkDevice();
-		if (this.deviceConnected) return;
+		if (this.deviceConnected) {
+			uni.redirectTo({ url: '/pages/index/index' });
+			return;
+		}
 	},
 	methods: {
 		_loadLastDevice() {
@@ -247,28 +209,17 @@ export default {
 					this.setDevice(info);
 					uni.$emit('deviceConnected', { connected: true, device: info });
 					this._saveLastDevice();
-					this.staIp = '';
-					this.fetchStaStatus();
+					uni.redirectTo({ url: '/pages/index/index' });
 				} else {
 					this.showToast('失败', (res.data && res.data.message) || '获取设备 ID 失败', 'error');
 				}
 			} catch (e) {
 				errorHandler.handleError(e);
-			} finally {
-				this.connecting = false;
-				this.loadingVisible = false;
-			}
-		},
-		async fetchStaStatus() {
-			try {
-				const res = await apiService.getStaWifi();
-				if (res.status === 'success' && res.data && res.data.connected && res.data.local_ip) {
-					this.staIp = res.data.local_ip;
-				} else {
-					this.staIp = '';
-				}
-			} catch (e) { this.staIp = ''; }
-		},
+		} finally {
+			this.connecting = false;
+			this.loadingVisible = false;
+		}
+	},
 		/** 首次进入自动扫描（仅一次） */
 		_autoScanMdns() {
 			if (this._scanStarted) return;
@@ -449,22 +400,9 @@ export default {
 		},
 		selectMdnsDevice(device) {
 			uni.vibrateShort && uni.vibrateShort({});
-			this.inputAddress = device.hostname;
+			this.inputAddress = device.hostAddress || device.hostname;
 			this.doConnect();
 		},
-		handleDisconnect() {
-			this.showConfirm('确认', '确定要断开设备连接吗？', {
-				confirmText: '断开',
-				cancelText: '取消',
-				type: 'warning',
-				onConfirm: () => this.doDisconnect()
-			});
-		},
-		doDisconnect() {
-			this.disconnectDevice();
-		},
-		navigateBack() { uni.redirectTo({ url: '/pages/index/index' }); },
-		navigateTo(page) { uni.navigateTo({ url: '/pages/' + page }); }
 	}
 };
 </script>
@@ -580,20 +518,15 @@ export default {
 .md-item:last-child { border-bottom: none; }
 .md-item:active { background: rgba(0,0,0,0.03); }
 .md-left { display: flex; align-items: center; gap: 16rpx; flex: 1; min-width: 0; }
-.md-icon { width: 44rpx; height: 44rpx; opacity: 0.7; }
 .md-text { display: flex; flex-direction: column; gap: 4rpx; min-width: 0; }
-.md-hostname {
+.md-id {
 	font-size: 28rpx; color: $text-primary; font-weight: 500;
 	white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
 }
-.md-url {
-	font-size: $fs-caption; color: $brand-primary;
-	font-family: monospace;
-	white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
-}
-.md-id {
+.md-ip {
 	font-size: $fs-caption; color: $text-hint;
 	font-family: monospace;
+	white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
 }
 .md-go {
 	font-size: 40rpx; color: $text-disabled; font-weight: 300;
@@ -624,53 +557,4 @@ export default {
 }
 .btn:active { transform: scale(0.99); }
 .btn text { font-size: $fs-body; font-weight: 600; color: $bg-card; }
-
-/* ===================== 已连接态 ===================== */
-.success-hero {
-	display: flex; flex-direction: column; align-items: center;
-	padding: 32rpx 0 20rpx;
-}
-.sh-icon {
-	width: 88rpx; height: 88rpx; border-radius: 50%;
-	background: #F6FFED; color: $color-success;
-	display: flex; align-items: center; justify-content: center;
-	font-size: 44rpx; font-weight: 700; margin-bottom: 16rpx;
-}
-.sh-title { font-size: $fs-heading; font-weight: 700; color: $text-primary; }
-.sh-desc {
-	font-size: $fs-label; color: $text-hint;
-	margin-top: 8rpx; font-family: monospace;
-}
-
-.info-row {
-	display: flex; justify-content: space-between; align-items: center;
-	padding: 16rpx 0; border-bottom: 1rpx solid $border-light;
-}
-.info-row:last-child { border-bottom: none; }
-.ir-label { font-size: 26rpx; color: $text-hint; }
-.ir-val { font-size: 26rpx; color: $text-regular; font-weight: 500; word-break: break-all; max-width: 60%; text-align: right; }
-.ir-val.sta { color: $brand-primary; }
-
-/* STA 未配置提示卡 */
-.hint-card {
-	background: linear-gradient(135deg, $color-warning-bg 0%, $bg-card 100%);
-	border: 1rpx solid #FFE58F;
-}
-.hint-row { display: flex; gap: 12rpx; align-items: flex-start; margin-bottom: 16rpx; }
-.hint-emoji { font-size: 32rpx; flex-shrink: 0; }
-.hint-text {
-	font-size: $fs-label; color: $color-warning-text;
-	line-height: 1.6; flex: 1;
-}
-.hint-btn {
-	padding: 16rpx 32rpx;
-	background: $color-warning;
-	border-radius: $radius-lg;
-	text-align: center;
-}
-.hint-btn text { color: $bg-card; font-size: $fs-label; font-weight: 500; }
-.hint-btn:active { background: #D97706; }
-
-/* 进入控制面板按钮 */
-.btn-primary { margin-bottom: 16rpx; }
 </style>

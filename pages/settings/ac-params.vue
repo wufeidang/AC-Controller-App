@@ -140,7 +140,7 @@ export default {
 				{ label: '摆风', value: 'auto' }, { label: '固定', value: 'fixed' }
 			],
 brands: [
-	{ label: 'TCL', value: 'tcl' }, 
+	{ label: 'TCL', value: 'tcl' },
 	{ label: '美的', value: 'midea' },
 	{ label: '飞利浦', value: 'philips' }
 ]
@@ -171,7 +171,7 @@ brands: [
 	onLoad() {
 		this.checkDevice();
 		this.loadSettings();
-		this.getDeviceSettings();
+		this.refreshFromDevice();
 	},
 		methods: {
 			loadSettings() {
@@ -186,15 +186,13 @@ brands: [
 				if (this.temperature > this.maxTemp) this.temperature = this.maxTemp;
 			}
 		},
-		async getDeviceSettings() {
+		async refreshFromDevice() {
 			if (!this.deviceConnected) return;
 			try {
-				this.showLoading('获取设置...');
 				const res = await apiService.getAcParams();
 				if (res.status === 'success' && res.data) {
 					const d = res.data;
 					this.currentBrand = d.brand || 'tcl';
-					// 按品牌能力钳制温度范围
 					const cap = constants.BRAND_CAPABILITIES[this.currentBrand] || constants.BRAND_CAPABILITIES.tcl;
 					let t = d.temperature || 26;
 					if (t < cap.minTemp) t = cap.minTemp;
@@ -204,9 +202,7 @@ brands: [
 					this.currentFanSpeed = this._normalizeFanSpeed(d.fan_speed || 'medium');
 					this.currentSwing = d.swing || 'auto';
 				}
-			} catch (e) {
-				this.loadSettings();
-			} finally { this.hideLoading(); }
+			} catch (e) { /* 静默失败，cache 数据已可用 */ }
 		},
 			decreaseTemp() { if (this.temperature > this.minTemp) this.temperature--; else this.stopHold(); },
 			increaseTemp() { if (this.temperature < this.maxTemp) this.temperature++; else this.stopHold(); },
@@ -241,10 +237,8 @@ brands: [
 			if (this.saving) return;
 			try {
 				this.saving = true;
-				this.showLoading('保存中...');
-				// 保存品牌
-				await apiService.setAcBrand(this.currentBrand);
 				await apiService.setAcParams({
+					brand: this.currentBrand,
 					temperature: this.temperature, mode: this.currentMode,
 					fan_speed: this.currentFanSpeed, swing: this.currentSwing
 				});
@@ -255,7 +249,6 @@ brands: [
 				this.showToast('失败', e.message || '保存失败', 'error');
 			} finally {
 				this.saving = false;
-				this.hideLoading();
 			}
 		}
 	}

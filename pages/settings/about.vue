@@ -54,19 +54,16 @@
 		data() {
 			return {
 				appName: '空调温控系统', appDesc: '广通电梯机房智能温控管理',
-				appVersion: '2.3.1', appVersionCode: '231', firmwareVersion: '',
-				changelogRaw: [
-					{ ver: 'v2.3.1', date: '2026-07-04', title: '品牌差异适配 + 设备连接优化', lines: [
-						'· 品牌支持精简为 TCL/Midea/Midea-Coolix/Philips 四个协议',
-						'· 新增 BRAND_CAPABILITIES：温度范围、风速列表、quiet 风速回退逻辑',
-						'· 空调参数页品牌动态绑定：温度边界/风速选项随品牌自动切换',
-						'· 首页 fetchStatus 直接读取温湿度，首屏加载提速',
-						'· fetchStatus 加入重试排队机制，设置变更后 400ms 内同步更新',
-						'· 设备连接页精简：仅保留上次连接+手动 IP+mDNS 局域网发现',
-						'· 断连 3 次失败后自动断开并跳转设备连接页',
-						'· OTA 升级流程改为两步：先 start_ota_mode 再 firmware_url',
-						'· uni-wifi 废弃 API 警告修复'
-					]}
+			appVersion: '2.4.0', appVersionCode: '240', firmwareVersion: '',
+			changelogRaw: [
+				{ ver: 'v2.4.0', date: '2026-07-08', title: 'OTA 升级优化 + 休眠功能移除', lines: [
+					'· OTA 升级接入 Bemfa 平台：自动获取最新固件、版本对比、升级后版本同步',
+					'· OTA 页面 openID 输入支持密码隐藏/显示切换',
+					'· 设备连接页已连接态移除：连接成功后直接跳转控制面板',
+					'· 设备连接页 mDNS 列表精简：仅显示 chip-id + IP',
+					'· 移除 ESP8266 休眠功能（固件 + App 全链路清理）',
+					'· API 文档品牌表修正为实际 3 品牌，补充协议与温度范围说明'
+				]}
 				]
 		};
 	},
