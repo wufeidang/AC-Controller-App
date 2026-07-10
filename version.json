@@ -1,6 +1,1 @@
-{
-    "wgtUrl":  "https://github.com/wufeidang/AC-Controller-App/releases/download/v2.6.0/app.wgt",
-    "versionCode":  260,
-    "version":  "2.6.0",
-    "changelog":  "�¹���"
-}
+{ "version": "2.6.0", "versionCode": 260, "wgtUrl": "https://github.com/wufeidang/AC-Controller-App/releases/download/v2.6.0/app.wgt", "changelog": "修复更新bug; 优化体验" }
