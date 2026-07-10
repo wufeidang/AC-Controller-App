@@ -4,3 +4,8 @@ unpackage/
 *.log
 .DS_Store
 Thumbs.db
+*.md
+.specify/
+.claude/
+.understand-anything/
+
