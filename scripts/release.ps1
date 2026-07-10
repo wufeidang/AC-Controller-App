@@ -34,11 +34,12 @@ Write-Host "✔ version.json 已更新"
 # 3. 更新 changelog.json（追加新版本条目）
 if ($ChangelogLines) {
     $lines = $ChangelogLines -split ';' | ForEach-Object { "· $($_.Trim())" }
+    $title = $ChangelogLines -replace ';.*', ''
     $changelog = Get-Content "$ProjectRoot\changelog.json" -Raw | ConvertFrom-Json
     $newEntry = @{
         ver   = "v$Version"
         date  = $Today
-        title = $ChangelogLines -replace ';.*', ''
+        title = $title
         lines = $lines
     }
     $changelog = @($newEntry) + $changelog
