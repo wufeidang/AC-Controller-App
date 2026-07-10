@@ -89,10 +89,14 @@
 				const res = await uni.request({
 					url: constants.CHANGELOG_URL,
 					method: 'GET',
+					responseType: 'text',
 					timeout: 8000
 				});
-				if (res.statusCode === 200 && Array.isArray(res.data)) {
-					this.changelogRaw = res.data;
+				if (res.statusCode === 200) {
+					const data = JSON.parse(res.data);
+					if (Array.isArray(data)) {
+						this.changelogRaw = data;
+					}
 				}
 			} catch (e) { /* 静默失败，保持空数组 */ }
 			finally { this.changelogLoading = false; }
@@ -116,10 +120,11 @@
 				const res = await uni.request({
 					url: constants.APP_VERSION_CHECK_URL,
 					method: 'GET',
+					responseType: 'text',
 					timeout: 10000
 				});
-				if (res.statusCode !== 200) throw new Error('无法访问更新服务器');
-				const remote = res.data;
+				if (res.statusCode !== 200) throw new Error('cannot access update server');
+				const remote = JSON.parse(res.data);
 				const currentCode = parseInt(this.appVersionCode, 10) || 0;
 				const remoteCode = parseInt(remote.versionCode, 10) || 0;
 
