@@ -89,11 +89,11 @@
 				const res = await uni.request({
 					url: constants.CHANGELOG_URL,
 					method: 'GET',
-					responseType: 'text',
 					timeout: 8000
 				});
 				if (res.statusCode === 200) {
-					const data = JSON.parse(res.data);
+					let data = res.data;
+					if (typeof data === 'string') data = JSON.parse(data);
 					if (Array.isArray(data)) {
 						this.changelogRaw = data;
 					}
@@ -120,11 +120,11 @@
 				const res = await uni.request({
 					url: constants.APP_VERSION_CHECK_URL,
 					method: 'GET',
-					responseType: 'text',
 					timeout: 10000
 				});
 				if (res.statusCode !== 200) throw new Error('cannot access update server');
-				const remote = JSON.parse(res.data);
+				let remote = res.data;
+				if (typeof remote === 'string') remote = JSON.parse(remote);
 				const currentCode = parseInt(this.appVersionCode, 10) || 0;
 				const remoteCode = parseInt(remote.versionCode, 10) || 0;
 
@@ -149,8 +149,10 @@
 		},
 		_downloadWgt(url) {
 			this.showLoading('下载更新包...');
+			let lastProgress = -1;
 			const task = plus.downloader.createDownload(url, {
-				filename: '_doc/update/'
+				filename: '_doc/update/',
+				timeout: 60
 			}, (d, status) => {
 				this.hideLoading();
 				if (status !== 200) {
@@ -158,6 +160,15 @@
 					return;
 				}
 				this._installWgt(d.filename);
+			});
+			task.addEventListener('statechanged', (d) => {
+				if (d.state === 3 && d.totalSize > 0) {
+					const p = Math.floor(d.downloadedSize / d.totalSize * 100);
+					if (p !== lastProgress && p % 5 === 0) {
+						lastProgress = p;
+						this.loadingText = `下载更新包... ${p}%`;
+					}
+				}
 			});
 			task.start();
 		},

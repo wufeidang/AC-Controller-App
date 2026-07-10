@@ -70,13 +70,14 @@
 	import Loading from '../../components/Loading';
 	import modalMixin from '../../mixins/modal-mixin';
 	import constants from '../../config/constants';
+	import manifest from '../../manifest.json';
 
 	export default {
 		components: { SettingItem, CustomModal, Loading },
 		mixins: [modalMixin],
 		data() {
 			return {
-				appVersion: '2.4.0',
+				appVersion: manifest.versionName || '2.4.0',
 				loading: false,
 				confirmAction: ''  // 用于确认弹窗的动作路由
 			};

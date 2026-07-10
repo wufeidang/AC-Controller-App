@@ -25,7 +25,7 @@ if ($ChangelogLines) {
 $vj = @{}
 $vj.version = $Version
 $vj.versionCode = [int]$VersionCode
-$vj.wgtUrl = "https://gitee.com/httpdangwufei/AC-Controller-App/releases/download/v$Version/app.wgt"
+$vj.wgtUrl = "https://gitee.com/httpdangwufei/AC-Controller-App/releases/download/v$Version/__UNI__8D9B28D.wgt"
 $vj.changelog = $cv
 $vj | ConvertTo-Json | Set-Content "$ProjectRoot\version.json" -Encoding UTF8
 Write-Host "OK version.json"

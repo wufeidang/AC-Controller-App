@@ -1,9 +1,9 @@
-{
+﻿{
     "name" : "空调温控",
     "appid" : "__UNI__8D9B28D",
     "description" : "电梯机房温控设置",
-    "versionName": "2.6.0",
-    "versionCode": 260,
+    "versionName": "2.7.0",
+    "versionCode": 270,
     "transformPx" : false,
     /* */
     "app-plus" : {
