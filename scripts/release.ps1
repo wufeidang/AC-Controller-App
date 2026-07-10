@@ -25,7 +25,7 @@ if ($ChangelogLines) {
 $vj = @{}
 $vj.version = $Version
 $vj.versionCode = [int]$VersionCode
-$vj.wgtUrl = "https://github.com/wufeidang/AC-Controller-App/releases/download/v$Version/app.wgt"
+$vj.wgtUrl = "https://gitee.com/httpdangwufei/AC-Controller-App/releases/download/v$Version/app.wgt"
 $vj.changelog = $cv
 $vj | ConvertTo-Json | Set-Content "$ProjectRoot\version.json"
 Write-Host "OK version.json"
@@ -60,5 +60,5 @@ Write-Host "OK committed"
 Write-Host ""
 Write-Host "=== Hou Xu Shou Dong Cao Zuo ==="
 Write-Host "1. HBuilder: Fa Xing > Zhi Zuo Ying Yong WGT Bao"
-Write-Host "2. Shang Chuan app.wgt dao GitHub Releases"
+Write-Host "2. Shang Chuan app.wgt dao Gitee Releases"
 Write-Host "3. git push"
