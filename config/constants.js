@@ -128,5 +128,5 @@ export default {
 	POLL_BACKOFF_INTERVAL: 30000,
 
 	// App 远程版本检查（WGT 热更新）
-	APP_VERSION_CHECK_URL: 'https://example.com/version.json' // ← 替换为实际部署地址
+	APP_VERSION_CHECK_URL: 'https://raw.githubusercontent.com/wufeidang/AC-Controller-App/main/version.json',
 };

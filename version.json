@@ -1,0 +1,6 @@
+{
+  "version": "2.4.0",
+  "versionCode": 240,
+  "wgtUrl": "https://github.com/wufeidang/AC-Controller-App/releases/download/v2.4.0/app.wgt",
+  "changelog": "首次发布：App 远程版本控制（WGT 热更新）"
+}
