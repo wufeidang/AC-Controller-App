@@ -10,10 +10,10 @@ $WgtDir = "$ProjectRoot\unpackage\release\wgt"
 $Today = Get-Date -Format "yyyy-MM-dd"
 
 # 1. 更新 manifest.json
-$json = Get-Content "$ProjectRoot\manifest.json" -Raw
+$json = Get-Content "$ProjectRoot\manifest.json" -Raw -Encoding UTF8
 $json = $json -replace '"versionName"\s*:\s*"[^"]*"', "`"versionName`": `"$Version`""
 $json = $json -replace '"versionCode"\s*:\s*\d+', "`"versionCode`": $VersionCode"
-Set-Content "$ProjectRoot\manifest.json" -Value $json
+Set-Content "$ProjectRoot\manifest.json" -Value $json -Encoding UTF8
 Write-Host "OK manifest.json v$Version (build $VersionCode)"
 
 # 2. 更新 version.json
@@ -27,7 +27,7 @@ $vj.version = $Version
 $vj.versionCode = [int]$VersionCode
 $vj.wgtUrl = "https://gitee.com/httpdangwufei/AC-Controller-App/releases/download/v$Version/app.wgt"
 $vj.changelog = $cv
-$vj | ConvertTo-Json | Set-Content "$ProjectRoot\version.json"
+$vj | ConvertTo-Json | Set-Content "$ProjectRoot\version.json" -Encoding UTF8
 Write-Host "OK version.json"
 
 # 3. 更新 changelog.json
@@ -38,14 +38,14 @@ if ($ChangelogLines) {
     foreach ($p in $parts) {
         $lines += "· $($p.Trim())"
     }
-    $old = Get-Content "$ProjectRoot\changelog.json" -Raw | ConvertFrom-Json
+    $old = Get-Content "$ProjectRoot\changelog.json" -Raw -Encoding UTF8 | ConvertFrom-Json
     $entry = @{}
     $entry.ver = "v$Version"
     $entry.date = $Today
     $entry.title = $title
     $entry.lines = $lines
     $new = @($entry) + $old
-    $new | ConvertTo-Json -Depth 5 | Set-Content "$ProjectRoot\changelog.json"
+    $new | ConvertTo-Json -Depth 5 | Set-Content "$ProjectRoot\changelog.json" -Encoding UTF8
     Write-Host "OK changelog.json v$Version"
 }
 
