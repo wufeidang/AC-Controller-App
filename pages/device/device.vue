@@ -7,7 +7,7 @@
 					<image src="/static/icons/device.svg" class="hero-icon" mode="aspectFit" />
 				</view>
 				<text class="hero-title">连接设备</text>
-				<text class="hero-desc">输入设备 IP 地址，或快速重连上次使用的设备</text>
+				
 			</view>
 
 			<!-- 上次连接过的设备（最显眼） -->
@@ -419,7 +419,7 @@ export default {
 	margin-bottom: 12rpx;
 	box-shadow: 0 6rpx 16rpx rgba(22, 119, 255, 0.1);
 }
-.hero-icon { width: 44rpx; height: 44rpx; }
+.hero-icon { width: 60rpx; height: 60rpx; }
 .hero-title { font-size: 32rpx; font-weight: 700; color: $text-primary; margin-bottom: 4rpx; }
 .hero-desc {
 	font-size: 24rpx; color: $text-hint; text-align: center;

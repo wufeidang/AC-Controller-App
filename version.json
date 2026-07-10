@@ -1,6 +1,6 @@
 ﻿{
-    "wgtUrl":  "https://gitee.com/httpdangwufei/AC-Controller-App/releases/download/v2.7.0/__UNI__8D9B28D.wgt",
-    "versionCode":  270,
-    "version":  "2.7.0",
-    "changelog":  "新功能"
+    "wgtUrl":  "https://gitee.com/httpdangwufei/AC-Controller-App/releases/download/v2.7.1/__UNI__8D9B28D.wgt",
+    "versionCode":  271,
+    "version":  "2.7.1",
+    "changelog":  "修复页面小bug"
 }
