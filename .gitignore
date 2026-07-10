@@ -4,11 +4,12 @@ unpackage/
 *.log
 .DS_Store
 Thumbs.db
-*.md
+AGENTS.md
 .specify/
 .claude/
 .understand-anything/
 .mimocode/
 .idea/
 *.local/
+.gitignore
 
