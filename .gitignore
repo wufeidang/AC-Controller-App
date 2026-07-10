@@ -8,4 +8,7 @@ Thumbs.db
 .specify/
 .claude/
 .understand-anything/
+.mimocode/
+.idea/
+*.local/
 
