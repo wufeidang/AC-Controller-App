@@ -128,8 +128,8 @@ export default {
 	POLL_BACKOFF_INTERVAL: 30000,
 
 	// App 远程版本检查（WGT 热更新）
-	APP_VERSION_CHECK_URL: 'https://raw.githubusercontent.com/wufeidang/AC-Controller-App/main/version.json',
+	APP_VERSION_CHECK_URL: 'https://raw.githubusercontent.com/wufeidang/AC-Controller-App/app/ui/version.json',
 
 	// App 更新日志（从服务器获取，不硬编码）
-	CHANGELOG_URL: 'https://raw.githubusercontent.com/wufeidang/AC-Controller-App/main/changelog.json',
+	CHANGELOG_URL: 'https://raw.githubusercontent.com/wufeidang/AC-Controller-App/app/ui/changelog.json',
 };
