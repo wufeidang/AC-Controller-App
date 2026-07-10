@@ -22,11 +22,12 @@ $manifest | ConvertTo-Json -Depth 10 | Set-Content "$ProjectRoot\manifest.json"
 Write-Host "✔ manifest.json 已更新至 v$Version (build $VersionCode)"
 
 # 2. 更新 version.json
+$changelogStr = $ChangelogLines -replace ';', '；'
 $verJson = @{
     version     = $Version
     versionCode = [int]$VersionCode
     wgtUrl      = "https://github.com/wufeidang/AC-Controller-App/releases/download/v$Version/app.wgt"
-    changelog   = $ChangelogLines -replace ';', '；'
+    changelog   = $changelogStr
 } | ConvertTo-Json
 $verJson | Set-Content "$ProjectRoot\version.json"
 Write-Host "✔ version.json 已更新"
@@ -34,7 +35,7 @@ Write-Host "✔ version.json 已更新"
 # 3. 更新 changelog.json（追加新版本条目）
 if ($ChangelogLines) {
     $lines = $ChangelogLines -split ';' | ForEach-Object { "· $($_.Trim())" }
-    $title = $ChangelogLines -replace ';.*', ''
+    $title = ($ChangelogLines -split ';')[0]
     $changelog = Get-Content "$ProjectRoot\changelog.json" -Raw | ConvertFrom-Json
     $newEntry = @{
         ver   = "v$Version"
