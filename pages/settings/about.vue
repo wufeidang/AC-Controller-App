@@ -83,6 +83,7 @@
 		this.getFw();
 		this._fetchChangelog();
 	},
+	methods: {
 		async _fetchChangelog() {
 			try {
 				const res = await uni.request({
