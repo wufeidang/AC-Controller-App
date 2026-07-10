@@ -29,13 +29,16 @@
 		<!-- 更新日志 -->
 		<view class="card">
 			<text class="card-title">更新内容</text>
-			<view class="changelog">
+			<view class="changelog" v-if="!changelogLoading && changelogData.length > 0">
 				<view class="cl-item" v-for="(item, idx) in changelogData" :key="idx">
 					<text class="cl-ver">{{ item.ver }}</text>
 					<text class="cl-date">{{ item.date }}</text>
 					<text class="cl-title" v-if="item.title">{{ item.title }}</text>
 					<text class="cl-line" v-for="(line, li) in item.lines" :key="li">{{ line }}</text>
 </view>
+		</view>
+		<view class="changelog-empty" v-else-if="changelogLoading">
+			<text class="empty-text">加载中...</text>
 		</view>
 		</view>
 		<!-- 底部信息 -->
@@ -65,23 +68,7 @@
 				appName: '空调温控系统', appDesc: '广通电梯机房智能温控管理',
 			appVersion: '2.4.0', appVersionCode: '240', firmwareVersion: '',
 			updateChecking: false, updateResult: '',
-			changelogRaw: [
-				{ ver: 'v2.5.0', date: '2026-07-10', title: 'App 远程版本控制（WGT 热更新）', lines: [
-					'· 新增 App 远程版本检查：自动比对版本号，发现新版可一键更新',
-					'· 版本号统一从 manifest.json 读取，about 页不再手写',
-					'· 修复 WiFi 休眠导致的 AP 响应慢和 HTTP 超时问题',
-					'· 移除美的-RN02S13 品牌，品牌精简为 3 个',
-					'· 空调参数保存合并为一次请求，提升响应速度'
-				]},
-				{ ver: 'v2.4.0', date: '2026-07-08', title: 'OTA 升级优化 + 休眠功能移除', lines: [
-					'· OTA 升级接入 Bemfa 平台：自动获取最新固件、版本对比、升级后版本同步',
-					'· OTA 页面 openID 输入支持密码隐藏/显示切换',
-					'· 设备连接页已连接态移除：连接成功后直接跳转控制面板',
-					'· 设备连接页 mDNS 列表精简：仅显示 chip-id + IP',
-					'· 移除 ESP8266 休眠功能（固件 + App 全链路清理）',
-					'· API 文档品牌表修正为实际 3 品牌，补充协议与温度范围说明'
-				]}
-				]
+			changelogRaw: [], changelogLoading: true
 		};
 	},
 	computed: {
@@ -92,6 +79,7 @@
 	onLoad() {
 		this.getFw();
 		this._readAppVersion();
+		this._fetchChangelog();
 	},
 	methods: {
 		_readAppVersion() {
@@ -100,7 +88,20 @@
 					this.appVersion = plus.runtime.version || '2.4.0';
 					this.appVersionCode = String(plus.runtime.versionCode || 240);
 				}
-			} catch (e) { /* 非原生环境，使用默认值 */ }
+			} catch (e) { }
+		},
+		async _fetchChangelog() {
+			try {
+				const res = await uni.request({
+					url: constants.CHANGELOG_URL,
+					method: 'GET',
+					timeout: 8000
+				});
+				if (res.statusCode === 200 && Array.isArray(res.data)) {
+					this.changelogRaw = res.data;
+				}
+			} catch (e) { /* 静默失败，保持空数组 */ }
+			finally { this.changelogLoading = false; }
 		},
 		async getFw() {
 				const d = uni.getStorageSync('connectedDevice');
@@ -229,6 +230,8 @@
 .cl-line { font-size: $fs-label; color: $text-secondary; line-height: 1.8; display: block; }
 .cl-toggle { text-align: center; padding: 20rpx 0 0; }
 .cl-toggle text { font-size: $fs-label; color: $brand-primary; }
+.changelog-empty { padding: 32rpx 0; text-align: center; }
+.changelog-empty .empty-text { font-size: $fs-label; color: $text-hint; }
 
 /* 底部 */
 .footer { display: flex; flex-direction: column; align-items: center; padding: 48rpx 32rpx 40rpx; gap: 8rpx; }
