@@ -59,6 +59,7 @@
 	import api from '../../services/api';
 	import modalMixin from '../../mixins/modal-mixin';
 	import constants from '../../config/constants';
+	import manifest from '../../manifest.json';
 
 	export default {
 		components: { Loading },
@@ -66,7 +67,9 @@
 		data() {
 			return {
 				appName: '空调温控系统', appDesc: '广通电梯机房智能温控管理',
-			appVersion: '2.4.0', appVersionCode: '240', firmwareVersion: '',
+			appVersion: manifest.versionName || '2.4.0',
+			appVersionCode: String(manifest.versionCode || 240),
+			firmwareVersion: '',
 			updateChecking: false, updateResult: '',
 			changelogRaw: [], changelogLoading: true
 		};
@@ -78,18 +81,8 @@
 	},
 	onLoad() {
 		this.getFw();
-		this._readAppVersion();
 		this._fetchChangelog();
 	},
-	methods: {
-		_readAppVersion() {
-			try {
-				if (typeof plus !== 'undefined') {
-					this.appVersion = plus.runtime.version || '2.4.0';
-					this.appVersionCode = String(plus.runtime.versionCode || 240);
-				}
-			} catch (e) { }
-		},
 		async _fetchChangelog() {
 			try {
 				const res = await uni.request({
