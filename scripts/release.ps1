@@ -50,8 +50,11 @@ if ($ChangelogLines) {
 }
 
 # 4. 提交
-git -C $ProjectRoot add -A
-git -C $ProjectRoot commit -m "release: v$Version"
+$oldLoc = Get-Location
+Set-Location $ProjectRoot
+git add -A
+git commit -m "release: v$Version"
+Set-Location $oldLoc
 Write-Host "OK committed"
 
 Write-Host ""
